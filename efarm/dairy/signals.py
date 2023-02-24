@@ -46,3 +46,8 @@ def create_lactation(sender, instance, created, **kwargs):
     )
     lactation.save()
 
+@receiver(pre_save, sender=models.Milk)
+def assign_lactation(sender, instance, **kwargs):
+    cow = instance.cow
+    latest_lactation = cow.lactation_set.latest('start_date')
+    instance.lactation = latest_lactation
