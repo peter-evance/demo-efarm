@@ -51,3 +51,13 @@ def assign_lactation(sender, instance, **kwargs):
     cow = instance.cow
     latest_lactation = cow.lactation_set.latest('start_date')
     instance.lactation = latest_lactation
+    
+    
+@receiver(post_save, sender=models.Insemination)
+def create_pregnancy_from_succesful_insemination(sender, instance, **kwargs):
+    if instance.success and not instance.pregnancy:
+        pregnancy = models.Pregnancy.objects.create(cow=instance.cow, start_date=instance.date_of_insemination)
+        pregnancy.save()
+        
+        instance.pregnancy = pregnancy
+        instance.save()
