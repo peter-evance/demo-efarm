@@ -1,8 +1,8 @@
-# eFarm Django Project
+# efarm Django Project
 
 ## Introduction
 
-eFarm is a Django project designed to help farmers streamline their operations by providing a digital platform for precision agriculture. The project consists of three apps - Dairy, Poultry, and Swine. Each app has different models for managing data relevant to that sector of agriculture.
+efarm is a Django project designed to help farmers streamline their operations by providing a digital platform for precision agriculture. The project consists of mainly three apps - Dairy, Poultry, and Swine. Each app has different models for managing data relevant to that sector of agriculture.
 
 ## Installation
 
@@ -20,13 +20,4 @@ Once the development server is running, you can access the eFarm app on `http://
 
 ## Feedback
 
-I value your feedback on how we can improve the eFarm project.
-
-## Contributing
-
-I welcome contributions to the eFarm project. Please read [contribution guidelines](CONTRIBUTING.md) before submitting a pull request.
-
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+I value your feedback on how we can improve the efarm project.
