@@ -1,9 +1,6 @@
 from django.contrib import admin
 from .models import *
 
-class BreedAdmin(admin.ModelAdmin):
-    list_display= ("name",)
-
 class CowAdmin(admin.ModelAdmin):
     list_display= ("name", "breed", "tag_number", "milk_records","age", "date_of_birth", "gender" )
     list_display_links= ("name", "breed", "tag_number", "milk_records")
@@ -79,7 +76,6 @@ class DiseaseCategoryAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Cow, CowAdmin)
-admin.site.register(Breed, BreedAdmin)
 admin.site.register(Milk, MilkAdmin)
 admin.site.register(Pregnancy, PregnancyAdmin)
 admin.site.register(Lactation, LactationAdmin)
