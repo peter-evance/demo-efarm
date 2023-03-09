@@ -5,47 +5,54 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-
-class Breed(models.Model):
-    """stores information about breed"""
-    FRIESIAN, AYRSHIRE, JERSEY, CROSSBREED, GUERNSEY = 'Friesian','Ayrshire', 'Jersey', 'Crossbreed', 'Guernsey'
-    BREED_CHOICES = ((FRIESIAN, 'Friesian'),(AYRSHIRE, 'Ayrshire'),(JERSEY, 'Jersey'),(CROSSBREED, 'Crossbreed'),(GUERNSEY, 'Guernsey'),)
-    name = models.CharField(max_length=32, choices=BREED_CHOICES,unique=True)
-    
-    class Meta:
-        verbose_name = "Breed \U0001F41E"
-        verbose_name_plural = "Breeds \U0001F41E"
-    
-    def __str__(self):
-        return self.name.capitalize()
-     
 class Cow(models.Model):
-    """Stores information about cows"""
+    """
+    The Cow model represents a single cow in a dairy farm.
+    It contains information about the cow's breed, date of birth, sire, dam,
+    calf, gender, availability status, pregnancy status, and date of death (if applicable).
+    It also contains several properties, such as tag_number, parity,
+    age, and disease_count, that provide useful information about the cow
+    without needing to perform additional database queries.
+
+    Additionally, the Cow model includes several validation checks in the clean method
+    to ensure data consistency and prevent errors, 
+    such as ensuring that the cow's age is less than 7 years, that the cow is not already pregnant,
+    and that a date of death is specified if the cow's status is set to "Dead".
+
+    Overall, this model is an essential part of any dairy farm management system,
+    providing crucial information about each cow in the herd and helping to ensure
+    that the herd is well-maintained and productive.
+    """
+    GENDER_CHOICES = (('Male', 'Male'), ('Female', 'Female'))
+    STATUS_CHOICES = (('Alive', 'Alive'), ('Dead', 'Dead'), ('Sold', 'Sold'))
+    PREGNANCY_STATUS = (('Pregnant', 'Pregnant'),('Calved', 'Calved'),('Not Pregnant', 'Not Pregnant'))
+    BREED_CHOICES = (('Friesian', 'Friesian'),('Ayrshire', 'Ayrshire'),
+                     ('Jersey', 'Jersey'),('Crossbreed', 'Crossbreed'),('Guernsey', 'Guernsey'),)
     
-    STATUS_CHOICES = (('A', 'Alive'), ('D', 'Dead'), ('S', 'Sold'))
-    PREGNANCY_STATUS = (('P', 'Pregnant'),('C', 'Calved'),('N', 'Not Pregnant'))
-    
-    name = models.CharField(max_length=64, blank=True, null=True)
-    breed = models.ForeignKey(Breed, on_delete=models.PROTECT, related_name='breed')
-    date_of_birth = models.DateField(validators=[MaxValueValidator(date.today())],error_messages={'max_value': 'The date of birth cannot be in the future!.'})
-    sire = models.ForeignKey('self', on_delete=models.PROTECT, related_name='offspring',blank=True, null=True)
-    dam = models.ForeignKey('self', on_delete=models.PROTECT, related_name='calves',blank=True, null=True)
-    calf = models.ForeignKey('self', on_delete=models.PROTECT, related_name='dams', blank=True, null=True)
-    gender = models.CharField(max_length=1, choices=(('M', 'Male'), ('F', 'Female')), db_index=True)
-    availability_status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='A')
-    pregnancy_status = models.CharField(max_length=1, choices=PREGNANCY_STATUS, default='N')
-    date_of_death = models.DateField(validators=[MaxValueValidator(date.today())],error_messages={'max_value': 'The date of death cannot be in the future!.'}, blank=True, null=True)
+    # Restriction of duplicate fields need to be:
+    # Tweaking the on delete instances of the breed and foreign fields
     
     class Meta:
         verbose_name = "Cow \U0001F404"
         verbose_name_plural = "Cows \U0001F404"
     
+    name = models.CharField(max_length=64, blank=True, null=True)
+    breed = models.CharField(max_length=32, choices=BREED_CHOICES, db_index=True)
+    date_of_birth = models.DateField(validators=[MaxValueValidator(date.today())],error_messages={'max_value': 'The date of birth cannot be in the future!.'})
+    sire = models.ForeignKey('self', on_delete=models.PROTECT, related_name='offspring',blank=True, null=True)
+    dam = models.ForeignKey('self', on_delete=models.PROTECT, related_name='calves',blank=True, null=True)
+    calf = models.ForeignKey('self', on_delete=models.PROTECT, related_name='dams', blank=True, null=True)
+    gender = models.CharField(max_length=6, choices=GENDER_CHOICES, db_index=True)
+    availability_status = models.CharField(max_length=5, choices=STATUS_CHOICES, default='Alive')
+    pregnancy_status = models.CharField(max_length=12, choices=PREGNANCY_STATUS, default='Not Pregnant')
+    date_of_death = models.DateField(validators=[MaxValueValidator(date.today())],error_messages={'max_value': 'The date of death cannot be in the future!.'}, blank=True, null=True)
+    
     @property
     def tag_number(self):  
         year_of_birth = self.date_of_birth.strftime('%Y')
-        first_two_letters_of_breed = self.breed.name[:2].upper()
+        first_letter_of_breed = self.breed[:2].upper()
         counter = self.id  # The ID is auto-incremented and unique as django uniquely save objects by internal ids
-        return f'{first_two_letters_of_breed}-{year_of_birth}-{counter}'
+        return f'{first_letter_of_breed}-{year_of_birth}-{counter}'
    
     @property
     def parity(self):
@@ -96,8 +103,7 @@ class Cow(models.Model):
             raise ValidationError({'pregnancy_status': 'Dead cows can only have a "Not Pregnant" status'})
         
     def __str__(self):
-        return self.name
-    
+        return self.name 
 class Pregnancy(models.Model):
     """
     This model represents a pregnancy record for a cow. It tracks the start date, end date, due date, date of calving,
@@ -568,7 +574,7 @@ class Treatment(models.Model):
     duration = models.IntegerField(blank=True, null=True)
     notes = models.TextField(blank=True)
     treatment_method = models.TextField(max_length=200)
-    image = models.ImageField(upload_to='treatment_images/', blank=True, null=True)
+    # image = models.ImageField(upload_to='treatment_images/', blank=True, null=True)
     treatment_status = models.CharField(max_length=15, choices=TREATMENT_STATUS_CHOICES, default='scheduled')
     cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     
