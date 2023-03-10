@@ -1,0 +1,71 @@
+<div class="flex justify-center">
+  <div class="w-full max-w-md">
+
+    <h1 class="mb-4 text-center text-3xl font-extrabold leading-none tracking-tight text-gray-900 md:text-2xl lg:text-3xl dark:text-white">Editing Cow 🐄 {{ cow.tag_number }}</h1>
+
+
+
+    <form class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4" (ngSubmit)="onSubmit()">
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="name">Name:</label>
+        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" [(ngModel)]="cow.name" name="name" required>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="date_of_birth">Date of Birth:</label>
+        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="date" [(ngModel)]="cow.date_of_birth" name="date_of_birth" required>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="breed">Breed:</label>
+        <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                [(ngModel)]="cow.breed" name="breed" required>
+          <option *ngFor="let breed of breeds" [value]="breed">{{ breed }}</option>
+        </select>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="gender">Gender:</label>
+        <div>
+          <label class="inline-flex items-center">
+            <input type="radio" class="form-radio" [(ngModel)]="cow.gender" name="gender" value="Male" required>
+            <span class="ml-2">Male</span>
+          </label>
+          <label class="inline-flex items-center ml-6">
+            <input type="radio" class="form-radio" [(ngModel)]="cow.gender" name="gender" value="Female" required>
+            <span class="ml-2">Female</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="pregnancy_status">Pregnancy Status:</label>
+        <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" [(ngModel)]="cow.pregnancy_status" name="pregnancy_status" required>
+          <option value="Not Pregnant">Not Pregnant</option>
+          <option value="Pregnant">Pregnant</option>
+          <option value="Calved">Calved</option>
+        </select>
+      </div>
+
+      <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="availability_status">Availability Status:</label>
+            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" [(ngModel)]="cow.availability_status" name="availability_status required">
+                <option value="Alive">Alive</option>
+                <option value="Sold">Sold</option>
+                <option value="Dead">Dead</option>
+            </select>
+      </div>
+      <button class="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-red-200 via-red-300 to-yellow-200 group-hover:from-red-200 group-hover:via-red-300 group-hover:to-yellow-200 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400">
+        <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+            Update Cow
+        </span>
+      </button>
+    </form>
+  </div>
+</div>
+
+
+
+
+

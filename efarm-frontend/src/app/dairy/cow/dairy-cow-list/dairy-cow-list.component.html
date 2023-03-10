@@ -1,0 +1,50 @@
+<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">List of Cows in the Farm</h1>
+        <a routerLink="/dairy/cows/create" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">
+            Add New Cow
+        </a>
+    </div>
+    <div class="overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-6 py-3 font-semibold tracking-wider">
+                        Cow's Name
+                    </th>
+                    <th scope="col" class="px-6 py-3 font-semibold tracking-wider">
+                        Breed 
+                    </th>
+                    <th scope="col" class="px-6 py-3 font-semibold tracking-wider">
+                        Gender
+                    </th>
+                    <th scope="col" class="px-6 py-3 font-semibold tracking-wider">
+                        Age
+                    </th>
+                    <th scope="col" class="px-6 py-3 font-semibold tracking-wider">
+                        Tag Number
+                    </th>
+                </tr>
+            </thead>
+            <tbody *ngFor="let cow of cows">
+                <tr routerLink="{{cow.id}}" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                        {{cow.name}}
+                    </td>
+                    <td class="px-6 py-4">
+                        {{cow.breed}}
+                    </td>
+                    <td class="px-6 py-4">
+                        {{cow.gender }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {{cow.age }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {{cow.tag_number }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
