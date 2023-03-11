@@ -264,15 +264,44 @@ class Lactation(models.Model):
 
 class Milk(models.Model):
     """
-    The Milk model is a representation of a cow's milk production. It contains information about the milking time,
-    milking date, the cow that produced the milk, the amount of milk produced, and the lactation stage of the cow at the time of milking.
+    The `Milk` model is a representation of a cow's milk production.
+
+    ### Fields
+
+    - `milking_date`: The date and time the milk was collected.
+    - `cow`: The cow that produced the milk.
+    - `amount_in_kgs`: The amount of milk produced, in kilograms.
+    - `lactation`: The lactation stage of the cow at the time of milking.
+
+    ### Meta options
+
+    - `verbose_name`: The singular name of the model in the Django admin.
+    - `verbose_name_plural`: The plural name of the model in the Django admin.
+    - `constraints`: A list of database constraints for the model.
+
+    ### Methods
+
+    #### `__str__()`
+
+    Returns a string representation of the `Milk` object, showing the name of the cow and the milking date.
+
+    ### Validation
+
+    The `Milk` model includes validation to ensure that:
+
+    - The cow is not dead or sold.
+    - The cow is female and old enough to produce milk.
+    - The cow is currently in a stage of lactation (early, mid, or late).
+    - The amount of milk is greater than 0 and less than or equal to 35 kilograms.
+
+    If any of these conditions are not met, a `ValidationError` is raised.
+
     """
     class Meta:
         verbose_name = "Milk \U0001F95B"
         verbose_name_plural = "Milk \U0001F95B"
-        constraints = [
-            models.UniqueConstraint(fields=['cow', 'milking_date'], name='unique_milk_record'),
-        ]
+        constraints = [models.UniqueConstraint(
+            fields=['cow', 'milking_date'], name='unique_milk_record'),]
         
     milking_date = models.DateTimeField(auto_now_add=True)
     cow = models.ForeignKey(Cow, on_delete=models.CASCADE, related_name='milk')
@@ -282,9 +311,19 @@ class Milk(models.Model):
     lactation = models.ForeignKey(Lactation, on_delete=models.CASCADE, editable=False, null=True)
          
     def __str__(self):
+        """
+        Returns:
+            `str`: A string representation of the milk record.
+        """
         return f"Milk record of cow {self.cow.name} on {self.milking_date.strftime('%Y-%m-%d %H:%M:%S')}"
 
     def clean(self):
+        """
+        Validates the data before saving.
+
+        Raises:
+            `ValidationError`: If the data is not valid.
+        """
         cow = self.cow
         latest_lactation = self.cow.lactation_set.last()
         
@@ -292,28 +331,26 @@ class Milk(models.Model):
             raise ValidationError("Cannot add milk entry, cow has no active lactation")
         
         elif latest_lactation.lactation_stage == "Dry":
-            raise ValidationError("Cannot add milk entry, Cow has been dried off")
+            raise ValidationError("Cannot add milk entry, Cow has been off")
         
         elif latest_lactation.lactation_stage not in ["Early", "Mid", "Late"]:
             raise ValidationError("Cannot add milk entry, cow's active lactation is not in stages Early, Mid, or Late")
         
-        if cow.availability_status == "D":
+        if cow.availability_status == "Dead":
             raise ValidationError("Cannot add milk record for a dead cow.")
         
-        if cow.availability_status == "S":
+        if cow.availability_status == "Sold":
             raise ValidationError("Cannot add milk record for sold cow.")
         
         if cow.get_cow_age() < 21*30:
             raise ValidationError('Cow is less than 21 months old and should not have a milk record')
 
-        if cow.gender != "F":
+        if cow.gender != "Female":
             raise ValidationError("This cow is not female and cannot produce milk.")
 
         if self.amount_in_kgs <= 0:
             raise ValidationError("Amount in kgs should be greater than 0")
-        
-        # if self.milking_date > timezone.now():
-        #     raise ValidationError("Milking date cannot be in the future.")
+
 
 class WeightRecord(models.Model):
     class Meta:
