@@ -555,13 +555,36 @@ class Semen(models.Model):
 
 class Insemination(models.Model):
     """
-    The Insemination model represents a record of an insemination event for a cow.
-    It captures the date of insemination, the cow that was inseminated, the pregnancy that resulted from the insemination (if successful),
-    notes about the insemination, and the inseminator that performed the insemination.
+    The `Insemination` model represents a record of an insemination event for a cow. 
+
+    ### Fields
+        - `date_of_insemination` - A DateField that represents the date on which the insemination was performed. This field is required and is validated to ensure that the date is not in the future.
+        - `cow` - A ForeignKey to the Cow model that represents the cow that was inseminated. This field is required and is protected against deletion.
+        - `pregnancy` - A ForeignKey to the Pregnancy model that represents the pregnancy resulting from the insemination (if successful). This field is not editable, blank and null is allowed.
+        - `success` - A BooleanField that represents whether the insemination was successful or not. This field is optional and defaults to False.
+        - `notes` - A TextField that allows the user to add any additional notes about the insemination. This field is optional.
+        - `inseminator` - A ForeignKey to the Inseminator model that represents the person who performed the insemination. This field is optional and is protected against deletion.
+        - `semen` - A ForeignKey to the Semen model that represents the semen used for the insemination. This field is optional and is protected against deletion.
+    
+    ### Properties
+    `days_since_insemination` - A read-only property that calculates the number of days elapsed since the insemination event.
+    
+    ### Methods
+    - `clean` - A method that is automatically called by Django when the model is validated. It checks that:
+        - The cow is alive.
+        - The cow is not already pregnant.
+        - The cow has been in heat within the last 31 days.
+        - The cow is not less than 12 months old.
+        - The cow is not inseminated within 21 days.
+
+    - `__str__()` - returns a string representation of the model instance
+
     """
     class Meta:
         verbose_name = "AI Record \U0001F4C6"
         verbose_name_plural = "AI Records \U0001F4C6"
+        ordering = ['-date_of_insemination']
+        unique_together = ('cow', 'date_of_insemination')
         
     date_of_insemination = models.DateField(validators=[MaxValueValidator(date.today())], error_messages={"max_value":"Invalid date entry, Dates must not be in future"})
     cow = models.ForeignKey(Cow, on_delete=models.PROTECT)
@@ -577,30 +600,24 @@ class Insemination(models.Model):
         Calculates the number of days elapsed since the insemination event.
         """
         elapsed_time = timezone.now().date() - self.date_of_insemination
-        print(elapsed_time)
         return f"{elapsed_time.days} days"
     
     def __str__(self):
         return f"Insemination record for cow {self.cow.tag_number} on {self.date_of_insemination}"
 
     def clean(self):
-        # Check 1: Ensure that the cow is alive
-        if self.cow.availability_status == 'D':
+        if self.cow.availability_status == 'Dead':
             raise ValidationError('Cannot inseminate a dead cow.')
         
-        # Check 2: Ensure that the cow is not already pregnant
-        if self.cow.pregnancy_status == 'P':
+        if self.cow.pregnancy_status == 'Pregnant':
             raise ValidationError('Cannot inseminate a cow that is already pregnant.')
 
-        # Check 3: Ensure that the cow has been in heat within the last 3 days
         if not Heat.objects.filter(cow=self.cow, observation_time__range=(self.date_of_insemination - timedelta(days=3), self.date_of_insemination + timedelta(days=3))).exists():
             raise ValidationError('Cow must be in heat at the time of insemination.')
         
-        # Check 4: Ensure that the cow is not less than 12 months old
         if self.cow.get_cow_age() < 350:
             raise ValidationError('Cow must be at least 12 months old to be inseminated.')
         
-        # # Check 5: Ensure that the cow is not inseminated within 21 days
         if self.cow.insemination_set.filter(date_of_insemination__range=(timezone.now() - timedelta(days=21), timezone.now())).exists():
             raise ValidationError('Cow cannot be inseminated within 21 days of a previous insemination.')
 
