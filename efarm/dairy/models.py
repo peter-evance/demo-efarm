@@ -463,7 +463,6 @@ class Heat(models.Model):
         if self.cow.get_cow_age() < 300:
             raise ValidationError('Cow must be at least 10 months old to be in heat.')
 
-
 class Inseminator(models.Model):
     """
     ## Inseminator Model
@@ -510,8 +509,33 @@ class Inseminator(models.Model):
            
 class Semen(models.Model):
     """
-    This model represents the semen records of a cow. It contains information about the inseminator who produced the semen, the producer of the semen, the semen batch number, the date of production, the date of storage and the expiration date.
-    It also allows for notes to be added to the record.
+    ## Semen Model
+
+    A model representing the semen records of a cow.
+
+    ### Fields
+
+    - `inseminator` - a foreign key to the `Inseminator` model representing the inseminator who produced the semen
+    - `producer` - a string representing the producer of the semen
+    - `semen_batch` - a string representing the semen batch number
+    - `date_of_production` - a `DateField` representing the date of production of the semen
+    - `date_of_expiry` - a `DateField` representing the date of expiry of the semen
+    - `notes` - a `TextField` for adding notes to the record
+
+    ### Meta
+
+    - `verbose_name` - a string representing the singular name of the model in the Django admin interface
+    - `verbose_name_plural` - a string representing the plural name of the model in the Django admin interface
+
+    ### Validation
+
+    - `date_of_production` - a validator ensuring that the date is not in the future
+    - `date_of_expiry` - a validator ensuring that the date is in the future
+
+    ### Methods
+
+    - `__str__()` - returns a string representation of the model instance
+
     """
     class Meta:
         verbose_name = "Semen \U0001F4A5"
@@ -526,6 +550,7 @@ class Semen(models.Model):
     notes = models.TextField(blank=True)
     
     def __str__(self):
+        """Returns a string representation of the model instance."""
         return f"Semen batch {self.semen_batch} produced by {self.producer} on {self.date_of_production}"
 
 class Insemination(models.Model):
