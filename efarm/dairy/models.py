@@ -466,9 +466,30 @@ class Heat(models.Model):
 
 class Inseminator(models.Model):
     """
-    The Inseminator model is used to store information about the inseminators that are used in the farm.
-    Inseminators are responsible for artificially inseminating cows in the farm.
-    """ 
+    ## Inseminator Model
+
+    A model representing an inseminator used in the farm.
+
+    ### Fields
+
+    - `name` - a `CharField` representing the name of the inseminator
+    - `company` - a `CharField` representing the company name of the inseminator (optional)
+    - `license_number` - a `CharField` representing the license number of the inseminator (unique)
+    - `phone_number` - a `CharField` representing the phone number of the inseminator (optional)
+    - `email` - an `EmailField` representing the email of the inseminator
+    - `address` - a `CharField` representing the address of the inseminator (optional)
+    - `notes` - a `TextField` representing any notes related to the inseminator (optional)
+
+    ### Meta
+
+    - `verbose_name` - a string representing the singular name of the model in the Django admin interface
+    - `verbose_name_plural` - a string representing the plural name of the model in the Django admin interface
+
+    ### Methods
+
+    - `__str__()` - returns a string representing the inseminator in the format "name (company)"
+
+    """
     class Meta:
         verbose_name = "AI Technician \U0001F3AF"
         verbose_name_plural = "AI Technicians \U0001F3AF"
@@ -482,6 +503,9 @@ class Inseminator(models.Model):
     notes = models.TextField(blank=True)
 
     def __str__(self):
+        """
+        Returns a string representing the inseminator in the format "name (company)"
+        """
         return f'{self.name} ({self.company})'
            
 class Semen(models.Model):
