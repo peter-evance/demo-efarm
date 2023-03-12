@@ -205,7 +205,34 @@ class Pregnancy(models.Model):
 
 class Lactation(models.Model):
     """
+    ## Lactation Model
+
     A model representing a lactation period of a cow.
+
+    ### Fields
+
+    - `start_date` - a `DateField` representing the start date of the lactation period
+    - `end_date` - a `DateField` representing the end date of the lactation period
+    - `cow` - a foreign key to the `Cow` model representing the cow associated with this lactation period
+    - `lactation_number` - a `PositiveSmallIntegerField` representing the lactation number for this period
+    - `pregnancy` - a foreign key to the `Pregnancy` model representing the pregnancy associated with this lactation period
+
+    ### Meta
+
+    - `verbose_name` - a string representing the singular name of the model in the Django admin interface
+    - `verbose_name_plural` - a string representing the plural name of the model in the Django admin interface
+    - `unique_together` - a tuple of field names that must be unique together
+    - `get_latest_by` - a string representing the field to use for retrieving the latest record
+
+    ### Properties
+
+    - `lactation_stage` - a string representing the current stage of the lactation period based on the number of days in lactation
+    - `lactation_duration` - a string representing the duration of the lactation period in days
+    - `end_date_` - a string representing the end date of the lactation period formatted as YYYY-MM-DD, or "Ongoing" if the lactation period is ongoing
+
+    ### Methods
+
+    - `days_in_lactation()` - returns the number of days in the lactation period
     """
     class Meta:
         verbose_name = "Lactation \U0001F37C"
@@ -232,6 +259,9 @@ class Lactation(models.Model):
 
     @property
     def lactation_stage(self):
+        """
+        Returns a string representing the current stage of the lactation period based on the number of days in lactation.
+        """
         days = self.days_in_lactation()
         
         if self.end_date:
@@ -247,6 +277,9 @@ class Lactation(models.Model):
 
     @property
     def lactation_duration(self):
+        """
+        Returns a string representing the duration of the lactation period in days.
+        """
         if self.end_date and self.start_date:
             return f"{(self.end_date - self.start_date).days} days"
         else:
