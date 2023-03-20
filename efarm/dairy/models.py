@@ -104,10 +104,50 @@ class Cow(models.Model):
         
     def __str__(self):
         return self.name 
+
 class Pregnancy(models.Model):
     """
-    This model represents a pregnancy record for a cow. It tracks the start date, end date, due date, date of calving,
-    pregnancy status, sire, pregnancy notes, calving notes, pregnancy scan date, artificial insemination and pregnancy outcome.
+    This model represents a pregnancy record for a cow.
+
+    ### Fields:
+
+    - `cow`: a foreign key to the Cow model, representing the cow that is pregnant
+    - `start_date`: a date field representing the start date of the pregnancy
+    - `date_of_calving`: a date field representing the date of calving (i.e., when the cow gives birth)
+    - `pregnancy_status`: a character field with a max length of 1, representing the pregnancy status. 
+    - `pregnancy_notes`: a text field representing any notes related to the pregnancy
+    - `calving_notes`: a text field representing any notes related to the calving process
+    - `pregnancy_scan_date`: a date field representing the date of the pregnancy scan (if any)
+    - `pregnancy_failed_date`: a date field representing the date when the pregnancy failed (if applicable)
+    - `pregnancy_outcome`: a character field with a max length of 1, representing the outcome of the pregnancy. 
+    ### Properties:
+
+     - `pregnancy_duration`: returns the duration of the pregnancy in days (if the date of calving is known).
+     - `due_date`: returns the due date of the pregnancy (if the start date is known).
+    ### Methods:
+
+        - `latest_lactation_stage()`: returns the lactation stage of the cow's latest lactation (if any).
+        - `clean()`: performs validation on the model fields to ensure data integrity. The following validations are performed:
+
+            - The cow must be at least 1 year old to be pregnant.
+            - The pregnancy status must be 'Confirmed' if a date of calving is provided.
+            - The date of calving cannot be in the future.
+            - Cannot add a pregnancy record for a dead or sold cow.
+            - This cow cannot already be pregnant.
+            - This is a female cow.
+            - The date of calving must be after the start date.
+            - A pregnancy scan date must be after the start date.
+            - A pregnancy scan date must be before the due date.
+            - Pregnancy status must be 'Confirmed' if the pregnancy outcome is provided.
+            - Date of calving must be provided if pregnancy outcome is 'Live'.
+            - Start date cannot be in the future.
+            - Pregnancy scan date cannot be in the future.
+            - A pregnancy failed date must be provided when pregnancy status is 'Failed'.
+            - Pregnancy failed date cannot be in the future.
+            - Pregnancy failed date cannot be before the start date.
+            - Pregnancy status must be 'Failed' if the pregnancy outcome is 'Miscarriage'.
+            - Pregnancy status must be 'Confirmed' if the pregnancy outcome is 'Live'.
+            - Date of calving must be provided if the pregnancy outcome is 'Live'.
     """
     class Meta:
         verbose_name = "Pregnancies \U0001F930"
@@ -116,49 +156,57 @@ class Pregnancy(models.Model):
     cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name='pregnancies')
     start_date = models.DateField()
     date_of_calving = models.DateField(null=True, blank=True)
-    pregnancy_status = models.CharField(max_length=1, choices=(('C', 'Confirmed'), ('U', 'Unconfirmed'), ('F', 'Failed')), default='U')
+    pregnancy_status = models.CharField(max_length=11, choices=(('Confirmed', 'Confirmed'), ('Unconfirmed', 'Unconfirmed'), ('Failed', 'Failed')), default='Unconfirmed')
     pregnancy_notes = models.TextField(blank=True)
     calving_notes = models.TextField(blank=True)
     pregnancy_scan_date = models.DateField(null=True, blank=True)
     pregnancy_failed_date = models.DateField(validators=[MaxValueValidator(date.today())],error_messages={'max_value': 'Future records not allowed!.'}, blank=True, null=True)
-    is_pregnant = models.BooleanField(default=True, editable=False)
-    pregnancy_outcome = models.CharField(max_length=1, choices=(('L', 'Live'), ('S', 'Stillborn'), ('M', 'Miscarriage')), blank=True, null=True)
+    pregnancy_outcome = models.CharField(max_length=11, choices=(('Live', 'Live'), ('Stillborn', 'Stillborn'), ('Miscarriage', 'Miscarriage')), blank=True, null=True)
     
     @property
     def pregnancy_duration(self):
-        if self.start_date and self.date_of_calving:
+        if self.date_of_calving and self.date_of_calving:
             return f"{(self.date_of_calving - self.start_date).days} days"
         else:
-            return None    
+            return None
     
     @property
     def due_date(self):
         if self.date_of_calving and self.start_date:
             return "Ended"
         elif self.start_date:
-            return self.start_date + timedelta(days=270)
+            return self.start_date + timedelta(days=260)
+             
+    def latest_lactation_stage(self):
+        latest_lactation = self.cow.lactation_set.order_by('-start_date').first()
+        if latest_lactation:
+            return latest_lactation.lactation_stage
+        else:
+            return "No lactation"
+
+    latest_lactation_stage.short_description = 'Lactation stage'
 
     def clean(self):
         cow = self.cow
         if cow.get_cow_age() < 350:
             raise ValidationError("This cow must have the pregnancy threshold age of 1 year")
         
-        if self.date_of_calving and self.pregnancy_status != 'C':
+        if self.date_of_calving and self.pregnancy_status != 'Confirmed':
             raise ValidationError("Pregnancy status must be 'Confirmed' if a date of calving is provided.")
         
         if self.date_of_calving and self.date_of_calving > timezone.now().date():
             raise ValidationError("Date of calving can not be in the future.")
         
-        if cow.availability_status == "D":
+        if cow.availability_status == "Dead":
             raise ValidationError("Cannot add pregnancy record for a dead cow.")
         
-        if cow.availability_status == "S":
+        if cow.availability_status == "Sold":
             raise ValidationError("Cannot add pregnancy record for sold cow.")
         
-        if cow.pregnancy_status == "P":
-            raise ValidationError("This cow is already pregnant!")
+        # if cow.pregnancy_status == "P":
+        #     raise ValidationError("This cow is already pregnant!")
         
-        if cow.gender == "M":
+        if cow.gender == "Male":
             raise ValidationError("This is a male cow!")
         
         # if self.start_date and self.due_date and self.start_date > self.due_date:
@@ -173,13 +221,13 @@ class Pregnancy(models.Model):
         if self.pregnancy_scan_date and self.start_date and self.pregnancy_scan_date < self.start_date:
             raise ValidationError("Pregnancy scan date must be after start date.")
         
-        if self.pregnancy_scan_date and self.due_date and self.pregnancy_scan_date > self.due_date:
-            raise ValidationError("Pregnancy scan date must be before due date.")
+        # if self.pregnancy_scan_date and self.due_date and self.pregnancy_scan_date > self.due_date:
+        #     raise ValidationError("Pregnancy scan date must be before due date.")
         
-        if self.pregnancy_outcome == 'L' and self.pregnancy_status != 'C':
+        if self.pregnancy_outcome == 'Live' and self.pregnancy_status != 'Confirmed':
             raise ValidationError("Pregnancy status must be 'Confirmed' if pregnancy outcome is provided.")
         
-        if self.pregnancy_outcome == 'L' and not self.date_of_calving:
+        if self.pregnancy_outcome == 'Live' and not self.date_of_calving:
             raise ValidationError("Date of calving must be provided if pregnancy outcome is 'Live'.")
         
         if self.start_date and self.start_date > timezone.now().date():
@@ -188,7 +236,7 @@ class Pregnancy(models.Model):
         if self.pregnancy_scan_date and self.pregnancy_scan_date > timezone.now().date():
             raise ValidationError("Pregnancy scan date cannot be in the future.")
         
-        if self.pregnancy_status == 'F' and not self.pregnancy_failed_date:
+        if self.pregnancy_status == 'Failed' and not self.pregnancy_failed_date:
             raise ValidationError("A pregnancy failed date must be provided when pregnancy status is 'Failed'.")
         
         if self.pregnancy_failed_date and self.pregnancy_failed_date > timezone.now().date():
@@ -197,12 +245,18 @@ class Pregnancy(models.Model):
         if self.pregnancy_failed_date and self.pregnancy_failed_date < self.start_date:
             raise ValidationError("Pregnancy failed date cannot be before start date.")
         
-        if self.pregnancy_outcome == 'M' and self.pregnancy_status != 'F':
-            raise ValidationError("Pregnancy status must be 'Failed' if pregnancy outcome is 'Miscarriage'.")
-        
-        if self.pregnancy_outcome == 'S' and self.pregnancy_status != 'C':
-            raise ValidationError("Pregnancy status must be 'Confirmed' if pregnancy outcome is 'Stillborn'.")
+        if self.pregnancy_outcome == 'Miscarriage' and self.pregnancy_status != 'Failed':
+            raise ValidationError("Pregnancy status must be 'Failed' if pregnancy outcome is a 'Miscarriage'.")
 
+
+    # def save(self, *args, **kwargs):
+    #     if self.pk is None:
+    #         self.cow.pregnancy_status = 'Pregnant'
+    #     elif self.date_of_calving is not None and self.cow.pregnancy_status == 'Pregnant':
+    #         # existing instance with date of calving being set, update status to 'C'
+    #         self.cow.pregnancy_status = 'Calved'
+        
+    #     super().save(*args, **kwargs)
 class Lactation(models.Model):
     """
     ## Lactation Model
@@ -383,7 +437,6 @@ class Milk(models.Model):
 
         if self.amount_in_kgs <= 0:
             raise ValidationError("Amount in kgs should be greater than 0")
-
 
 class WeightRecord(models.Model):
     class Meta:
