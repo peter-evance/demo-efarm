@@ -1,0 +1,52 @@
+<div *ngIf="milk" class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">{{ milk.cow.tag_number }} Milk Record</h1>
+    
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+      <div class="bg-white overflow-hidden shadow-md sm:rounded-lg px-4 py-5">
+        <div class="text-sm font-medium text-gray-500 uppercase">Cow Breed</div>
+        <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{{ milk.cow_breed }}</div>
+      </div>
+  
+      <div class="bg-white overflow-hidden shadow-md sm:rounded-lg px-4 py-5">
+        <div class="text-sm font-medium text-gray-500 uppercase">Lactation Stage</div>
+        <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{{ milk.lactation.lactation_stage }}</div>
+      </div>
+  
+      <div class="bg-white overflow-hidden shadow-md sm:rounded-lg px-4 py-5">
+        <div class="text-sm font-medium text-gray-500 uppercase">Lactation Number</div>
+        <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{{ milk.lactation.lactation_number }}</div>
+      </div>
+  
+      <div class="bg-white overflow-hidden shadow-md sm:rounded-lg px-4 py-5">
+        <div class="text-sm font-medium text-gray-500 uppercase">Lactation Duration</div>
+        <div class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{{ milk.lactation.lactation_duration }}</div>
+      </div>
+    </div>
+  
+    <div class="mt-8 overflow-x-auto shadow-md sm:rounded-lg">
+      <div class="px-6 py-3 font-semibold text-gray-500 dark:text-gray-400">
+        Milking Record
+      </div>
+      <div class="px-4 py-5 sm:p-6 bg-white dark:bg-gray-800 dark:border-gray-700 sm:rounded-lg">
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <div class="text-sm font-medium text-gray-500 uppercase">Cow's Name</div>
+          <div class="text-lg font-semibold text-gray-900 dark:text-white">{{ milk.cow_tag_number }}</div>
+  
+          <div class="text-sm font-medium text-gray-500 uppercase">Milking Date</div>
+          <div class="text-lg font-semibold text-gray-900 dark:text-white">{{ milk.milking_date | date: 'mediumDate' }}</div>
+  
+          <div class="text-sm font-medium text-gray-500 uppercase">Amount (kg)</div>
+          <div class="text-lg font-semibold text-gray-900 dark:text-white">{{ milk.amount_in_kgs }}</div>
+        </div>
+      </div>
+      <div class="mt-8">
+        <button class="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 dark:shadow-lg dark:shadow-red-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2" (click)="onDelete()">Delete Record</button>
+        <button routerLink="/dairy/milk/update/{{milk.id}}" class="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-red-200 via-red-300 to-yellow-200 group-hover:from-red-200 group-hover:via-red-300 group-hover:to-yellow-200 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400">
+            <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                Update Record
+            </span>
+        </button>
+      </div>
+    </div>
+  </div>
+  

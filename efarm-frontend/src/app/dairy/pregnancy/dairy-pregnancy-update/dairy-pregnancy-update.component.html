@@ -1,0 +1,70 @@
+<div class="bg-gray-100 dark:bg-gray-800 min-h-screen">
+  <div class="py-16">
+    <div class="mx-auto max-w-lg px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+      <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Pregnancy Information</h2>
+      <form (ngSubmit)="onSubmit()" #pregnancyForm="ngForm" class="mt-8 bg-white dark:bg-gray-900 shadow-md rounded-lg overflow-hidden">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="grid grid-cols-6 gap-6">
+            <div class="col-span-6 sm:col-span-3">
+              <label for="cow_id" class="block text-sm font-medium text-gray-700 dark:text-white">Cow</label>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <input type="text" id="cow_id" name="cow_id" value="{{ pregnancy.cow_tag_number }}" disabled class="form-input py-3 px-4 block w-full rounded-md transition duration-150 ease-in-out sm:text-sm sm:leading-5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+              </div>
+            </div>
+            <div class="col-span-6 sm:col-span-3">
+              <label for="start_date" class="block text-sm font-medium text-gray-700 dark:text-white">Start Date</label>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <input type="text" id="start_date" name="start_date" [ngModel]="pregnancy.start_date" disabled class="form-input py-3 px-4 block w-full rounded-md transition duration-150 ease-in-out sm:text-sm sm:leading-5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+              </div>
+            </div>
+            <div class="col-span-6 sm:col-span-3">
+              <label for="pregnancy_status" class="block text-sm font-medium text-gray-700 dark:text-white">Pregnancy Status</label>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <select id="pregnancy_status" name="pregnancy_status" [(ngModel)]="pregnancy.pregnancy_status" class="form-select py-3 px-4 block w-full rounded-md transition duration-150 ease-in-out sm:text-sm sm:leading-5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  <option value="">-- Select Pregnancy Status --</option>
+                  <option *ngFor="let status of pregnancyStatuses" [value]="status">{{ status }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-span-6 sm:col-span-3">
+              <label for="date_of_calving" class="block text-sm font-medium text-gray-700 dark:text-white">Date of Calving</label>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <input type="date" class="form-input py-3 px-4 block w-full rounded-md transition duration-150 ease-in-out sm:text-sm sm:leading-5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500" 
+                  id="date_of_calving" name="date_of_calving" 
+                  [ngModel]="pregnancy.date_of_calving | date:'yyyy/MM/dd'">
+              </div>
+            </div>
+            
+            <div class="col-span-6 sm:col-span-3">
+              <label for="pregnancy_scan_date" class="block text-sm font-medium text-gray-700 dark:text-white">Pregnancy Scan Date</label>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <input type="date" class="form-input py-3 px-4 block w-full rounded-md transition duration-150 ease-in-out sm:text-sm sm:leading-5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500" id="pregnancy_scan_date" name="pregnancy_scan_date" [ngModel]="pregnancy.pregnancy_scan_date">
+              </div>
+            </div>
+            <div class="col-span-6 sm:col-span-3">
+              <label for="pregnancy_failed_date" class="block text-sm font-medium text-gray-700 dark:text-white">Pregnancy Failed Date</label>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <input type="date" class="form-input py-3 px-4 block w-full rounded-md transition duration-150 ease-in-out sm:text-sm sm:leading-5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500" id="pregnancy_failed_date" name="pregnancy_failed_date" [ngModel]="pregnancy.pregnancy_failed_date">
+              </div>
+            </div>
+            <div class="col-span-6 sm:col-span-3">
+              <label for="pregnancy_outcome" class="block text-sm font-medium text-gray-700 dark:text-white">Pregnancy Outcome</label>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <select id="pregnancy_outcome" name="pregnancy_come" [(ngModel)]="pregnancy.pregnancy_outcome" class="form-select py-3 px-4 block w-full rounded-md transition duration-150 ease-in-out sm:text-sm sm:leading-5 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                  <option value="">-- Select Pregnancy Status --</option>
+                  <option *ngFor="let status of pregnancyOutcomes" [value]="status">{{ status }}</option>
+                </select>
+              </div>
+            </div>
+            <button class="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-red-200 via-red-300 to-yellow-200 group-hover:from-red-200 group-hover:via-red-300 group-hover:to-yellow-200 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400">
+              <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                  Update Cow
+              </span>
+            </button>
+        </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+  

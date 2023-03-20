@@ -35,6 +35,9 @@ export class DairyCowCreateComponent implements OnInit {
         // Add the new cow to the list of cows displayed in the component
         this.cows.push(createdCow);
         this.router.navigate(['/dairy/cows']);
+  
+        // Reset the newCow object to clear the form
+        // this.newCow = new Cow();
       });
   }
 }

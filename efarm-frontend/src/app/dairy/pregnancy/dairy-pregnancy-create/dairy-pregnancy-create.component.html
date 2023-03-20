@@ -1,0 +1,37 @@
+<h2 class="text-xl font-bold mb-4">Create a Pregnancy</h2>
+
+<form (ngSubmit)="createPregnancy()" #pregnancyForm="ngForm" class="max-w-lg mx-auto">
+  <div class="mb-4">
+    <label for="cow" class="block font-bold mb-2">Cow:</label>
+    <select id="cow" name="cow" [(ngModel)]="pregnancy.cow" required class="w-full border border-gray-400 p-2 rounded">
+      <option *ngFor="let cow of cows" [value]="cow.id">{{cow.name}}</option>
+    </select>
+  </div>
+  <div class="mb-4">
+    <label for="start_date" class="block font-bold mb-2">Start Date:</label>
+    <input type="date" id="start_date" name="start_date" [(ngModel)]="pregnancy.start_date" required class="w-full border border-gray-400 p-2 rounded">
+  </div>
+  <div class="mb-4">
+    <label class="block font-bold mb-2">Pregnancy Status:</label>
+    <div class="flex">
+      <label for="confirmed" class="mr-4">
+        <input type="radio" id="confirmed" name="pregnancy_status" [(ngModel)]="pregnancy.pregnancy_status" [value]="'Confirmed'" required class="mr-2"> Confirmed
+      </label>
+      <label for="unconfirmed" class="mr-4">
+        <input type="radio" id="unconfirmed" name="pregnancy_status" [(ngModel)]="pregnancy.pregnancy_status" [value]="'Unconfirmed'" required class="mr-2"> Unconfirmed
+      </label>
+      <label for="failed" class="mr-4">
+        <input type="radio" id="failed" name="pregnancy_status" [(ngModel)]="pregnancy.pregnancy_status" [value]="'Failed'" required class="mr-2"> Failed
+      </label>
+    </div>
+  </div>
+  <div class="mb-4">
+    <label for="pregnancy_notes" class="block font-bold mb-2">Pregnancy Notes:</label>
+    <textarea id="pregnancy_notes" name="pregnancy_notes" [(ngModel)]="pregnancy.pregnancy_notes" class="w-full border border-gray-400 p-2 rounded"></textarea>
+  </div>
+  <div class="mb-4">
+    <label for="calving_notes" class="block font-bold mb-2">Calving Notes:</label>
+    <textarea id="calving_notes" name="calving_notes" [(ngModel)]="pregnancy.calving_notes" class="w-full border border-gray-400 p-2 rounded"></textarea>
+  </div>
+  <button type="submit" [disabled]="pregnancyForm.invalid" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed">Save</button>
+</form>

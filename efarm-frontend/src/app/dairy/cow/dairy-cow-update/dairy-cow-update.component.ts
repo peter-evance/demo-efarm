@@ -19,14 +19,15 @@ export class DairyCowUpdateComponent implements OnInit {
     'Ayrshire',
   ];
 
-  constructor(private route: ActivatedRoute, private cowService: CowService,private router: Router) {
+  constructor(private route: ActivatedRoute, private cowService: CowService,
+    private router: Router) {
     const cowIdParam = this.route.snapshot.paramMap.get('id');
     if (cowIdParam !== null) {
       this.cowId = parseInt(cowIdParam, 10);
     }
   }
   
-
+ 
   ngOnInit() {
     this.cowService.getCows(this.cowId).subscribe((cow) => {
       this.cow = cow;

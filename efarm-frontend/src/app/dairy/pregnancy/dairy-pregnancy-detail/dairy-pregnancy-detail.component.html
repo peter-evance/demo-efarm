@@ -1,0 +1,19 @@
+<div>Log it</div>
+
+
+<div *ngIf="pregnancy">
+    <h2>Pregnancy Details</h2>
+    <p>ID: {{ pregnancy.id }}</p>
+    <p>Cow ID: {{ pregnancy.cow.id }}</p>
+    <p>Start Date: {{ pregnancy.start_date }}</p>
+    <p>Date of Calving: {{ pregnancy.date_of_calving || 'N/A' }}</p>
+    <p>Pregnancy Status: {{ pregnancy.pregnancy_status }}</p>
+    <p>Pregnancy Notes: {{ pregnancy.pregnancy_notes || 'N/A' }}</p>
+    <p>Calving Notes: {{ pregnancy.calving_notes || 'N/A' }}</p>
+    <p>Pregnancy Scan Date: {{ pregnancy.pregnancy_scan_date || 'N/A' }}</p>
+    <p>Pregnancy Failed Date: {{ pregnancy.pregnancy_failed_date || 'N/A' }}</p>
+    <p>Pregnancy Outcome: {{ pregnancy.pregnancy_outcome || 'N/A' }}</p>
+    <p>Pregnancy Duration: {{ pregnancy.pregnancy_duration || 'N/A' }}</p>
+    <p>Due Date: {{ pregnancy.due_date || 'N/A' }}</p>
+    <p>Lactation Stage: {{ pregnancy.lactation_stage || 'N/A' }}</p>
+  </div>

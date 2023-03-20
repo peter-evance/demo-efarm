@@ -1,0 +1,36 @@
+<div class="min-h-screen bg-milk bg-cover bg-center flex items-center justify-center" style="background-image: url('https://media.giphy.com/media/4KEWSNWo2O53QveSxj/giphy.gif');">
+  <div class="bg-white rounded-lg shadow-lg p-8 mx-4 md:w-1/2 lg:w-1/3">
+    <h2 class="text-2xl font-bold mb-4">Add Milk Record</h2>
+    <form (ngSubmit)="onSubmit()" >
+      <div class="form-group mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="cow">Cow</label>
+        <!-- <select class="form-control shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="cow" name="cow" [(ngModel)]="newMilk.cow">
+          <option *ngFor="let cow of cows" [value]="cow.id">{{ cow.name }}</option>
+        </select> -->
+        <select class="form-control shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="cow" name="cow" [(ngModel)]="newMilk.cow">
+          <option *ngFor="let cow of cows" [ngValue]="cow.id">{{ cow.name }}</option>
+        </select>
+        
+      </div>
+      <div class="form-group mb-4">
+        <label class="block text-gray-700 font-bold mb-2" for="amount">Amount</label>
+        <input type="number" class="form-control shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="amount" name="amount" [(ngModel)]="newMilk.amount_in_kgs">
+      </div>
+      <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+    </form>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
