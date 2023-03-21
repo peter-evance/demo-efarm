@@ -167,8 +167,7 @@ class CowsMilkedTodayView(APIView):
         milked_cows = milking_cows.count()
 
         return Response({
-            'cows_milked_today': milked_cows,
-        })
+            'cows_milked_today': milked_cows,})
 
 class MilkProductionWeeklyView(APIView):
     def get(self, request, format=None):
