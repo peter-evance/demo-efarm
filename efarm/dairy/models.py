@@ -445,24 +445,24 @@ class Milk(models.Model):
 
 class Heat(models.Model):
     """
-    The Heat model represents a record of a cow being in heat. It is associated with a Cow model through a ForeignKey
-    relationship.
+    A model representing a heat record for a cow.
 
-    Attributes:
-    observation_time (datetime): The date and time when the heat was observed
-    cow (ForeignKey): The cow that is in heat
+    #### Fields:
+    - observation_time: The date and time the heat was observed.
+    - cow: The cow that the heat record is associated with.
 
-    Methods:
-    str(self): Returns a string representation of the heat record in the format "Heat record for cow {cow_tag_number} on {observation_time}"
-    clean(self): Validates the data before saving. It checks for the following conditions:
-    1. observation time is not in the future
-    2. cow is not already pregnant
-    3. cow is not already in heat
-    4. cow is alive
-    5. cow is female
-    6. cow is not calved in the last 60 days
-    7. cow is not in heat within 21 days
-    8. cow is not less than 9 months old
+    #### Methods:
+    - __str__: Returns a string representation of the heat record.
+
+    #### Validations:
+    - observation_time must be in the past.
+    - cow must not be pregnant.
+    - cow must not already be in heat within the past 2 days.
+    - cow must not be dead.
+    - cow must be female.
+    - cow must not be in heat within 21 days of previous heat observation.
+    - cow must be at least 6 months old to be in heat.
+    - cow must not be in heat within 60 days after calving.
     """
     class Meta:
         verbose_name = "Heat \U0001F525"
