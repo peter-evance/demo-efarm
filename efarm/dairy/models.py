@@ -103,7 +103,7 @@ class Cow(models.Model):
         
         cow_age = (self.get_cow_age())/365
         if cow_age > 7:
-            raise ValidationError('Cow cannot be older than 7 years!')
+            raise ValidationError("Cow cannot be older than 7 years!")
 
         if self.availability_status == 'Dead':
             if not self.date_of_death:
@@ -112,13 +112,13 @@ class Cow(models.Model):
                 raise ValidationError("Date of death entries longer than 24 hours ago are not allowed.")
 
         if (self.get_cow_age()/12) < 21 and self.pregnancy_status == 'Pregnant':
-            raise ValidationError({'pregnancy_status': 'Cows must be 21 months or older to be set as pregnant'})
+            raise ValidationError("Cows must be 21 months or older to be set as pregnant")
         
         if self.get_cow_age()/12 < 21 and self.calf != None:
-            raise ValidationError("This cow is still young and cannot have a calf")
+            raise ValidationError("This cow is still young and cannot have a calf.")
 
         if self.availability_status == 'Dead' and self.pregnancy_status != 'Not Pregnant':
-            raise ValidationError({'pregnancy_status': 'Dead cows can only have a "Not Pregnant" status'})
+            raise ValidationError("Dead cows can only have a 'Not Pregnant' status")
         
     def __str__(self):
         return self.name
@@ -994,3 +994,4 @@ class Culling(models.Model):
         
     def __str__(self):
         return f"Culling of {self.cow.name} on {self.date}"
+
