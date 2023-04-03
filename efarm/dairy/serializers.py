@@ -100,7 +100,7 @@ class MilkSerializer(serializers.ModelSerializer):
             milk record.
     """
     lactation = LactationSerializer(read_only=True)
-    cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.all())
+    cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.filter(gender='Female'))
     cow_tag_number = serializers.CharField(source='cow.tag_number', read_only=True)
     cow_breed = serializers.CharField(source='cow.breed', read_only=True)
     class Meta:

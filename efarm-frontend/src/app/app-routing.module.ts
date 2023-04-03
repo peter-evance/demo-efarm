@@ -1,26 +1,26 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { DairyCowCreateComponent } from './dairy/cow/dairy-cow-create/dairy-cow-create.component';
-import { DairyCowDetailComponent } from './dairy/cow/dairy-cow-detail/dairy-cow-detail.component';
-import { DairyCowListComponent } from './dairy/cow/dairy-cow-list/dairy-cow-list.component';
-import { DairyCowUpdateComponent } from './dairy/cow/dairy-cow-update/dairy-cow-update.component';
-import { DairyAboutUsComponent } from './dairy/dairy-about-us/dairy-about-us.component';
-import { DairyContactUsComponent } from './dairy/dairy-contact-us/dairy-contact-us.component';
-import { DairyHomeComponent } from './dairy/dairy-home/dairy-home.component';
-import { DairyPregnancyListComponent} from './dairy/pregnancy/dairy-pregnancy-list/dairy-pregnancy-list.component';
-import { DairyPregnancyCreateComponent} from './dairy/pregnancy/dairy-pregnancy-create/dairy-pregnancy-create.component';
-import { DairyPregnancyDetailComponent} from './dairy/pregnancy/dairy-pregnancy-detail/dairy-pregnancy-detail.component';
-import { DairyPregnancyUpdateComponent} from './dairy/pregnancy/dairy-pregnancy-update/dairy-pregnancy-update.component';
-import { DairyLactationListComponent } from './dairy/lactation/dairy-lactation-list/dairy-lactation-list.component';
-import { DairyMilkDetailComponent } from './dairy/milk/dairy-milk-detail/dairy-milk-detail.component';
-import { DairyMilkListComponent } from './dairy/milk/dairy-milk-list/dairy-milk-list.component';
-import { DairyMilkUpdateComponent } from './dairy/milk/dairy-milk-update/dairy-milk-update.component';
-import { DairyMilkCreateComponent } from './dairy/milk/dairy-milk-create/dairy-milk-create.component';
-import { DairyDashboardComponent } from './dairy/admin/dashboard/dairy-dashboard/dairy-dashboard.component';
-import { TotalLactatingCowsComponent } from './dairy/admin/dashboard/cows/total-lactating-cows/total-lactating-cows.component';
-import { TotalPregnantCowsComponent } from './dairy/admin/dashboard/cows/total-pregnant-cows/total-pregnant-cows.component';
-import { MilkedCowsTodayComponent } from './dairy/admin/dashboard/milk/milked-cows-today/milked-cows-today.component';
-import { MilkProductionComponent } from './dairy/admin/dashboard/milk/milk-production/milk-production.component';
+import { DairyCowCreateComponent } from './dairy/components/cow/dairy-cow-create/dairy-cow-create.component';
+import { DairyCowDetailComponent } from './dairy/components/cow/dairy-cow-detail/dairy-cow-detail.component';
+import { DairyCowListComponent } from './dairy/components/cow/dairy-cow-list/dairy-cow-list.component';
+import { DairyCowUpdateComponent } from './dairy/components/cow/dairy-cow-update/dairy-cow-update.component';
+import { DairyAboutUsComponent } from './dairy/components/dairy-about-us/dairy-about-us.component';
+import { DairyContactUsComponent } from './dairy/components/dairy-contact-us/dairy-contact-us.component';
+import { DairyHomeComponent } from './dairy/components/dairy-home/dairy-home.component';
+import { DairyPregnancyListComponent} from './dairy/components/pregnancy/dairy-pregnancy-list/dairy-pregnancy-list.component';
+import { DairyPregnancyCreateComponent} from './dairy/components/pregnancy/dairy-pregnancy-create/dairy-pregnancy-create.component';
+import { DairyPregnancyDetailComponent} from './dairy/components/pregnancy/dairy-pregnancy-detail/dairy-pregnancy-detail.component';
+import { DairyPregnancyUpdateComponent} from './dairy/components/pregnancy/dairy-pregnancy-update/dairy-pregnancy-update.component';
+import { DairyLactationListComponent } from './dairy/components/lactation/dairy-lactation-list/dairy-lactation-list.component';
+import { DairyMilkDetailComponent } from './dairy/components/milk/dairy-milk-detail/dairy-milk-detail.component';
+import { DairyMilkListComponent } from './dairy/components/milk/dairy-milk-list/dairy-milk-list.component';
+import { DairyMilkUpdateComponent } from './dairy/components/milk/dairy-milk-update/dairy-milk-update.component';
+import { DairyMilkCreateComponent } from './dairy/components/milk/dairy-milk-create/dairy-milk-create.component';
+import { DairyDashboardComponent } from './dairy/components/admin/dashboard/dairy-dashboard/dairy-dashboard.component';
+import { TotalLactatingCowsComponent } from './dairy/components/admin/dashboard/cows/total-lactating-cows/total-lactating-cows.component';
+import { TotalPregnantCowsComponent } from './dairy/components/admin/dashboard/cows/total-pregnant-cows/total-pregnant-cows.component';
+import { MilkedCowsTodayComponent } from './dairy/components/admin/dashboard/milk/milked-cows-today/milked-cows-today.component';
+import { MilkProductionComponent } from './dairy/components/admin/dashboard/milk/milk-production/milk-production.component';
 
 
 const routes: Routes = [
