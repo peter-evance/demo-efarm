@@ -1,8 +1,8 @@
-# efarm Django Project
+# efarm Django-Angular Project
 
 ## Introduction
 
-efarm is a Django project designed to help farmers streamline their operations by providing a digital platform for precision agriculture. The project consists of mainly three apps - Dairy, Poultry, and Swine. Each app has different models for managing data relevant to that sector of agriculture.
+efarm is a Django-Angular project designed to help farmers streamline their operations by providing a digital platform for precision agriculture. The project consists of mainly three apps - Dairy, Poultry, and Swine. Each app has different models for managing data relevant to that sector of agriculture.
 
 ## Installation
 
