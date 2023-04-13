@@ -1,3 +1,9 @@
 asgiref==3.6.0
 Django==4.1.7
+django-cors-headers==3.14.0
+django-extensions==3.2.1
+djangorestframework==3.14.0
+pydotplus==2.0.2
+pyparsing==3.0.9
+pytz==2022.7.1
 sqlparse==0.4.3
