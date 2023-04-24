@@ -3,6 +3,7 @@ from django.utils import timezone
 from datetime import date, datetime, timedelta
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
+from .choices import *
 
 
 class Cow(models.Model):
@@ -40,26 +41,21 @@ class Cow(models.Model):
             - Ensuring that dead cows can only have a "Not Pregnant" status.
 
     """
-    GENDER_CHOICES = (('Male', 'Male'), ('Female', 'Female'))
-    STATUS_CHOICES = (('Alive', 'Alive'), ('Dead', 'Dead'), ('Sold', 'Sold'))
-    PREGNANCY_STATUS = (('Pregnant', 'Pregnant'), ('Calved', 'Calved'), ('Not Pregnant', 'Not Pregnant'))
-    BREED_CHOICES = (('Friesian', 'Friesian'), ('Ayrshire', 'Ayrshire'), ('Sahiwal', 'Sahiwal'),
-                     ('Jersey', 'Jersey'), ('Crossbreed', 'Crossbreed'), ('Guernsey', 'Guernsey'))
 
     class Meta:
         verbose_name = "Cow \U0001F404"
         verbose_name_plural = "Cows \U0001F404"
 
     name = models.CharField(max_length=64, blank=True, null=True)
-    breed = models.CharField(max_length=32, choices=BREED_CHOICES, db_index=True)
+    breed = models.CharField(max_length=32, choices=BreedChoices.choices, db_index=True)
     date_of_birth = models.DateField(validators=[MaxValueValidator(date.today())],
                                      error_messages={'max_value': 'The date of birth cannot be in the future!.'})
     sire = models.ForeignKey('self', on_delete=models.PROTECT, related_name='offspring', blank=True, null=True)
     dam = models.ForeignKey('self', on_delete=models.PROTECT, related_name='calves', blank=True, null=True)
     calf = models.ForeignKey('self', on_delete=models.PROTECT, related_name='dams', blank=True, null=True)
-    gender = models.CharField(max_length=6, choices=GENDER_CHOICES, db_index=True)
-    availability_status = models.CharField(max_length=5, choices=STATUS_CHOICES, default='Alive')
-    pregnancy_status = models.CharField(max_length=12, choices=PREGNANCY_STATUS, default='Not Pregnant')
+    gender = models.CharField(max_length=6, choices=SexChoices.choices, db_index=True)
+    availability_status = models.CharField(max_length=5, choices=AvailabilityChoices.choices, default='Alive')
+    pregnancy_status = models.CharField(max_length=12, choices=PregnancyChoices.choices, default='Not Pregnant')
     date_of_death = models.DateField(validators=[MaxValueValidator(date.today())],
                                      error_messages={'max_value': 'The date of death cannot be in the future!.'},
                                      blank=True, null=True)
@@ -150,7 +146,7 @@ class Pregnancy(models.Model):
         - `latest_lactation_stage()`: returns the lactation stage of the cow's latest lactation (if any).
         - `clean()`: performs validation on the model fields to ensure data integrity. The following validations are performed:
 
-            - The cow must be at least 1 year old to be pregnant.
+            - The cow must be at least 1-year-old to be pregnant.
             - The pregnancy status must be 'Confirmed' if a date of calving is provided.
             - The date of calving cannot be in the future.
             - Cannot add a pregnancy record for a dead or sold cow.
