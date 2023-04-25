@@ -174,18 +174,13 @@ class Pregnancy(models.Model):
     cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name='pregnancies')
     start_date = models.DateField()
     date_of_calving = models.DateField(null=True, blank=True)
-    pregnancy_status = models.CharField(max_length=11, choices=(('Confirmed', 'Confirmed'),
-                                                                ('Unconfirmed', 'Unconfirmed'),
-                                                                ('Failed', 'Failed')), default='Unconfirmed')
+    pregnancy_status = models.CharField(max_length=11, choices=PregnancyStatusChoices.choices, default='Unconfirmed')
     pregnancy_notes = models.TextField(blank=True)
     calving_notes = models.TextField(blank=True)
     pregnancy_scan_date = models.DateField(null=True, blank=True)
-    pregnancy_failed_date = models.DateField(validators=[MaxValueValidator(date.today())],
-                                             error_messages={'max_value': 'Future records not allowed!.'}, blank=True,
-                                             null=True)
-    pregnancy_outcome = models.CharField(max_length=11, choices=(('Live', 'Live'),
-                                                                 ('Stillborn', 'Stillborn'),
-                                                                 ('Miscarriage', 'Miscarriage')), blank=True, null=True)
+    pregnancy_failed_date = models.DateField(validators=[MaxValueValidator(date.today())],null=True,
+                                             error_messages={'max_value': 'Future records not allowed!.'}, blank=True)
+    pregnancy_outcome = models.CharField(max_length=11, choices= PregnancyOutcomeChoices.choices, blank=True, null=True)
 
     @property
     def pregnancy_duration(self):
@@ -489,7 +484,7 @@ class Heat(models.Model):
             raise ValidationError('Cow is already pregnant.')
 
         if self.cow.heat_set.filter(observation_time__range=(
-        timezone.now() - timedelta(days=2), timezone.now() + timedelta(days=2))).exists():
+                timezone.now() - timedelta(days=2), timezone.now() + timedelta(days=2))).exists():
             raise ValidationError('Cow is already in heat.')
 
         if self.cow.availability_status == 'Dead':
@@ -666,7 +661,7 @@ class Insemination(models.Model):
             raise ValidationError('Cannot inseminate a cow that is already pregnant.')
 
         if not Heat.objects.filter(cow=self.cow, observation_time__range=(
-        self.date_of_insemination - timedelta(days=3), self.date_of_insemination + timedelta(days=3))).exists():
+                self.date_of_insemination - timedelta(days=3), self.date_of_insemination + timedelta(days=3))).exists():
             raise ValidationError('Cow must be in heat at the time of insemination.')
 
         if self.cow.get_cow_age() < 350:
@@ -704,12 +699,13 @@ class Symptoms(models.Model):
         verbose_name = "Symptom \U0001F912"
         verbose_name_plural = "Symptoms \U0001F912"
 
-    symptom_types = (('Respiratory', 'Respiratory'), ('Digestive', 'Digestive'),('Reproductive', 'Reproductive'),
+    symptom_types = (('Respiratory', 'Respiratory'), ('Digestive', 'Digestive'), ('Reproductive', 'Reproductive'),
                      ('Musculoskeletal', 'Musculoskeletal'), ('Metabolic', 'Metabolic'), ('Other', 'Other'))
 
     SEVERITY_CHOICES = (('Mild', 'Mild'), ('Moderate', 'Moderate'), ('Severe', 'Severe'),)
-    LOCATION_CHOICES = (('head', 'Head'), ('Neck', 'Neck'), ('Chest', 'Chest'),('Abdomen', 'Abdomen'), ('Back', 'Back'),
-                        ('Legs', 'Legs'), ('Tail', 'Tail'), ('Whole body', 'Whole body'), ('Other', 'Other'),)
+    LOCATION_CHOICES = (
+    ('head', 'Head'), ('Neck', 'Neck'), ('Chest', 'Chest'), ('Abdomen', 'Abdomen'), ('Back', 'Back'),
+    ('Legs', 'Legs'), ('Tail', 'Tail'), ('Whole body', 'Whole body'), ('Other', 'Other'),)
 
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=20, choices=symptom_types)
@@ -745,7 +741,8 @@ class Pathogen(models.Model):
         verbose_name = "Pathogen"
         verbose_name_plural = "Pathogens"
 
-    name = models.CharField(max_length=50, unique=True, choices=(("Virus", "Virus"), ("Bacteria", "Bacteria"), ("Fungi", "Fungi")), )
+    name = models.CharField(max_length=50, unique=True,
+                            choices=(("Virus", "Virus"), ("Bacteria", "Bacteria"), ("Fungi", "Fungi")), )
 
     def __str__(self):
         return self.name
@@ -968,8 +965,10 @@ class WeightRecord(models.Model):
     cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
     date = models.DateField(auto_now_add=True)
     weight = models.DecimalField(default=1, max_digits=6, decimal_places=2,
-                                 validators=[MinValueValidator(1, message="Invalid weight. A cow's minimum weight record can not be less than 1 Kgs."),
-                                             MaxValueValidator(1500, message="Invalid weight. A cow's maximum weight can not exceed 1500 Kgs.")])
+                                 validators=[MinValueValidator(1,
+                                                               message="Invalid weight. A cow's minimum weight record can not be less than 1 Kgs."),
+                                             MaxValueValidator(1500,
+                                                               message="Invalid weight. A cow's maximum weight can not exceed 1500 Kgs.")])
 
     def clean(self):
         if self.cow.availability_status == 'Dead':

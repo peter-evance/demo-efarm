@@ -33,3 +33,15 @@ class PregnancyChoices(models.TextChoices):
     Open = 'Open'
     Pregnant = 'Pregnant'
     Calved = 'Calved'
+
+
+class PregnancyStatusChoices(models.TextChoices):
+    Confirmed = 'Confirmed'
+    Unconfirmed = 'Unconfirmed'
+    Failed = 'Failed'
+
+
+class PregnancyOutcomeChoices(models.TextChoices):
+    Live = 'Live'
+    Stillborn = 'Stillborn'
+    Miscarriage = 'Miscarriage'
