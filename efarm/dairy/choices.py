@@ -45,3 +45,30 @@ class PregnancyOutcomeChoices(models.TextChoices):
     Live = 'Live'
     Stillborn = 'Stillborn'
     Miscarriage = 'Miscarriage'
+
+
+class SymptomTypeChoices(models.TextChoices):
+    Respiratory = 'Respiratory'
+    Digestive = 'Digestive'
+    Reproductive = 'Reproductive'
+    Musculoskeletal = 'Musculoskeletal'
+    Metabolic = 'Metabolic'
+    Other = 'Other'
+
+
+class SymptomSeverityChoices(models.TextChoices):
+    Mild = 'Mild'
+    Moderate = 'Moderate'
+    Severe = 'Severe'
+
+
+class SymptomsLocationChoices(models.TextChoices):
+    head = 'Head'
+    Neck = 'Neck'
+    Chest = 'Chest'
+    Abdomen = 'Abdomen'
+    Back = 'Back'
+    Legs = 'Legs'
+    Tail = 'Tail'
+    Whole_body = 'Whole body'
+    Other = 'Other'

@@ -178,9 +178,9 @@ class Pregnancy(models.Model):
     pregnancy_notes = models.TextField(blank=True)
     calving_notes = models.TextField(blank=True)
     pregnancy_scan_date = models.DateField(null=True, blank=True)
-    pregnancy_failed_date = models.DateField(validators=[MaxValueValidator(date.today())],null=True,
+    pregnancy_failed_date = models.DateField(validators=[MaxValueValidator(date.today())], null=True,
                                              error_messages={'max_value': 'Future records not allowed!.'}, blank=True)
-    pregnancy_outcome = models.CharField(max_length=11, choices= PregnancyOutcomeChoices.choices, blank=True, null=True)
+    pregnancy_outcome = models.CharField(max_length=11, choices=PregnancyOutcomeChoices.choices, blank=True, null=True)
 
     @property
     def pregnancy_duration(self):
@@ -699,21 +699,13 @@ class Symptoms(models.Model):
         verbose_name = "Symptom \U0001F912"
         verbose_name_plural = "Symptoms \U0001F912"
 
-    symptom_types = (('Respiratory', 'Respiratory'), ('Digestive', 'Digestive'), ('Reproductive', 'Reproductive'),
-                     ('Musculoskeletal', 'Musculoskeletal'), ('Metabolic', 'Metabolic'), ('Other', 'Other'))
-
-    SEVERITY_CHOICES = (('Mild', 'Mild'), ('Moderate', 'Moderate'), ('Severe', 'Severe'),)
-    LOCATION_CHOICES = (
-    ('head', 'Head'), ('Neck', 'Neck'), ('Chest', 'Chest'), ('Abdomen', 'Abdomen'), ('Back', 'Back'),
-    ('Legs', 'Legs'), ('Tail', 'Tail'), ('Whole body', 'Whole body'), ('Other', 'Other'),)
-
     name = models.CharField(max_length=255)
-    type = models.CharField(max_length=20, choices=symptom_types)
+    type = models.CharField(max_length=20, choices=SymptomTypeChoices.choices)
     description = models.TextField()
     date_observed = models.DateField(validators=[MaxValueValidator(date.today())],
                                      error_messages={'max_value': 'The date of observation cannot be in the future!.'})
-    severity = models.CharField(max_length=20, choices=SEVERITY_CHOICES)
-    location = models.CharField(max_length=20, choices=LOCATION_CHOICES)
+    severity = models.CharField(max_length=20, choices=SymptomSeverityChoices.choices)
+    location = models.CharField(max_length=20, choices=SymptomsLocationChoices.choices)
 
     def __str__(self):
         return self.name
