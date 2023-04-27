@@ -72,3 +72,16 @@ class SymptomsLocationChoices(models.TextChoices):
     Tail = 'Tail'
     Whole_body = 'Whole body'
     Other = 'Other'
+
+
+class PathogenCategoryChoices(models.TextChoices):
+    Virus = 'Virus'
+    Bacteria = 'Bacteria'
+    Fungi = 'Fungi'
+
+
+class DiseaseCategoryChoices(models.TextChoices):
+    Nutrition = 'Nutrition'
+    Infectious = 'Infectious'
+    Physiological = 'Physiological'
+    Genetic = 'Genetic'

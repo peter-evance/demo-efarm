@@ -733,8 +733,7 @@ class Pathogen(models.Model):
         verbose_name = "Pathogen"
         verbose_name_plural = "Pathogens"
 
-    name = models.CharField(max_length=50, unique=True,
-                            choices=(("Virus", "Virus"), ("Bacteria", "Bacteria"), ("Fungi", "Fungi")), )
+    name = models.CharField(max_length=50, unique=True, choices=PathogenCategoryChoices.choices)
 
     def __str__(self):
         return self.name
@@ -763,9 +762,7 @@ class DiseaseCategory(models.Model):
         verbose_name = "Disease category"
         verbose_name_plural = "Disease categories"
 
-    name = models.CharField(max_length=50, unique=True,
-                            choices=(("Nutrition", "Nutrition"), ("Infectious", "Infectious"),
-                                     ("Physiological", "Physiological"), ("Genetic", "Genetic")), )
+    name = models.CharField(max_length=50, unique=True, choices=DiseaseCategoryChoices.choices)
 
     def __str__(self):
         return self.name
