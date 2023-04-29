@@ -33,7 +33,6 @@ import { TotalAliveFemaleCowsComponent } from './dairy/components/admin/dashboar
 import { TotalAliveMaleCowsComponent } from './dairy/components/admin/dashboard/cows/total-alive-male-cows/total-alive-male-cows.component';
 import { TotalPregnantCowsComponent } from './dairy/components/admin/dashboard/cows/total-pregnant-cows/total-pregnant-cows.component';
 import { TotalLactatingCowsComponent } from './dairy/components/admin/dashboard/cows/total-lactating-cows/total-lactating-cows.component';
-import { LillyComponent } from './dairy/lilly/lilly.component';
 
 @NgModule({
   declarations: [
