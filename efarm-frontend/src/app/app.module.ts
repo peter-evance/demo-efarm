@@ -66,7 +66,6 @@ import { LillyComponent } from './dairy/lilly/lilly.component';
     TotalAliveMaleCowsComponent,
     TotalPregnantCowsComponent,
     TotalLactatingCowsComponent,
-    LillyComponent,
   ],
   imports: [
     BrowserModule,
