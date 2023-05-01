@@ -55,7 +55,7 @@ class Cow(models.Model):
     calf = models.ForeignKey('self', on_delete=models.PROTECT, related_name='dams', blank=True, null=True)
     gender = models.CharField(max_length=6, choices=SexChoices.choices, db_index=True)
     availability_status = models.CharField(max_length=5, choices=AvailabilityChoices.choices, default='Alive')
-    pregnancy_status = models.CharField(max_length=12, choices=PregnancyChoices.choices, default='Not Pregnant')
+    pregnancy_status = models.CharField(max_length=12, choices=PregnancyChoices.choices, default='Open')
     date_of_death = models.DateField(validators=[MaxValueValidator(date.today())],
                                      error_messages={'max_value': 'The date of death cannot be in the future!.'},
                                      blank=True, null=True)
