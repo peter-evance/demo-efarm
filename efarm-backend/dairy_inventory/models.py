@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from .choices import UpdateType
 
 
 class MilkInventory(models.Model):
@@ -49,11 +50,7 @@ class MilkInventoryUpdateHistory(models.Model):
     - `verbose_name_plural`: The plural name of the model in the Django admin.
     - `ordering`: A list of fields to use when ordering the model instances.
     """
-
-    class UpdateType(models.TextChoices):
-        ADD = 'Added', 'Added'
-        REMOVE = 'Removed', 'Removed'
-
+    
     class Meta:
         verbose_name = 'Milk Inventory Update History'
         verbose_name_plural = 'Milk Inventory Update History'
