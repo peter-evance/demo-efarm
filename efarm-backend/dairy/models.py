@@ -1,14 +1,15 @@
-from django.db import models
-from django.utils import timezone
 from datetime import date, datetime, timedelta
+
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
+
 from .choices import *
 
 
 class Cow(models.Model):
     """
-    The `Cow` model represents a single cow in a dairy farm. It contains the following fields:
+    The `Cow` model represents a single cow in a dairy farm.
     
     ### Fields:
 
@@ -46,19 +47,18 @@ class Cow(models.Model):
         verbose_name = "Cow \U0001F404"
         verbose_name_plural = "Cows \U0001F404"
 
-    name = models.CharField(max_length=64, blank=True, null=True)
-    breed = models.CharField(max_length=32, choices=BreedChoices.choices, db_index=True)
+    name = models.CharField(max_length=64)
+    breed = models.CharField(max_length=32, choices=BreedChoices.choices)
     date_of_birth = models.DateField(validators=[MaxValueValidator(date.today())],
                                      error_messages={'max_value': 'The date of birth cannot be in the future!.'})
-    sire = models.ForeignKey('self', on_delete=models.PROTECT, related_name='offspring', blank=True, null=True)
-    dam = models.ForeignKey('self', on_delete=models.PROTECT, related_name='calves', blank=True, null=True)
-    calf = models.ForeignKey('self', on_delete=models.PROTECT, related_name='dams', blank=True, null=True)
-    gender = models.CharField(max_length=6, choices=SexChoices.choices, db_index=True)
-    availability_status = models.CharField(max_length=5, choices=AvailabilityChoices.choices, default='Alive')
-    pregnancy_status = models.CharField(max_length=12, choices=PregnancyChoices.choices, default='Open')
-    date_of_death = models.DateField(validators=[MaxValueValidator(date.today())],
-                                     error_messages={'max_value': 'The date of death cannot be in the future!.'},
-                                     blank=True, null=True)
+    gender = models.CharField(max_length=6, choices=SexChoices.choices)
+    availability_status = models.CharField(max_length=5, choices=CowAvailabilityChoices.choices, default='Alive')
+    sire = models.ForeignKey('self', on_delete=models.SET_NULL, related_name='offspring', blank=True, null=True)
+    dam = models.ForeignKey('self', on_delete=models.SET_NULL, related_name='calves', blank=True, null=True)
+    calf = models.ForeignKey('self', on_delete=models.SET_NULL, related_name='dams', blank=True, null=True)
+    pregnancy_status = models.CharField(max_length=12, choices=PregnancyChoices.choices, default='Not Pregnant')
+    date_of_death = models.DateField(validators=[MaxValueValidator(date.today())], blank=True, null=True,
+                                     error_messages={'max_value': 'The date of death cannot be in the future!.'})
 
     @property
     def tag_number(self):
@@ -97,7 +97,7 @@ class Cow(models.Model):
         return ((timezone.now().date()) - self.date_of_birth).days
 
     def clean(self):
-        """Perfoms several validations before saving the cow."""
+        """Performs several validations before saving the cow."""
 
         cow_age = (self.get_cow_age()) / 365
         if cow_age > 7:
@@ -112,14 +112,14 @@ class Cow(models.Model):
         if (self.get_cow_age() / 12) < 21 and self.pregnancy_status == 'Pregnant':
             raise ValidationError("Cows must be 21 months or older to be set as pregnant")
 
-        if self.get_cow_age() / 12 < 21 and self.calf != None:
+        if self.get_cow_age() / 12 < 21 and self.calf is not None:
             raise ValidationError("This cow is still young and cannot have a calf.")
 
         if self.availability_status == 'Dead' and self.pregnancy_status != 'Not Pregnant':
             raise ValidationError("Dead cows can only have a 'Not Pregnant' status")
 
     def __str__(self):
-        return self.name
+        return self.tag_number
 
 
 class Pregnancy(models.Model):
@@ -146,7 +146,7 @@ class Pregnancy(models.Model):
         - `latest_lactation_stage()`: returns the lactation stage of the cow's latest lactation (if any).
         - `clean()`: performs validation on the model fields to ensure data integrity. The following validations are performed:
 
-            - The cow must be at least 1-year-old to be pregnant.
+            - The cow must be at least 1 year old to be pregnant.
             - The pregnancy status must be 'Confirmed' if a date of calving is provided.
             - The date of calving cannot be in the future.
             - Cannot add a pregnancy record for a dead or sold cow.
@@ -174,13 +174,18 @@ class Pregnancy(models.Model):
     cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name='pregnancies')
     start_date = models.DateField()
     date_of_calving = models.DateField(null=True, blank=True)
-    pregnancy_status = models.CharField(max_length=11, choices=PregnancyStatusChoices.choices, default='Unconfirmed')
+    pregnancy_status = models.CharField(max_length=11, choices=(('Confirmed', 'Confirmed'),
+                                                                ('Unconfirmed', 'Unconfirmed'),
+                                                                ('Failed', 'Failed')), default='Unconfirmed')
     pregnancy_notes = models.TextField(blank=True)
     calving_notes = models.TextField(blank=True)
     pregnancy_scan_date = models.DateField(null=True, blank=True)
-    pregnancy_failed_date = models.DateField(validators=[MaxValueValidator(date.today())], null=True,
-                                             error_messages={'max_value': 'Future records not allowed!.'}, blank=True)
-    pregnancy_outcome = models.CharField(max_length=11, choices=PregnancyOutcomeChoices.choices, blank=True, null=True)
+    pregnancy_failed_date = models.DateField(validators=[MaxValueValidator(date.today())],
+                                             error_messages={'max_value': 'Future records not allowed!.'}, blank=True,
+                                             null=True)
+    pregnancy_outcome = models.CharField(max_length=11, choices=(('Live', 'Live'),
+                                                                 ('Stillborn', 'Stillborn'),
+                                                                 ('Miscarriage', 'Miscarriage')), blank=True, null=True)
 
     @property
     def pregnancy_duration(self):
@@ -207,7 +212,7 @@ class Pregnancy(models.Model):
 
     def clean(self):
         cow = self.cow
-        if cow.get_cow_age() < 350:
+        if cow.get_cow_age() < 370:
             raise ValidationError("This cow must have the pregnancy threshold age of 1 year")
 
         if self.date_of_calving and self.pregnancy_status != 'Confirmed':
@@ -398,8 +403,7 @@ class Milk(models.Model):
     amount_in_kgs = models.DecimalField(verbose_name="Amount (kg)", default=0.00, max_digits=5, decimal_places=2,
                                         validators=[
                                             MinValueValidator(0, message="Amount of milk can not be less than 0 Kgs."),
-                                            MaxValueValidator(35,
-                                                              message="Amount of milk cannot be more than 35.0 Kgs.")])
+                                            MaxValueValidator(35, message="Amount of milk cannot exceed 35 Kgs.")])
     lactation = models.ForeignKey(Lactation, on_delete=models.CASCADE, editable=False, null=True)
 
     def __str__(self):
@@ -410,12 +414,6 @@ class Milk(models.Model):
         return f"Milk record of cow {self.cow.name} on {self.milking_date.strftime('%Y-%m-%d %H:%M:%S')}"
 
     def clean(self):
-        """
-        Validates the data before saving.
-
-        Raises:
-            `ValidationError`: If the data is not valid.
-        """
         cow = self.cow
         latest_lactation_record = self.cow.lactation_set.last()
 
@@ -699,13 +697,22 @@ class Symptoms(models.Model):
         verbose_name = "Symptom \U0001F912"
         verbose_name_plural = "Symptoms \U0001F912"
 
+    symptom_types = (('Respiratory', 'Respiratory'), ('Digestive', 'Digestive'),
+                     ('Reproductive', 'Reproductive'), ('Musculoskeletal', 'Musculoskeletal'),
+                     ('Metabolic', 'Metabolic'), ('Other', 'Other'))
+
+    SEVERITY_CHOICES = (('Mild', 'Mild'), ('Moderate', 'Moderate'), ('Severe', 'Severe'),)
+    LOCATION_CHOICES = (('head', 'Head'), ('Neck', 'Neck'), ('Chest', 'Chest'),
+                        ('Abdomen', 'Abdomen'), ('Back', 'Back'), ('Legs', 'Legs'), ('Tail', 'Tail'),
+                        ('Whole body', 'Whole body'), ('Other', 'Other'),)
+
     name = models.CharField(max_length=255)
-    type = models.CharField(max_length=20, choices=SymptomTypeChoices.choices)
+    type = models.CharField(max_length=20, choices=symptom_types)
     description = models.TextField()
     date_observed = models.DateField(validators=[MaxValueValidator(date.today())],
                                      error_messages={'max_value': 'The date of observation cannot be in the future!.'})
-    severity = models.CharField(max_length=20, choices=SymptomSeverityChoices.choices)
-    location = models.CharField(max_length=20, choices=SymptomsLocationChoices.choices)
+    severity = models.CharField(max_length=20, choices=SEVERITY_CHOICES)
+    location = models.CharField(max_length=20, choices=LOCATION_CHOICES)
 
     def __str__(self):
         return self.name
@@ -733,7 +740,9 @@ class Pathogen(models.Model):
         verbose_name = "Pathogen"
         verbose_name_plural = "Pathogens"
 
-    name = models.CharField(max_length=50, unique=True, choices=PathogenCategoryChoices.choices)
+    name = models.CharField(max_length=50, unique=True, choices=(("Virus", "Virus"),
+                                                                 ("Bacteria", "Bacteria"),
+                                                                 ("Fungi", "Fungi")), )
 
     def __str__(self):
         return self.name
@@ -762,7 +771,9 @@ class DiseaseCategory(models.Model):
         verbose_name = "Disease category"
         verbose_name_plural = "Disease categories"
 
-    name = models.CharField(max_length=50, unique=True, choices=DiseaseCategoryChoices.choices)
+    name = models.CharField(max_length=50, unique=True,
+                            choices=(("Nutrition", "Nutrition"), ("Infectious", "Infectious"),
+                                     ("Physiological", "Physiological"), ("Genetic", "Genetic")), )
 
     def __str__(self):
         return self.name
@@ -891,7 +902,7 @@ class Disease(models.Model):
     cows = models.ManyToManyField(Cow, related_name="diseases")
     date_created = models.DateTimeField(auto_now_add=True)
     symptoms = models.ManyToManyField(Symptoms, related_name='diseases')
-    treatments = models.ManyToManyField(Treatment, related_name='diseases', blank=True, null=True)
+    treatments = models.ManyToManyField(Treatment, related_name='diseases', blank=True)
 
     class Meta:
         verbose_name = "Disease \U0001F48A"
@@ -953,11 +964,10 @@ class WeightRecord(models.Model):
 
     cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
     date = models.DateField(auto_now_add=True)
-    weight = models.DecimalField(default=1, max_digits=6, decimal_places=2,
-                                 validators=[MinValueValidator(1,
-                                                               message="Invalid weight. A cow's minimum weight record can not be less than 1 Kgs."),
-                                             MaxValueValidator(1500,
-                                                               message="Invalid weight. A cow's maximum weight can not exceed 1500 Kgs.")])
+    weight = models.DecimalField(default=1, max_digits=6, decimal_places=2, validators=[MinValueValidator(1,
+                                                                                                          message="Invalid weight. A cow's minimum weight record can not be less than 1 Kgs."),
+                                                                                        MaxValueValidator(1500,
+                                                                                                          message="Invalid weight. A cow's maximum weight can not exceed 1500 Kgs.")])
 
     def clean(self):
         if self.cow.availability_status == 'Dead':
@@ -1022,3 +1032,131 @@ class Culling(models.Model):
 
     def __str__(self):
         return f"Culling of {self.cow.name} on {self.date}"
+
+
+class Vaccination(models.Model):
+    DOSE_UNIT_CHOICES = [
+        ('ml', 'ml'),
+        ('cc', 'cc'),
+        ('mg', 'mg'),
+        ('g', 'g'), ]
+
+    class Meta:
+        ordering = ['-date_given']
+        unique_together = ('cow', 'vaccine_name')
+
+    cow = models.ForeignKey('Cow', on_delete=models.CASCADE)
+    vaccine_name = models.CharField(max_length=100)
+    date_given = models.DateField(auto_now_add=True)
+    dose_amount = models.DecimalField(max_digits=7, decimal_places=2, validators=[MinValueValidator(0)])
+    dose_unit = models.CharField(max_length=3, choices=DOSE_UNIT_CHOICES, default='ml')
+
+    def __str__(self):
+        return f'{self.cow.name} - {self.vaccine_name}'
+
+
+class Barn(models.Model):
+    """
+    The `Barn` model represents a barn in a dairy farm.
+
+    Fields:
+    - `name`: A character field for the name of the barn.
+    - `capacity`: An integer field for the maximum number of cows the barn can hold.
+
+    Meta options:
+    - `verbose_name`: The singular name of the model in the Django admin.
+    - `verbose_name_plural`: The plural name of the model in the Django admin.
+    """
+
+    name = models.CharField(max_length=32)
+    capacity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+
+    class Meta:
+        verbose_name = 'Barn'
+        verbose_name_plural = 'Barns'
+
+    def __str__(self):
+        return self.name
+
+
+class CowPen(models.Model):
+    """
+    The model represents a cow pen in a dairy farm.
+
+    Fields:
+    - `barn`: A foreign key to the `Barn` model, representing the barn to which the pen belongs.
+    - `type`: A character field for the type of the pen, chosen from the available choices in `CowPenTypeChoices`.
+    - `category`: A character field for the category of the pen, chosen from the available choices in `CowPenCategoriesChoices`.
+    - `capacity`: An integer field for the maximum number of cows the pen can hold. It must be a positive integer value greater than or equal to 1.
+
+    Methods:
+    - `clean()`: A method used for model validation. It checks if a pen of type 'Fixed' is changing its barn, raising a validation error if so.
+
+    """
+
+    barn = models.ForeignKey(Barn, on_delete=models.CASCADE, related_name='pens')
+    type = models.CharField(max_length=15, choices=CowPenTypeChoices.choices)
+    category = models.CharField(max_length=15, choices=CowPenCategoriesChoices.choices)
+    capacity = models.PositiveIntegerField(validators=[MinValueValidator(1)], default=1)
+
+    def clean(self):
+        super().clean()
+        if self.type == CowPenTypeChoices.Fixed and self.pk:
+            old_barn: Barn = CowPen.objects.get(pk=self.pk).barn
+            if self.barn != old_barn:
+                raise ValidationError("A pen of type 'Fixed' cannot change its barn.")
+
+    def __str__(self):
+        return f"Cow Pen {self.type}, {self.category}"
+
+
+class CowInPenMovement(models.Model):
+    """
+    The model represents the movement of a cow from one pen to another in a dairy farm.
+
+    Fields:
+    - `cow`: A foreign key to the `Cow` model, representing the cow being moved.
+    - `previous_pen`: A foreign key to the `CowPen` model, representing the pen from which the cow is being moved.
+                      It can be nullable and blank since a cow can be initially placed directly into a new pen.
+    - `new_pen`: A foreign key to the `CowPen` model, representing the pen to which the cow is being moved.
+    - `timestamp`: A datetime field that automatically records the date and time of the movement.
+
+    """
+
+    cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
+    previous_pen = models.ForeignKey(CowPen, on_delete=models.CASCADE, null=True, blank=True,
+                                     related_name='cows_previous_pen')
+    new_pen = models.ForeignKey(CowPen, on_delete=models.CASCADE, related_name='cows_new_pen')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        if self.previous_pen:
+            return f"Cow {self.cow.id} - From {self.previous_pen} to {self.new_pen}"
+        else:
+            return f"Cow {self.cow.id} - Newly introduced to {self.new_pen}"
+
+
+class CowInBarnMovement(models.Model):
+    """
+    The model represents the movement of a cow from one barn to another in a dairy farm.
+
+    Fields:
+    - `cow`: A foreign key to the `Cow` model, representing the cow being moved.
+    - `previous_barn`: A foreign key to the `Barn` model, representing the barn from which the cow is being moved.
+                       It can be nullable and blank since a cow can be initially introduced directly to a new barn.
+    - `new_barn`: A foreign key to the `Barn` model, representing the barn to which the cow is being moved.
+    - `timestamp`: A datetime field that automatically records the date and time of the movement.
+
+    """
+
+    cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
+    previous_barn = models.ForeignKey(Barn, on_delete=models.CASCADE, null=True, blank=True,
+                                      related_name='moved_cows')
+    new_barn = models.ForeignKey(Barn, on_delete=models.CASCADE, related_name='received_cows')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        if self.previous_barn:
+            return f"Cow {self.cow.id} - From {self.previous_barn} to {self.new_barn}"
+        else:
+            return f"Cow {self.cow.id} - Newly introduced to {self.new_barn}"

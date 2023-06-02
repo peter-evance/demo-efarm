@@ -2,6 +2,77 @@ from rest_framework import serializers
 
 from .models import *
 
+
+class CowInBarnMovementSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the CowInBarnMovement model.
+
+    Serializes the following fields:
+    - `id`: The unique identifier of the movement.
+    - `cow`: The cow associated with the movement.
+    - `previous_barn`: The barn from which the cow was previously located (nullable).
+    - `new_barn`: The barn to which the cow has been moved.
+    - `timestamp`: The timestamp when the movement occurred.
+
+    """
+
+    class Meta:
+        model = CowInBarnMovement
+        fields = '__all__'
+
+
+class CowInPenMovementSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the CowInPenMovement model.
+
+    Serializes the following fields:
+    - `id`: The unique identifier of the movement.
+    - `cow`: The cow associated with the movement.
+    - `previous_pen`: The pen from which the cow was previously located (nullable).
+    - `new_pen`: The pen to which the cow has been moved.
+    - `timestamp`: The timestamp when the movement occurred.
+
+    """
+
+    class Meta:
+        model = CowInPenMovement
+        fields = '__all__'
+
+
+class BarnSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the Barn model.
+
+    Serializes the following fields:
+    - `id`: The unique identifier of the barn.
+    - `name`: The name of the barn.
+    - `capacity`: The maximum number of cows the barn can hold.
+
+    """
+
+    class Meta:
+        model = Barn
+        fields = '__all__'
+
+
+class CowPenSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the CowPen model.
+
+    Serializes the following fields:
+    - `id`: The unique identifier of the cow pen.
+    - `barn`: The barn to which the cow pen belongs.
+    - `type`: The type of the cow pen (movable or fixed).
+    - `category`: The category of the cow pen.
+    - `capacity`: The maximum number of cows the pen can hold.
+
+    """
+
+    class Meta:
+        model = CowPen
+        fields = '__all__'
+
+
 class CowSerializer(serializers.ModelSerializer):
     """
     Serializer for Cow model instances.
@@ -16,10 +87,12 @@ class CowSerializer(serializers.ModelSerializer):
     tag_number = serializers.ReadOnlyField()
     parity = serializers.ReadOnlyField()
     age = serializers.ReadOnlyField()
+
     class Meta:
         model = Cow
         fields = '__all__'
-        
+
+
 class PregnancySerializer(serializers.ModelSerializer):
     """
     Serializer for Pregnancy model instances.
@@ -43,9 +116,11 @@ class PregnancySerializer(serializers.ModelSerializer):
     cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.all())
     cow_tag_number = serializers.CharField(source='cow.tag_number', read_only=True)
     cow_breed = serializers.CharField(source='cow.breed', read_only=True)
+
     class Meta:
         model = Pregnancy
         fields = '__all__'
+
 
 class LactationSerializer(serializers.ModelSerializer):
     """
@@ -78,9 +153,11 @@ class LactationSerializer(serializers.ModelSerializer):
     days_in_lactation = serializers.ReadOnlyField()
     lactation_stage = serializers.ReadOnlyField()
     lactation_duration = serializers.ReadOnlyField()
+
     class Meta:
         model = Lactation
         fields = "__all__"
+
 
 class MilkSerializer(serializers.ModelSerializer):
     """
@@ -103,10 +180,12 @@ class MilkSerializer(serializers.ModelSerializer):
     cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.filter(gender='Female'))
     cow_tag_number = serializers.CharField(source='cow.tag_number', read_only=True)
     cow_breed = serializers.CharField(source='cow.breed', read_only=True)
+
     class Meta:
         model = Milk
         fields = '__all__'
-        
+
+
 class WeightRecordSerializer(serializers.ModelSerializer):
     """
     Serializer for WeightRecord model instances.
@@ -119,6 +198,13 @@ class WeightRecordSerializer(serializers.ModelSerializer):
             This field is represented by a primary key related field.
     """
     cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.all())
+
     class Meta:
         model = WeightRecord
+        fields = '__all__'
+
+
+class CullingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Culling
         fields = '__all__'
