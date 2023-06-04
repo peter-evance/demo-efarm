@@ -8,7 +8,7 @@ from .models import *
 def update_milk_inventory(sender, instance, **kwargs):
     # Update the milk inventory
     milk_inventory, created = MilkInventory.objects.get_or_create(id=1)
-    milk_inventory.total_amount_in_kgs += instance.amount_in_kgs
+    milk_inventory.total_amount_in_kgs += float(instance.amount_in_kgs)
     milk_inventory.save()
     # Create a new milk inventory update history record
     MilkInventoryUpdateHistory.objects.create(amount_in_kgs=milk_inventory.total_amount_in_kgs)
