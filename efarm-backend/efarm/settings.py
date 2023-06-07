@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'dairy',
     'dairy_inventory',
+    'poultry',
 ]
 
 MIDDLEWARE = [
