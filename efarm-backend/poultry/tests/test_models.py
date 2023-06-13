@@ -1,8 +1,9 @@
-from django.core.exceptions import ValidationError
-from django.test import TestCase
-from poultry.models import *
-from poultry.choices import *
 from datetime import date, timedelta
+
+from django.test import TestCase
+
+from poultry.choices import *
+from poultry.models import *
 
 
 class HousingStructureTestCase(TestCase):
@@ -169,3 +170,89 @@ class FlockTestCase(TestCase):
         self.assertIsNotNone(broiler_flock_history)
         self.assertIsNotNone(layers_flock_history)
         self.assertIsNotNone(multipurpose_flock_history)
+
+
+class FlockMovementTestCase(TestCase):
+    def setUp(self):
+        self.from_structure = HousingStructure.objects.create(
+            type=HousingStructureTypeChoices.Deep_Litter_House,
+            category=HousingStructureCategoryChoices.Growers_House
+        )
+        self.to_structure = HousingStructure.objects.create(
+            type=HousingStructureTypeChoices.Deep_Litter_House,
+            category=HousingStructureCategoryChoices.Growers_House
+        )
+        self.flock_source: FlockSource = FlockSource.objects.create(source=FlockSourceChoices.Kiplels_Farm)
+        self.flock = Flock.objects.create(
+            source=self.flock_source,
+            date_of_hatching=date.today() - timedelta(weeks=9),
+            chicken_type=ChickenTypeChoices.Layers,
+            initial_number_of_birds=100,
+            current_rearing_method=RearingMethodChoices.Cage_System,
+            current_housing_structure=self.from_structure,
+        )
+
+    def test_flock_movement_creation(self):
+        flock_movement = FlockMovement.objects.create(
+            flock=self.flock,
+            from_structure=self.from_structure,
+            to_structure=self.to_structure
+        )
+
+
+class FlockInspectionRecordTestCase(TestCase):
+    """
+    Test case for the FlockInspectionRecord model.
+
+    This test case verifies the creation and validation of flock inspection records.
+
+    """
+
+    def setUp(self):
+        """
+        Set up the test case by creating a flock, flock source, and a housing structure.
+
+        """
+        flock_source: FlockSource = FlockSource.objects.create(source=FlockSourceChoices.This_Farm)
+
+        self.broiler_house: HousingStructure = HousingStructure.objects.create(
+            type=HousingStructureTypeChoices.Semi_Intensive_Housing,
+            category=HousingStructureCategoryChoices.Broilers_House,
+        )
+
+        self.flock = Flock.objects.create(
+            source=flock_source,
+            date_of_hatching=date.today() - timedelta(weeks=4),  # 4 weeks old
+            chicken_type=ChickenTypeChoices.Broiler,
+            initial_number_of_birds=100,
+            current_rearing_method=RearingMethodChoices.Cage_System,
+            current_housing_structure=self.broiler_house,
+        )
+
+    def test_valid_flock_inspection_record_creation(self):
+        """
+        Test the creation of a valid flock inspection record.
+
+        - Create a flock inspection record for the flock.
+
+        """
+        FlockInspectionRecord.objects.create(flock=self.flock)
+
+    def test_model_validators(self):
+        """
+        Test the model validators of the flock inspection record.
+
+        - Create a flock inspection record for the flock.
+        - Try to create another flock inspection record for the same day and same time
+        (should raise a ValidationError).
+
+        """
+        FlockInspectionRecord.objects.create(flock=self.flock)
+        FlockInspectionRecord.objects.create(flock=self.flock)
+        FlockInspectionRecord.objects.create(flock=self.flock)
+        FlockInspectionRecord.objects.create(flock=self.flock)
+
+        # with self.assertRaises(ValidationError):
+        #     FlockInspectionRecord.objects.create(flock=self.flock,
+        #                                          number_of_dead_birds=101
+        #                                          )

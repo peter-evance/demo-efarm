@@ -1,9 +1,8 @@
-from datetime import timedelta
-
 from django.test import TestCase
-from poultry.serializers import *
-from poultry.models import *
+
 from poultry.choices import *
+from poultry.models import *
+from poultry.serializers import *
 
 
 class FlockSourceSerializerTestCase(TestCase):
@@ -156,3 +155,145 @@ class FlockHistorySerializerTestCase(TestCase):
             'date_changed': self.flock_history.date_changed.astimezone().isoformat(),
         }
         self.assertDictEqual(serialized_data, expected_data)
+
+
+class FlockMovementSerializerTestCase(TestCase):
+    """
+    Test case for the FlockMovementSerializer.
+
+    This test case verifies the serialization and deserialization of flock movements.
+
+    """
+
+    def setUp(self):
+        """
+        Set up the test case by creating housing structures, a flock, and flock movement data.
+
+        """
+        self.from_structure = HousingStructure.objects.create(
+            type=HousingStructureTypeChoices.Deep_Litter_House,
+            category=HousingStructureCategoryChoices.Growers_House
+        )
+        self.to_structure = HousingStructure.objects.create(
+            type=HousingStructureTypeChoices.Deep_Litter_House,
+            category=HousingStructureCategoryChoices.Growers_House
+        )
+        self.flock_source: FlockSource = FlockSource.objects.create(source=FlockSourceChoices.Kiplels_Farm)
+        self.flock = Flock.objects.create(
+            source=self.flock_source,
+            date_of_hatching=date.today() - timedelta(weeks=9),
+            chicken_type=ChickenTypeChoices.Layers,
+            initial_number_of_birds=100,
+            current_rearing_method=RearingMethodChoices.Cage_System,
+            current_housing_structure=self.from_structure,
+        )
+
+        self.flock_movement_data = {
+            'flock': self.flock.id,
+            'from_structure': self.from_structure.id,
+            'to_structure': self.to_structure.id
+        }
+
+    def test_flock_movement_serializer(self):
+        """
+        Test the serialization of flock movement data.
+
+        - Create a flock movement serializer with valid data.
+        - Validate the serializer.
+        - Save the serializer data and retrieve the flock movement object.
+        - Compare the saved data with the expected data.
+
+        """
+        serializer = FlockMovementSerializer(data=self.flock_movement_data)
+        self.assertTrue(serializer.is_valid())
+
+        flock_movement = serializer.save()
+        self.assertEqual(flock_movement.flock.id, self.flock_movement_data['flock'])
+        self.assertEqual(flock_movement.from_structure.id, self.flock_movement_data['from_structure'])
+        self.assertEqual(flock_movement.to_structure.id, self.flock_movement_data['to_structure'])
+
+        # Additional assertions to test other fields if needed
+        self.assertEqual(
+            str(flock_movement),
+            f'Movement of Flock {flock_movement.flock_id} ({self.from_structure} -> {self.to_structure})'
+        )
+
+    def test_flock_movement_serializer_invalid_data(self):
+        """
+        Test the serialization of flock movement data with invalid data.
+
+        - Create a flock movement serializer with invalid data.
+        - Validate the serializer and check for errors.
+
+        """
+        invalid_data = {
+            'flock': 1,
+            'from_structure': self.from_structure.id,
+            'to_structure': 999999,  # An Invalid housing structure ID
+        }
+
+        serializer = FlockMovementSerializer(data=invalid_data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('to_structure', serializer.errors)
+
+
+class FlockInspectionRecordSerializerTestCase(TestCase):
+    """
+    Test case for the FlockInspectionRecordSerializer.
+
+    This test case verifies the serialization and deserialization of flock inspection records.
+
+    """
+
+    def setUp(self):
+        """
+        Set up the test case by creating housing structures, a flock, and valid data.
+
+        """
+        self.from_structure: HousingStructure = HousingStructure.objects.create(
+            type=HousingStructureTypeChoices.Deep_Litter_House,
+            category=HousingStructureCategoryChoices.Growers_House
+        )
+        self.to_structure: HousingStructure = HousingStructure.objects.create(
+            type=HousingStructureTypeChoices.Deep_Litter_House,
+            category=HousingStructureCategoryChoices.Growers_House
+        )
+        self.flock_source: FlockSource = FlockSource.objects.create(source=FlockSourceChoices.Kiplels_Farm)
+        self.flock: Flock = Flock.objects.create(
+            source=self.flock_source,
+            date_of_hatching=date.today() - timedelta(weeks=9),
+            chicken_type=ChickenTypeChoices.Layers,
+            initial_number_of_birds=100,
+            current_rearing_method=RearingMethodChoices.Cage_System,
+            current_housing_structure=self.from_structure,
+        )
+        self.valid_data = {
+            'flock': self.flock.id
+        }
+
+    def test_valid_serialization(self):
+        """
+        Test the serialization of valid flock inspection record data.
+
+        - Create a flock inspection record serializer with valid data.
+        - Validate the serializer.
+
+        """
+        serializer = FlockInspectionRecordSerializer(data=self.valid_data)
+        self.assertTrue(serializer.is_valid())
+
+    def test_invalid_serialization(self):
+        """
+        Test the serialization of invalid flock inspection record data.
+
+        - Create a flock inspection record serializer with invalid data.
+        - Validate the serializer and check for errors.
+
+        """
+        invalid_data = {
+            'flock': 9999
+        }
+        serializer = FlockInspectionRecordSerializer(data=invalid_data)
+        self.assertFalse(serializer.is_valid())
+
+

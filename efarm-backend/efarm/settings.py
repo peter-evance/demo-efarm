@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'dairy',
     'dairy_inventory',
     'poultry',
+    'poultry_inventory'
 ]
 
 MIDDLEWARE = [

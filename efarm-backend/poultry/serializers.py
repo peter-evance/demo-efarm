@@ -28,9 +28,45 @@ class FlockSerializer(serializers.ModelSerializer):
 
 
 class FlockHistorySerializer(serializers.ModelSerializer):
-    flock = serializers.PrimaryKeyRelatedField(queryset=Flock.objects.all())
-
     class Meta:
         model = FlockHistory
         fields = '__all__'
-        read_only_fields = ('rearing_method', 'current_housing_structure', 'date_changed')
+        read_only_fields = ('flock', 'rearing_method', 'current_housing_structure', 'date_changed')
+
+
+class FlockMovementSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the FlockMovement model.
+
+    Serializes the following fields:
+    - `flock`: The associated flock for the movement.
+    - `from_structure`: The housing structure from which the flock is moved.
+    - `to_structure`: The housing structure to which the flock is moved.
+
+    """
+
+    flock = serializers.PrimaryKeyRelatedField(queryset=Flock.objects.all())
+    from_structure = serializers.PrimaryKeyRelatedField(queryset=HousingStructure.objects.all())
+    to_structure = serializers.PrimaryKeyRelatedField(queryset=HousingStructure.objects.all())
+
+    class Meta:
+        model = FlockMovement
+        fields = '__all__'
+
+
+class FlockInspectionRecordSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the FlockInspectionRecord model.
+
+    Serializes the following fields:
+    - `flock`: The associated flock for the inspection record.
+    - `date`: The date and time of the inspection.
+    - `number_of_dead_birds`: The number of dead birds recorded in the inspection.
+
+    """
+
+    flock = serializers.PrimaryKeyRelatedField(queryset=Flock.objects.all())
+
+    class Meta:
+        model = FlockInspectionRecord
+        fields = '__all__'

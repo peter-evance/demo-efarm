@@ -21,6 +21,6 @@ Thank you for considering contributing to Demo Efarm! I appreciate any help or s
 
 ## Contact
 
-If you have any questions or need any help, please feel free to contact me at testpeterevance1@gmail.com.
+If you have any questions or need any help, please feel free to contact me at devpeterevance@gmail.com.
 
 Thank you for contributing to Demo Efarm!
