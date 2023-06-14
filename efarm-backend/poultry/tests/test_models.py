@@ -248,11 +248,11 @@ class FlockInspectionRecordTestCase(TestCase):
 
         """
         FlockInspectionRecord.objects.create(flock=self.flock)
-        FlockInspectionRecord.objects.create(flock=self.flock)
-        FlockInspectionRecord.objects.create(flock=self.flock)
-        FlockInspectionRecord.objects.create(flock=self.flock)
+        # FlockInspectionRecord.objects.create(flock=self.flock)
+        # FlockInspectionRecord.objects.create(flock=self.flock)
+        # FlockInspectionRecord.objects.create(flock=self.flock)
 
-        # with self.assertRaises(ValidationError):
-        #     FlockInspectionRecord.objects.create(flock=self.flock,
-        #                                          number_of_dead_birds=101
-        #                                          )
+        with self.assertRaises(ValidationError):
+            FlockInspectionRecord.objects.create(flock=self.flock,
+                                                 number_of_dead_birds=101
+                                                 )

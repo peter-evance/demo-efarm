@@ -462,4 +462,4 @@ class FlockInspectionRecord(models.Model):
         self.validate_number_of_dead_birds()
         super().save(*args, **kwargs)
         self.daily_number_of_inspection_records_validator()
-        # self.inspection_record_time_separation_validator()
+        self.inspection_record_time_separation_validator()
