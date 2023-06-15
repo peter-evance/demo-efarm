@@ -744,6 +744,8 @@ class FlockInspectionRecordViewSetTestCase(APITestCase):
         self.factory = APIRequestFactory()
         self.viewset = FlockInspectionRecordViewSet.as_view(
             {'get': 'list', 'post': 'create', 'put': 'update', 'delete': 'destroy'})
+        self.viewset_retrieve = FlockInspectionRecordViewSet.as_view(
+            {'get': 'retrieve'})
         self.url = reverse('poultry:flock-inspection-records-list')
 
         self.from_structure = HousingStructure.objects.create(
@@ -771,7 +773,8 @@ class FlockInspectionRecordViewSetTestCase(APITestCase):
         It sends a GET request to the endpoint and verifies the response.
 
         """
-        response = self.client.get(self.url)
+        request = self.factory.get(self.url)
+        response = self.viewset(request)
         records = FlockInspectionRecord.objects.all()
         serializer = FlockInspectionRecordSerializer(records, many=True)
 
@@ -789,7 +792,8 @@ class FlockInspectionRecordViewSetTestCase(APITestCase):
             'flock': self.flock.pk
         }
 
-        response = self.client.post(self.url, data)
+        request = self.factory.post(self.url, data)
+        response = self.viewset(request)
         record = FlockInspectionRecord.objects.last()
         serializer = FlockInspectionRecordSerializer(record)
 
@@ -805,7 +809,8 @@ class FlockInspectionRecordViewSetTestCase(APITestCase):
         """
         record = FlockInspectionRecord.objects.create(flock=self.flock)
         detail_url = reverse('poultry:flock-inspection-records-detail', kwargs={'pk': record.pk})
-        response = self.client.get(detail_url)
+        request = self.factory.get(detail_url)
+        response = self.viewset_retrieve(request, pk=record.pk)
         serializer = FlockInspectionRecordSerializer(record)
 
         self.assertEqual(response.status_code, 200)
@@ -825,7 +830,8 @@ class FlockInspectionRecordViewSetTestCase(APITestCase):
             'number_of_dead_birds': 3
         }
 
-        response = self.client.put(detail_url, data)
+        request = self.factory.put(detail_url, data)
+        response = self.viewset(request, pk=record.pk)
         record = FlockInspectionRecord.objects.get(pk=record.pk)
         serializer = FlockInspectionRecordSerializer(record)
 
@@ -841,7 +847,8 @@ class FlockInspectionRecordViewSetTestCase(APITestCase):
         """
         record = FlockInspectionRecord.objects.create(flock=self.flock)
         detail_url = reverse('poultry:flock-inspection-records-detail', kwargs={'pk': record.pk})
-        response = self.client.delete(detail_url)
+        request = self.factory.delete(detail_url)
+        response = self.viewset(request, pk=record.pk)
 
         self.assertEqual(response.status_code, 204)
         self.assertFalse(FlockInspectionRecord.objects.filter(pk=record.pk).exists())
