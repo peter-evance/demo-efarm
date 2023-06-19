@@ -19,7 +19,7 @@ class CowInventoryViewSet(viewsets.ReadOnlyModelViewSet):
     ViewSet for the CowInventory model.
 
     Provides the following action:
-    - `list`: Retrieves cow inventory record.
+    - `retrieve`: Retrieves cow inventory record.
 
     """
 
