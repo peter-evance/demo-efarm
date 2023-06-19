@@ -18,19 +18,21 @@ class FlockInventoryTestCase(TestCase):
         Set up the test case by creating a flock, flock source, and a housing structure.
 
         """
-        flock_source: FlockSource = FlockSource.objects.create(source=FlockSourceChoices.This_Farm)
+        flock_source: FlockSource = FlockSource.objects.create(source=FlockSourceChoices.THIS_FARM)
+        flock_breed = FlockBreed.objects.create(name=FlockBreedTypeChoices.KUROILER)
 
         broiler_house: HousingStructure = HousingStructure.objects.create(
-            type=HousingStructureTypeChoices.Semi_Intensive_Housing,
-            category=HousingStructureCategoryChoices.Broilers_House,
+            type=HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
+            category=HousingStructureCategoryChoices.BROILERS_HOUSE,
         )
 
         Flock.objects.create(
             source=flock_source,
+            breed=flock_breed,
             date_of_hatching=date.today() - timedelta(weeks=4),  # 4 weeks old
-            chicken_type=ChickenTypeChoices.Broiler,
+            chicken_type=ChickenTypeChoices.BROILER,
             initial_number_of_birds=100,
-            current_rearing_method=RearingMethodChoices.Cage_System,
+            current_rearing_method=RearingMethodChoices.CAGE_SYSTEM,
             current_housing_structure=broiler_house,
         )
 
@@ -84,23 +86,25 @@ class FlockMovementTestCase(TestCase):
         Set up the test case by creating a flock, flock source, and housing structures.
 
         """
-        flock_source: FlockSource = FlockSource.objects.create(source=FlockSourceChoices.This_Farm)
+        flock_source: FlockSource = FlockSource.objects.create(source=FlockSourceChoices.THIS_FARM)
+        flock_breed = FlockBreed.objects.create(name=FlockBreedTypeChoices.KUROILER)
 
         self.from_structure: HousingStructure = HousingStructure.objects.create(
-            type=HousingStructureTypeChoices.Closed_Shed,
-            category=HousingStructureCategoryChoices.Broilers_House,
+            type=HousingStructureTypeChoices.CLOSED_SHED,
+            category=HousingStructureCategoryChoices.BROILERS_HOUSE,
         )
         self.to_structure: HousingStructure = HousingStructure.objects.create(
-            type=HousingStructureTypeChoices.Semi_Intensive_Housing,
-            category=HousingStructureCategoryChoices.Broilers_House,
+            type=HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
+            category=HousingStructureCategoryChoices.BROILERS_HOUSE,
         )
 
         self.flock: Flock = Flock.objects.create(
             source=flock_source,
+            breed=flock_breed,
             date_of_hatching=date.today() - timedelta(weeks=4),  # 4 weeks old
-            chicken_type=ChickenTypeChoices.Broiler,
+            chicken_type=ChickenTypeChoices.BROILER,
             initial_number_of_birds=100,
-            current_rearing_method=RearingMethodChoices.Cage_System,
+            current_rearing_method=RearingMethodChoices.CAGE_SYSTEM,
             current_housing_structure=self.from_structure,
         )
 

@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.test import TestCase
 from poultry_inventory.models import *
 from poultry_inventory.serializers import *
@@ -18,17 +16,19 @@ class FlockInventorySerializerTest(TestCase):
         Set up the test case by creating a flock.
 
         """
-        flock_source = FlockSource.objects.create(source=FlockSourceChoices.This_Farm)
+        flock_source = FlockSource.objects.create(source=FlockSourceChoices.THIS_FARM)
+        flock_breed = FlockBreed.objects.create(name=FlockBreedTypeChoices.KUROILER)
         broiler_house = HousingStructure.objects.create(
-            type=HousingStructureTypeChoices.Semi_Intensive_Housing,
-            category=HousingStructureCategoryChoices.Broilers_House,
+            type=HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
+            category=HousingStructureCategoryChoices.BROILERS_HOUSE,
         )
         Flock.objects.create(
             source=flock_source,
+            breed=flock_breed,
             date_of_hatching=timezone.now() - timedelta(weeks=4),
-            chicken_type=ChickenTypeChoices.Broiler,
+            chicken_type=ChickenTypeChoices.BROILER,
             initial_number_of_birds=100,
-            current_rearing_method=RearingMethodChoices.Cage_System,
+            current_rearing_method=RearingMethodChoices.CAGE_SYSTEM,
             current_housing_structure=broiler_house,
         )
         self.flock = Flock.objects.all().first()
@@ -60,17 +60,19 @@ class FlockInventoryHistorySerializerTest(TestCase):
         Set up the test case by creating a flock and its inventory.
 
         """
-        flock_source = FlockSource.objects.create(source=FlockSourceChoices.This_Farm)
+        flock_source = FlockSource.objects.create(source=FlockSourceChoices.THIS_FARM)
+        flock_breed = FlockBreed.objects.create(name=FlockBreedTypeChoices.KUROILER)
         broiler_house = HousingStructure.objects.create(
-            type=HousingStructureTypeChoices.Semi_Intensive_Housing,
-            category=HousingStructureCategoryChoices.Broilers_House,
+            type=HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
+            category=HousingStructureCategoryChoices.BROILERS_HOUSE,
         )
         self.flock = Flock.objects.create(
             source=flock_source,
-            date_of_hatching=timezone.now() - timedelta(weeks=4),  # 4 weeks old
-            chicken_type=ChickenTypeChoices.Broiler,
+            breed=flock_breed,
+            date_of_hatching=timezone.now() - timedelta(weeks=4),
+            chicken_type=ChickenTypeChoices.BROILER,
             initial_number_of_birds=100,
-            current_rearing_method=RearingMethodChoices.Cage_System,
+            current_rearing_method=RearingMethodChoices.CAGE_SYSTEM,
             current_housing_structure=broiler_house,
         )
 

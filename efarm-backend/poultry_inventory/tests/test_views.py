@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIRequestFactory, APITestCase
@@ -26,17 +24,20 @@ class FlockInventoryViewSetTest(TestCase):
         """
         self.factory = APIRequestFactory()
 
-        flock_source = FlockSource.objects.create(source=FlockSourceChoices.This_Farm)
+        flock_source = FlockSource.objects.create(source=FlockSourceChoices.THIS_FARM)
+        flock_breed = FlockBreed.objects.create(name=FlockBreedTypeChoices.KUROILER)
         broiler_house = HousingStructure.objects.create(
-            type=HousingStructureTypeChoices.Semi_Intensive_Housing,
-            category=HousingStructureCategoryChoices.Broilers_House,
+            type=HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
+            category=HousingStructureCategoryChoices.BROILERS_HOUSE,
         )
         self.flock = Flock.objects.create(
             source=flock_source,
+            breed=
+            flock_breed,
             date_of_hatching=timezone.now() - timedelta(weeks=4),
-            chicken_type=ChickenTypeChoices.Broiler,
+            chicken_type=ChickenTypeChoices.BROILER,
             initial_number_of_birds=100,
-            current_rearing_method=RearingMethodChoices.Cage_System,
+            current_rearing_method=RearingMethodChoices.CAGE_SYSTEM,
             current_housing_structure=broiler_house,
         )
 
@@ -87,17 +88,19 @@ class FlockInventoryHistoryViewSetTest(TestCase):
         """
         self.factory = APIRequestFactory()
 
-        flock_source = FlockSource.objects.create(source=FlockSourceChoices.This_Farm)
+        flock_source = FlockSource.objects.create(source=FlockSourceChoices.THIS_FARM)
+        flock_breed = FlockBreed.objects.create(name=FlockBreedTypeChoices.KUROILER)
         broiler_house = HousingStructure.objects.create(
-            type=HousingStructureTypeChoices.Semi_Intensive_Housing,
-            category=HousingStructureCategoryChoices.Broilers_House,
+            type=HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
+            category=HousingStructureCategoryChoices.BROILERS_HOUSE,
         )
         self.flock = Flock.objects.create(
             source=flock_source,
+            breed=flock_breed,
             date_of_hatching=timezone.now() - timedelta(weeks=4),
-            chicken_type=ChickenTypeChoices.Broiler,
+            chicken_type=ChickenTypeChoices.BROILER,
             initial_number_of_birds=100,
-            current_rearing_method=RearingMethodChoices.Cage_System,
+            current_rearing_method=RearingMethodChoices.CAGE_SYSTEM,
             current_housing_structure=broiler_house,
         )
         self.flock_inventory = FlockInventory.objects.get(flock=self.flock)
@@ -123,10 +126,10 @@ class FlockInventoryHistoryViewSetTest(TestCase):
         It sends a GET request to the endpoint to retrieve the flock inventory history detail and verifies the response.
 
         """
-        url = reverse('poultry_inventory:flock-inventory-histories-detail', kwargs={'pk': self.flock_inventory_history.id})
+        url = reverse('poultry_inventory:flock-inventory-histories-detail',
+                      kwargs={'pk': self.flock_inventory_history.id})
         request = self.factory.get(url)
         view = FlockInventoryHistoryViewSet.as_view({'get': 'retrieve'})
         response = view(request, pk=self.flock_inventory_history.id)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['flock_inventory'], self.flock_inventory_history.flock_inventory.id)
-

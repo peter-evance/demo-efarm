@@ -5,57 +5,57 @@ class FlockSourceChoices(models.TextChoices):
     """
     Choices for the source of a flock.
 
-    - `This_Farm`: Flock originated from "This Farm".
-    - `Ken_Chic`: Flock originated from "Ken Chic".
-    - `Kuku_Chick`: Flock originated from "Kuku Chick".
-    - `Uzima_Chicken`: Flock originated from "Uzima Chick".
-    - `Kiplels_Farm`: Flock originated from "Kiplel's Farm".
+    - `THIS_FARM`: Flock originated from "This Farm".
+    - `KEN_CHICK`: Flock originated from "Ken Chic".
+    - `KUKU_CHICK`: Flock originated from "Kuku Chick".
+    - `UZIMA_CHICKEN`: Flock originated from "Uzima Chick".
+    - `KIPLELS_FARM`: Flock originated from "Kiplel's Farm".
     """
-    This_Farm = 'This Farm'
-    Ken_Chic = 'Ken Chic'
-    Kuku_Chick = 'Kuku Chick'
-    Uzima_Chicken = 'Uzima Chick'
-    Kiplels_Farm = "Kiplel's Farm"
+    THIS_FARM = 'This Farm'
+    KEN_CHICK = 'Ken Chick'
+    KUKU_CHICK = 'Kuku Chick'
+    UZIMA_CHICKEN = 'Uzima Chicken'
+    KIPLELS_FARM = "Kiplel's Farm"
 
 
 class ChickenTypeChoices(models.TextChoices):
     """
     Choices for the type of chicken.
 
-    - `Broiler`: Broiler chicken.
-    - `Layers`: Layers chicken.
-    - `Multi_Purpose`: Multi-purpose chicken.
+    - `BROILER`: BROILER chicken.
+    - `LAYERS`: LAYERS chicken.
+    - `MULTI_PURPOSE`: Multi-purpose chicken.
     """
-    Broiler = 'Broiler'
-    Layers = 'Layers'
-    Multi_Purpose = 'Multi-Purpose'
+    BROILER = 'Broilers'
+    LAYERS = 'Layers'
+    MULTI_PURPOSE = 'Multi-Purpose'
 
 
 class HousingStructureTypeChoices(models.TextChoices):
     """
     Choices for the type of housing structure.
 
-    - `Open_Sided_Shed`: Open-sided shed housing structure.
-    - `Closed_Shed`: Closed shed housing structure.
-    - `Battery_Cage`: Battery cage system housing structure.
-    - `Deep_Litter_House`: Deep litter house housing structure.
-    - `Semi_Intensive_Housing`: Semi-intensive housing structure.
-    - `Pasture_Housing`: Pasture housing structure.
+    - `OPEN_SIDED_SHED`: Open-sided shed housing structure.
+    - `CLOSED_SHED`: Closed shed housing structure.
+    - `BATTERY_CAGE`: Battery cage system housing structure.
+    - `DEEP_LITTER_HOUSE`: Deep litter house housing structure.
+    - `SEMI_INTENSIVE_HOUSING`: Semi-intensive housing structure.
+    - `PASTURE_HOUSING`: Pasture housing structure.
     """
-    Open_Sided_Shed = 'Open-Sided Shed'
-    Closed_Shed = 'Closed Shed'
-    Battery_Cage = 'Battery Cage System'
-    Deep_Litter_House = 'Deep Litter House'
-    Semi_Intensive_Housing = 'Semi-Intensive Housing'
-    Pasture_Housing = 'Pasture Housing'
+    OPEN_SIDED_SHED = 'Open-Sided Shed'
+    CLOSED_SHED = 'Closed Shed'
+    BATTERY_CAGE = 'Battery Cage System'
+    DEEP_LITTER_HOUSE = 'Deep Litter House'
+    SEMI_INTENSIVE_HOUSING = 'Semi-Intensive Housing'
+    PASTURE_HOUSING = 'Pasture Housing'
 
 
 class HousingStructureCategoryChoices(models.TextChoices):
-    Brooder_Chick_House = 'Brooder Chick House'
-    Growers_House = 'Growers House'
-    Layers_House = 'Layers House'
-    Broilers_House = 'Broilers House'
-    Breeders_House = 'Breeders House'
+    BROODER_CHICK_HOUSE = 'Brooder Chick House'
+    GROWERS_HOUSE = 'Growers House'
+    LAYERS_HOUSE = 'Layers House'
+    BROILERS_HOUSE = 'Broilers House'
+    BREEDERS_HOUSE = 'Breeders House'
     # General_Purpose_House = 'General Purpose House'
 
 
@@ -63,74 +63,59 @@ class RearingMethodChoices(models.TextChoices):
     """
     Choices for the rearing method of a flock.
 
-    - `Free_Range`: Free range rearing method.
-    - `Cage_System`: Cage system rearing method.
-    - `Deep_Litter`: Deep litter rearing method.
-    - `Barn_System`: Barn system rearing method.
-    - `Pasture_Based`: Pasture-based rearing method.
+    - `FREE_RANGE`: Free range rearing method.
+    - `CAGE_SYSTEM`: Cage system rearing method.
+    - `DEEP_LITTER`: Deep litter rearing method.
+    - `BARN_SYSTEM`: Barn system rearing method.
+    - `PASTURE_BASED`: Pasture-based rearing method.
     """
-    Free_Range = 'Free Range'
-    Cage_System = 'Cage System'
-    Deep_Litter = 'Deep Litter'
-    Barn_System = 'Barn System'
-    Pasture_Based = 'Pasture Based'
+    FREE_RANGE = 'Free Range'
+    CAGE_SYSTEM = 'Cage System'
+    DEEP_LITTER = 'Deep Litter'
+    BARN_SYSTEM = 'Barn System'
+    PASTURE_BASED = 'Pasture Based'
 
 
 class FlockBreedTypeChoices(models.TextChoices):
     """
     Choices for the breed type of flock.
 
-    - `Kuroiler`: Kuroiler breed.
-    - `Rainbow_Rooster`: Rainbow Rooster breed.
-    - `Kenbro`: Kenbro breed.
-    - `Indigenous`: Indigenous breed.
-    - `Leghorn`: Leghorn breed.
-    - `Sussex`: Sussex breed.
-    - `Plymouth_Rock`: Plymouth Rock breed.
-    - `Rhode_Island_Red`: Rhode Island Red breed.
-    - `Brahma`: Brahma breed.
-    - `Cornish_Cross`: Cornish Cross breed.
-    - `Australorp`: Australorp breed.
-    - `Orpington`: Orpington breed.
-    - `Wyandotte`: Wyandotte breed.
-    - `Silkie`: Silkie breed.
-    - `Cochin`: Cochin breed.
-    - `Easter_Egger`: Easter Egger breed.
-    - `Bantam`: Bantam breed.
-    - `Other`: Other breed.
+    - `KUROILER`: Kuroiler breed.
+    - `RAINBOW_ROOSTER`: Rainbow Rooster breed.
+    - `KENBRO`: Kenbro breed.
+    - `INDIGENOUS`: Indigenous breed.
+    - `LEGHORN`: Leghorn breed.
+    - `SUSSEX`: Sussex breed.
+    - `PLYMOUTH_ROCK`: Plymouth Rock breed.
+    - `RHODE_ISLAND_RED`: Rhode Island Red breed.
+    - `BRAHMA`: Brahma breed.
+    - `CORNISH_CROSS`: Cornish Cross breed.
+    - `AUSTRALORP`: Australorp breed.
+    - `ORPINGTON`: Orpington breed.
+    - `WYANDOTTE`: Wyandotte breed.
+    - `SILKIE`: Silkie breed.
+    - `COCHIN`: Cochin breed.
+    - `EASTER_EGGER`: Easter Egger breed.
+    - `BANTAM`: Bantam breed.
+    - `SASS0_F1`: Sasso F1 breed.
+    - `OTHER`: Other breed.
     """
-    Kuroiler = 'Kuroiler'
-    Rainbow_Rooster = 'Rainbow Rooster'
-    Kenbro = 'Kenbro'
-    Indigenous = 'Indigenous'
-    Leghorn = 'Leghorn'
-    Sussex = 'Sussex'
-    Plymouth_Rock = 'Plymouth Rock'
-    Rhode_Island_Red = 'Rhode Island Red'
-    Brahma = 'Brahma'
-    Cornish_Cross = 'Cornish Cross'
-    Australorp = 'Australorp'
-    Orpington = 'Orpington'
-    Wyandotte = 'Wyandotte'
-    Silkie = 'Silkie'
-    Cochin = 'Cochin'
-    Easter_Egger = 'Easter Egger'
-    Bantam = 'Bantam'
-    Other = 'Other'
-
-
-class ShellQualityChoices(models.TextChoices):
-    """
-    Choices for the quality of a shell.
-
-    - `Excellent`: Excellent quality.
-    - `Good`: Good quality.
-    - `Average`: Average quality.
-    - `Poor`: Poor quality.
-    - `Very_Poor`: Very poor quality.
-    """
-    Excellent = 'Excellent'
-    Good = 'Good'
-    Average = 'Average'
-    Poor = 'Poor'
-    Very_Poor = 'Very Poor'
+    KUROILER = 'Kuroiler'
+    RAINBOW_ROOSTER = 'Rainbow Rooster'
+    KENBRO = 'Kenbro'
+    INDIGENOUS = 'Indigenous'
+    LEGHORN = 'Leghorn'
+    SUSSEX = 'Sussex'
+    PLYMOUTH_ROCK = 'Plymouth Rock'
+    RHODE_ISLAND_RED = 'Rhode Island Red'
+    BRAHMA = 'Brahma'
+    CORNISH_CROSS = 'Cornish Cross'
+    AUSTRALORP = 'Australorp'
+    ORPINGTON = 'Orpington'
+    WYANDOTTE = 'Wyandotte'
+    SILKIE = 'Silkie'
+    COCHIN = 'Cochin'
+    EASTER_EGGER = 'Easter Egger'
+    BANTAM = 'Bantam'
+    SASSO_F1 = 'Sasso F1'
+    OTHER = 'Other'

@@ -20,6 +20,22 @@ class FlockSourceViewSet(viewsets.ModelViewSet):
     serializer_class = FlockSourceSerializer
 
 
+class FlockBreedViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing FlockBreed instances.
+
+    Provides the following actions:
+    - `list`: Retrieves a list of all flock breeds.
+    - `create`: Creates a new flock breeds.
+    - `retrieve`: Retrieves a specific flock breed by its ID.
+    - `update`: Updates a flock breeds.
+    - `destroy`: Deletes a flock breeds.
+
+    """
+    queryset = FlockBreed.objects.all()
+    serializer_class = FlockBreedSerializer
+
+
 class HousingStructureViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing HousingStructure instances.
@@ -124,3 +140,41 @@ class FlockInspectionRecordViewSet(viewsets.ModelViewSet):
     """
     queryset = FlockInspectionRecord.objects.all()
     serializer_class = FlockInspectionRecordSerializer
+
+
+class FlockBreedInformationViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing FlockBreedInformation instances.
+
+    Provides the following actions:
+    - `list`: Retrieves a list of all flock breed information.
+    - `create`: Creates new flock breed information.
+    - `retrieve`: Retrieves specific flock breed information by its ID.
+    - `update`: Updates flock breed information.
+    - `destroy`: Deletes flock breed information.
+
+    """
+    queryset = FlockBreedInformation.objects.all()
+    serializer_class = FlockBreedInformationSerializer
+
+
+class EggCollectionViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing EggCollection instances.
+
+    Provides the following actions:
+
+    list: Retrieve a list of all egg collections.
+
+    create: Create a new egg collection.
+
+    retrieve: Retrieves a specific egg collection by its ID.
+
+    update: Updates an egg collection.
+
+    destroy: Delete an egg collection.
+
+    """
+
+    queryset = EggCollection.objects.all()
+    serializer_class = EggCollectionSerializer
