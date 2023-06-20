@@ -308,15 +308,15 @@ class FlockBreedInformationTestCase(TestCase):
             maturity_age_in_weeks=9
         )
         with self.assertRaises(ValidationError):
-            flock_breed_info.clean()
+            flock_breed_info.save()
 
         flock_breed_info.average_egg_production = None
-        flock_breed_info.clean()  # No exception should be raised
+        flock_breed_info.save()  # No exception should be raised
 
         flock_breed_info.chicken_type = ChickenTypeChoices.LAYERS
         flock_breed_info.average_egg_production = 150
         flock_breed_info.maturity_age_in_weeks = 18
-        flock_breed_info.clean()  # No exception should be raised
+        flock_breed_info.save()  # No exception should be raised
 
     def test_save_method(self):
         """
@@ -402,10 +402,10 @@ class EggCollectionModelTestCase(TestCase):
 
     def test_clean_valid_data(self):
         """
-        Test the clean method with valid data.
+        Test the validator method with valid data.
 
         - Create a valid egg collection with collected eggs and broken eggs counts.
-        - Assert that the clean method does not raise any validation errors.
+        - Assert that the validator method does not raise any validation errors.
 
         """
 
@@ -422,12 +422,12 @@ class EggCollectionModelTestCase(TestCase):
         except ValidationError:
             self.fail("Unexpected ValidationError raised for valid data.")
 
-    def test_clean_broken_eggs_greater_than_collected_eggs(self):
+    def test_broken_eggs_greater_than_collected_eggs(self):
         """
-        Test the clean method with broken eggs count greater than collected eggs count.
+        Test the validator method with broken eggs count greater than collected eggs count.
 
         - Create an egg collection with broken eggs count greater than collected eggs count.
-        - Assert that the clean method raises a ValidationError with the expected error message.
+        - Assert that the validator method raises a ValidationError with the expected error message.
 
         """
 
@@ -448,12 +448,12 @@ class EggCollectionModelTestCase(TestCase):
             context.exception
         )
 
-    def test_clean_exceeds_collected_eggs_limit(self):
+    def test_exceeds_collected_eggs_limit(self):
         """
-        Test the clean method with collected eggs exceeding the limit for the day.
+        Test the validator method with collected eggs exceeding the limit for the day.
 
         - Create an egg collection exceeding the collected eggs limit for the day.
-        - Assert that the clean method raises a ValidationError with the expected error message.
+        - Assert that the validator method raises a ValidationError with the expected error message.
 
         """
 
@@ -488,12 +488,12 @@ class EggCollectionModelTestCase(TestCase):
             context.exception
         )
 
-    def test_clean_exceeds_data_entry_limit(self):
+    def test_exceeds_data_entry_limit(self):
         """
-        Test the clean method with exceeding the data entry limit for the day.
+        Test the validator method with exceeding the data entry limit for the day.
 
         - Create multiple egg collections for the same flock and date.
-        - Assert that the clean method raises a ValidationError with the expected error message.
+        - Assert that the validator method raises a ValidationError with the expected error message.
 
         """
 
@@ -530,12 +530,12 @@ class EggCollectionModelTestCase(TestCase):
             context.exception
         )
 
-    def test_clean_invalid_flock_chicken_type(self):
+    def test_invalid_flock_chicken_type(self):
         """
-        Test the clean method with an invalid flock chicken type.
+        Test the validator method with an invalid flock chicken type.
 
         - Create an egg collection with an invalid flock chicken type.
-        - Assert that the clean method raises a ValidationError with the expected error message.
+        - Assert that the validator method raises a ValidationError with the expected error message.
 
         """
 
@@ -565,13 +565,13 @@ class EggCollectionModelTestCase(TestCase):
             context.exception
         )
 
-    def test_clean_invalid_flock_age(self):
+    def test_invalid_flock_age(self):
         """
-        Test the clean method with an invalid flock age.
+        Test the validator method with an invalid flock age.
 
         - Update the flock's age and housing structure.
         - Create an egg collection for the updated flock.
-        - Assert that the clean method raises a ValidationError with the expected error message.
+        - Assert that the validator method raises a ValidationError with the expected error message.
 
         """
 
@@ -595,13 +595,13 @@ class EggCollectionModelTestCase(TestCase):
             context.exception
         )
 
-    def test_clean_invalid_flock_is_present(self):
+    def test_invalid_flock_is_present(self):
         """
-        Test the clean method with an invalid flock is_present field.
+        Test the validator method with an invalid flock is_present field.
 
         - Create a flock inspection record indicating that the flock is not present.
         - Create an egg collection for the inspected flock.
-        - Assert that the clean method raises a ValidationError with the expected error message.
+        - Assert that the validator method raises a ValidationError with the expected error message.
 
         """
 
@@ -616,6 +616,8 @@ class EggCollectionModelTestCase(TestCase):
 
         with self.assertRaises(ValidationError) as context:
             egg_collection.save()
+
+        # print(context.exception)
 
         self.assertIn(
             f"Egg collection is only allowed for flocks marked as present. "

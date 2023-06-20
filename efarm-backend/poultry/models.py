@@ -496,8 +496,7 @@ class FlockBreedInformation(models.Model):
     - breed: ForeignKey to the FlockBreed model, specifying the breed of the flock.
     - chicken_type: CharField specifying the type of chicken, chosen from a set of choices.
     - date_added: DateField automatically set to the date of creation.
-    - average_mature_weight_in_kgs: DecimalField specifying the average mature weight of the flock in kilograms,
-      with no specific minimum value.
+    - average_mature_weight_in_kgs: DecimalField specifying the average mature weight of the flock breed in kilograms
     - average_egg_production: PositiveIntegerField specifying the average egg production of the flock,
       with the option to be null.
     - maturity_age_in_weeks: PositiveIntegerField specifying the maturity age of the flock in weeks,
@@ -514,27 +513,28 @@ class FlockBreedInformation(models.Model):
     breed = models.ForeignKey(FlockBreed, on_delete=models.CASCADE)
     chicken_type = models.CharField(max_length=15, choices=ChickenTypeChoices.choices)
     date_added = models.DateField(auto_now_add=True)
-    average_mature_weight_in_kgs = models.DecimalField(max_digits=5, decimal_places=2)
+    average_mature_weight_in_kgs = models.DecimalField(max_digits=3, decimal_places=2)
     average_egg_production = models.PositiveIntegerField(null=True)
     maturity_age_in_weeks = models.PositiveIntegerField()
 
     class Meta:
         verbose_name_plural = "Flock Breed Information"
 
-    def clean(self):
+    def validator(self):
         """
-        Clean method to perform validation on the model fields.
+        Validator method to perform validation on the model fields.
 
         Raises a ValidationError if the chicken type is 'broiler' and average egg production is not null.
         Raises a ValidationError if the average mature weight is less than 1.50 Kgs.
         Raises a ValidationError if the maturity age is not within the acceptable range for the chicken type.
 
         """
-        if self.chicken_type == ChickenTypeChoices.BROILER and self.average_egg_production is not None:
-            raise ValidationError("Broilers should not have egg production!.")
 
         if self.chicken_type != ChickenTypeChoices.BROILER and self.average_egg_production is None:
             raise ValidationError("Average egg production must be provided!.")
+
+        if self.chicken_type == ChickenTypeChoices.BROILER and self.average_egg_production is not None:
+            raise ValidationError("Broilers should not have egg production!.")
 
         if self.average_mature_weight_in_kgs < Decimal('1.50'):
             raise ValidationError("Average mature weight should be at least 1.50 Kgs.")
@@ -553,7 +553,7 @@ class FlockBreedInformation(models.Model):
         Overrides the default save method to perform custom validations before saving the instance.
 
         """
-        self.clean()
+        self.validator()
         super().save(*args, **kwargs)
 
 

@@ -626,7 +626,7 @@ class FlockViewSetTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(flock.chicken_type, ChickenTypeChoices.MULTI_PURPOSE)
-        self.assertEqual(flock.current_housing_structure.category, HousingStructureCategoryChoices.GROWERS_HOUSE) 
+        self.assertEqual(flock.current_housing_structure.category, HousingStructureCategoryChoices.GROWERS_HOUSE)
 
 
 class FlockHistoryViewSetTestCase(APITestCase):
@@ -1076,7 +1076,8 @@ class FlockBreedInformationViewSetTestCase(APITestCase):
         data = {
             'breed': self.breed.pk,
             'chicken_type': ChickenTypeChoices.BROILER,
-            'average_mature_weight_in_kgs': '2.5',
+            'average_mature_weight_in_kgs': 2.5,
+            # 'average_egg_production': 10,
             'maturity_age_in_weeks': 10
         }
 
@@ -1113,6 +1114,7 @@ class FlockBreedInformationViewSetTestCase(APITestCase):
             'breed': self.breed.pk,
             'chicken_type': ChickenTypeChoices.LAYERS,
             'average_mature_weight_in_kgs': 2.5,
+            'average_egg_production': 150,
             'maturity_age_in_weeks': 18
         }
 
@@ -1205,6 +1207,7 @@ class EggCollectionViewSetTestCase(APITestCase):
 
         """
 
+        # FlockInspectionRecord.objects.create(flock=self.flock, number_of_dead_birds=20)
         request = self.factory.post(self.url, data=self.serializer_data)
         response = self.view(request)
         self.assertEqual(response.status_code, 201)

@@ -163,16 +163,11 @@ class EggCollectionViewSet(viewsets.ModelViewSet):
     ViewSet for managing EggCollection instances.
 
     Provides the following actions:
-
-    list: Retrieve a list of all egg collections.
-
-    create: Create a new egg collection.
-
-    retrieve: Retrieves a specific egg collection by its ID.
-
-    update: Updates an egg collection.
-
-    destroy: Delete an egg collection.
+    - `list`: Retrieve a list of all egg collections.
+    - `create`: Create a new egg collection.
+    - `retrieve`: Retrieves a specific egg collection by its ID.
+    - `update`: Updates an egg collection.
+    - `destroy`: Delete an egg collection.
 
     """
 
