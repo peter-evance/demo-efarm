@@ -38,13 +38,22 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_extensions',
     'corsheaders',
+    'djoser',
+    'drf_yasg',
+    'phonenumber_field',
     'dairy',
     'dairy_inventory',
     'poultry',
-    'poultry_inventory'
+    'poultry_inventory',
+    'users',
+    
 ]
+
+AUTH_USER_MODEL = 'users.CustomUser'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -77,6 +86,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'efarm.wsgi.application'
 
+USERNAME_FIELD = 'username'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -89,12 +99,20 @@ DATABASES = {
 }
 
 
-# RESTFRAMEWORK AUTH-SETTINGS
+# REST FRAMEWORK
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES':
+        ['rest_framework.authentication.TokenAuthentication'],
 
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny'
-    ]
+    'DEFAULT_FILTER_BACKENDS':
+        ['django_filters.rest_framework.DjangoFilterBackend']
+}
+
+DJOSER = {
+    'SERIALIZERS': {
+        'user_create': 'users.serializers.CustomUserCreateSerializer',
+        'user': 'users.serializers.CustomUserSerializer',
+    },
 }
 
 CORS_ALLOWED_ORIGINS = [
@@ -130,7 +148,7 @@ TIME_ZONE = 'Africa/Nairobi'
 
 USE_I18N = True
 
-USE_L10N = True
+# USE_L10N = True
 
 USE_TZ = True
 
