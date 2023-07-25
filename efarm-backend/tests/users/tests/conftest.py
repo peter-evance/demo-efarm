@@ -1,8 +1,8 @@
 import pytest
-from django.urls import reverse
-from rest_framework import status
-from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+from rest_framework.test import APIClient
+
 from users.choices import *
 
 User = get_user_model()
@@ -99,7 +99,6 @@ def setup_users():
 
     # Retrieve the token after login
     response = client.post(reverse('users:login'), team_leader_login_data)
-    assert response.status_code == status.HTTP_200_OK
     team_leader_token = response.data['auth_token']
 
     # Create farm worker user

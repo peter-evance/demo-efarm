@@ -14,7 +14,7 @@ class TestUserCreation:
             'username': 'testuser',
             'first_name': 'John',
             'last_name': 'Doe',
-            'phone_number': '+254912345673',
+            'phone_number': '+254712345673',
             'sex': SexChoices.MALE,
             'password': 'testpassword'
         })

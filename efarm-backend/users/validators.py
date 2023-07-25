@@ -11,7 +11,8 @@ class CustomUserValidator:
 
     """
 
-    def validate_sex(self, sex):
+    @staticmethod
+    def validate_sex(sex):
         """
         Validates that the sex field value is within the specified choices.
 
@@ -30,7 +31,7 @@ class CustomUserValidator:
         if sex not in SexChoices.values:
             raise ValidationError(f"Invalid value for sex: '{sex}'. It must be one of {SexChoices.values}.")
 
-
+    @staticmethod
     def validate_username(username):
         """
         Validates that the username is unique and exists in the database.

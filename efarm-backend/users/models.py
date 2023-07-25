@@ -41,11 +41,11 @@ class CustomUser(AbstractUser):
         - `dismiss_farm_worker()`: Dismisses the user from the farm worker role.
         - `get_full_name()`: Returns the full name of the user.
         - `get_role()`: Returns the role of the user based on their assigned roles.
-        - `get_farm_workers()`: Retrieves all farm workers associated with the user.
-        - `get_team_leaders()`: Retrieves all team leaders associated with the user.
-        - `get_assistant_farm_managers()`: Retrieves all assistant farm managers associated with the user.
-        - `get_farm_managers()`: Retrieves all farm managers associated with the user.
-        - `get_farm_owners()`: Retrieves all farm owners associated with the user.
+        - `get_farm_workers()`: Retrieves all farm workers
+        - `get_team_leaders()`: Retrieves all team leaders
+        - `get_assistant_farm_managers()`: Retrieves all assistant farm managers
+        - `get_farm_managers()`: Retrieves all farm managers
+        - `get_farm_owners()`: Retrieves all farm owners
         - `generate_username(first_name, last_name)`: Generates a unique username based on the user's first name and last name.
 
         """
@@ -157,8 +157,8 @@ class CustomUser(AbstractUser):
         return CustomUser.objects.filter(is_farm_owner=True)
 
     def clean(self):
-        CustomUserValidator.validate_sex(self, self.sex)
-        CustomUserValidator.validate_username(self, self.username)
+        CustomUserValidator.validate_sex(self.sex)
+        CustomUserValidator.validate_username(self.username)
 
     def __str__(self):
         return self.username
