@@ -4,8 +4,21 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
-from .choices import *
+from dairy.choices import *
+from dairy.validators import *
 
+
+class CowBreed(models.Model):
+    name = models.CharField(max_length=20, choices=CowBreedChoices.choices)
+
+    def __str__(self):
+        return str(self.name)
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            raise ValidationError("Updates are not allowed for cow breeds.")
+        CowBreedValidator.validate_unique_name(self.name)
+        super().save(*args, **kwargs)
 
 class Cow(models.Model):
     """

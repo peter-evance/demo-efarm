@@ -1,5 +1,22 @@
 from django.db import models
 
+class CowBreedChoices(models.TextChoices):
+    """
+    Choices for the breed of a cow.
+
+    - `Friesian`: Friesian breed.
+    - `Ayrshire`: Ayrshire breed.
+    - `Sahiwal`: Sahiwal breed.
+    - `Jersey`: Jersey breed.
+    - `Crossbreed`: Crossbreed of multiple breeds.
+    - `Guernsey`: Guernsey breed.
+    """
+    FRIESIAN = 'Friesian'
+    AYRSHIRE = 'Ayrshire'
+    SAHIWAL = 'Sahiwal'
+    JERSEY = 'Jersey'
+    CROSSBREED = 'Crossbreed'
+    GUERNSEY = 'Guernsey'
 
 class ProductionStatusChoices(models.TextChoices):
     """

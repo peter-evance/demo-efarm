@@ -3,6 +3,11 @@ from rest_framework import serializers
 from .models import *
 
 
+class CowBreedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CowBreed
+        fields = '__all__'
+
 class CowInBarnMovementSerializer(serializers.ModelSerializer):
     """
     Serializer for the CowInBarnMovement model.

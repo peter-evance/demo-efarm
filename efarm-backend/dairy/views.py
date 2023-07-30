@@ -6,9 +6,41 @@ from django.http import FileResponse, Http404
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import *
-from .serializers import *
+from dairy.models import *
+from dairy.serializers import *
+from dairy.permissions import *
+from dairy.filters import *
+
+
+class CowBreedViewSet(viewsets.ModelViewSet):
+    queryset = CowBreed.objects.all()
+    serializer_class = CowBreedSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = CowBreedFilterSet
+    ordering_fields = ['name']
+
+    def get_permissions(self):
+        if self.action in ['create']:
+            # Only farm owner and farm manager should be allowed to create cow breeds
+            permission_classes = [CanAddCowBreed]
+        elif self.action in ['destroy']:
+            # Only farm owner and farm manager should be allowed to delete cow breeds
+            permission_classes = [CanDeleteCowBreed]
+        else:
+            # For viewing cow breeds, allow farm owner, farm manager, assistant farm manager, team leader,
+            # and farm worker
+            permission_classes = [CanViewCowBreeds]
+        return [permission() for permission in permission_classes]
+
+    def update(self, request, *args, **kwargs):
+        # Disallow update for cow breeds since the name is selected from choices
+        return Response({"detail": "Updates are not allowed for cow breeds."},
+                        status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
 
 
 class CowInBarnMovementViewSet(viewsets.ReadOnlyModelViewSet):
