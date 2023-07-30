@@ -1,4 +1,3 @@
-
 from django.core.exceptions import ValidationError
 
 from dairy.choices import *
@@ -6,7 +5,7 @@ from dairy.choices import *
 
 class CowBreedValidator:
     @staticmethod
-    def validate_unique_name(name):
+    def validate_name(name):
         """
         Validates that the breed name is unique and belongs to the available choices.
 
@@ -23,3 +22,8 @@ class CowBreedValidator:
 
         if CowBreed.objects.filter(name=name).exists():
             raise ValidationError(f"A breed with the name '{name}' already exists.")
+
+    @staticmethod
+    def validate_update(pk):
+        if pk is not None:
+            raise ValidationError("Updates are not allowed for cow breeds.")

@@ -1,12 +1,10 @@
 import pytest
-from datetime import date, timedelta
-from dairy.models import *
-
-import pytest
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from django.contrib.auth import get_user_model
+
+from dairy.models import *
 from users.choices import *
 
 User = get_user_model()
@@ -188,105 +186,3 @@ def setup_users():
         'farm_worker_user_id': farm_worker_user_id,
         'farm_worker_user_username': farm_worker_user_username,
     }
-
-
-@pytest.fixture
-def setup_cows():
-    """
-    Fixture to create a sample cows object for testing.
-    """
-
-    general_cow = {
-        'name': 'General Cow',
-        'breed': {'name': CowBreedChoices.AYRSHIRE},
-        'date_of_birth': todays_date - timedelta(days=300),
-        'gender': SexChoices.FEMALE,
-        'availability_status': CowAvailabilityChoices.ALIVE,
-        'current_pregnancy_status': CowPregnancyChoices.UNAVAILABLE,
-        'category': CowCategoryChoices.HEIFER,
-        'current_production_status': CowProductionStatusChoices.YOUNG_HEIFER,
-    }
-
-    return general_cow
-
-
-@pytest.fixture
-def mature_open_female_cow():
-    cow_data = {
-        'name': 'Mature Female Cow',
-        'breed': BreedChoices.GUERNSEY,
-        'date_of_birth': date.today() - timedelta(days=356 * 3),  # Adjust the age to make it mature
-        'gender': SexChoices.FEMALE,
-        'availability_status': CowAvailabilityChoices.ALIVE,
-        'pregnancy_status': CowPregnancyChoices.OPEN,
-    }
-    cow = Cow.objects.create(**cow_data)
-    return cow
-
-
-@pytest.fixture
-def calf_with_parents():
-    dam_data = {
-        'name': 'Mature Female Cow',
-        'breed': BreedChoices.GUERNSEY,
-        'date_of_birth': date.today() - timedelta(days=356 * 3),
-        'gender': SexChoices.FEMALE,
-        'availability_status': CowAvailabilityChoices.ALIVE,
-        'pregnancy_status': CowPregnancyChoices.OPEN,
-    }
-    dam: Cow = Cow.objects.create(**dam_data)
-
-    sire_data = {
-        'name': 'Mature Male Cow',
-        'breed': BreedChoices.AYRSHIRE,
-        'date_of_birth': date.today() - timedelta(days=356 * 3),
-        'gender': SexChoices.MALE,
-        'availability_status': CowAvailabilityChoices.ALIVE,
-        'pregnancy_status': CowPregnancyChoices.UNAVAILABLE,
-    }
-    sire: Cow = Cow.objects.create(**sire_data)
-
-    calf_data = {
-        'name': 'Young Female Calf',
-        'breed': BreedChoices.GUERNSEY,
-        'date_of_birth': date.today() - timedelta(days=50),
-        'availability_status': CowAvailabilityChoices.ALIVE,
-        'pregnancy_status': CowPregnancyChoices.UNAVAILABLE,
-        # 'dam': dam,
-        'sire': sire
-    }
-    calf: Cow = Cow.objects.create(**calf_data)
-
-    return calf
-
-# @pytest.fixture
-# def mature_male_cow():
-#     cow_data = {
-#         'name': 'Mature Male Cow',
-#         'breed': BreedChoices.FRIESIAN,
-#         'date_of_birth': date.today() - timedelta(days=365*2),  # Adjust the age to make it mature
-#         'gender': SexChoices.MALE,
-#         'availability_status': CowAvailabilityChoices.ALIVE,
-#         'pregnancy_status': CowPregnancyChoices.UNAVAILABLE,
-#     }
-#     cow = Cow(**cow_data)
-#     cow.save()  # Save the instance to generate the ID
-#     return cow
-#
-#
-#
-
-#
-#
-# @pytest.fixture
-# def calf_cow():
-#     cow_data = {
-#         'name': 'Calf Cow',
-#         'breed': BreedChoices.GUERNSEY,
-#         'date_of_birth': date.today() - timedelta(days=100),  # Adjust the age to make it a calf
-#         'gender': SexChoices.FEMALE,
-#         'availability_status': CowAvailabilityChoices.ALIVE,
-#         'pregnancy_status': CowPregnancyChoices.OPEN,
-#     }
-#     cow = Cow.objects.create(**cow_data)
-#     return cow

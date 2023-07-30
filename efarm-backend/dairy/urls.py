@@ -6,6 +6,7 @@ app_name = 'dairy'
 
 router = routers.DefaultRouter()
 router.register(r'cows', CowViewSet, basename='cows')
+router.register(r'cow-breeds', CowBreedViewSet, basename='cow-breeds')
 router.register(r'milk-records', MilkViewSet, basename='milk-records')
 router.register(r'lactations-records', LactationViewSet, basename='lactation-records')
 router.register(r'pregnancy-records', PregnancyViewSet, basename='pregnancy-records')

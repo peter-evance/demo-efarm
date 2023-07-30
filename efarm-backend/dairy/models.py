@@ -1,10 +1,8 @@
 from datetime import date, datetime, timedelta
 
-from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
-from dairy.choices import *
 from dairy.validators import *
 
 
@@ -14,11 +12,14 @@ class CowBreed(models.Model):
     def __str__(self):
         return str(self.name)
 
+    def clean(self):
+        CowBreedValidator.validate_update(self.pk)
+        CowBreedValidator.validate_name(self.name)
+
     def save(self, *args, **kwargs):
-        if self.pk is not None:
-            raise ValidationError("Updates are not allowed for cow breeds.")
-        CowBreedValidator.validate_unique_name(self.name)
+        self.clean()
         super().save(*args, **kwargs)
+
 
 class Cow(models.Model):
     """

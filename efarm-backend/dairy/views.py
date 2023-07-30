@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
 
 from dairy.models import *
 from dairy.serializers import *
@@ -39,6 +40,23 @@ class CowBreedViewSet(viewsets.ModelViewSet):
         # Disallow update for cow breeds since the name is selected from choices
         return Response({"detail": "Updates are not allowed for cow breeds."},
                         status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                # If query parameters are provided, but there are no matching cow breeds
+                return Response({"detail": "No cow breed(s) found matching the provided filters."},
+                                status=status.HTTP_404_NOT_FOUND)
+            else:
+                # If no query parameters are provided, and there are no cow breeds in the database
+                return Response({"detail": "No cow breeds found in the farm yet."},
+                                status=status.HTTP_200_OK)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
