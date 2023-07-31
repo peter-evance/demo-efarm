@@ -80,3 +80,109 @@ class CanViewCowBreeds(BasePermission):
         ):
             return True
         raise PermissionDenied(self.message)
+
+
+class CanAddCow(BasePermission):
+    """
+    Custom permission class that allows farm owners and managers to add new cows.
+
+    Raises:
+    - `PermissionDenied`: If the user is not a farm owner or a farm manager.
+
+    Usage:
+        Add the permission class to the view or viewset that requires permission to add cows:
+        permission_classes = [CanAddCow]
+    """
+    message = {"message": "Only farm owners and managers have permission to perform this action."}
+
+    def has_permission(self, request, view):
+        """
+        Check if the current user is a farm owner or a farm manager.
+
+        Returns:
+            bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
+        """
+        if request.user.is_authenticated and (
+                request.user.is_farm_owner or request.user.is_farm_manager):
+            return True
+        raise PermissionDenied(self.message)
+
+
+class CanUpdateCow(BasePermission):
+    """
+    Custom permission class that allows farm owners and managers to update cow details.
+
+    Raises:
+    - `PermissionDenied`: If the user is not a farm owner or a farm manager.
+
+    Usage:
+        Add the permission class to the view or viewset that requires permission to update cow details:
+        permission_classes = [CanUpdateCow]
+    """
+    message = {"message": "Only farm owners and managers have permission to perform this action."}
+
+    def has_permission(self, request, view):
+        """
+        Check if the current user is a farm owner or a farm manager.
+
+        Returns:
+            bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
+        """
+        if request.user.is_authenticated and (request.user.is_farm_owner or request.user.is_farm_manager):
+            return True
+        raise PermissionDenied(self.message)
+
+
+class CanDeleteCow(BasePermission):
+    """
+    Custom permission class that allows farm owners to delete cows.
+
+    Raises:
+    - `PermissionDenied`: If the user is not a farm owner.
+
+    Usage:
+        Add the permission class to the view or viewset that requires permission to delete cows:
+        permission_classes = [CanDeleteCow]
+    """
+    message = {"message": "Only farm owners have permission to perform this action."}
+
+    def has_permission(self, request, view):
+        """
+        Check if the current user is a farm owner.
+
+        Returns:
+            bool: True if the user is a farm owner, otherwise raises PermissionDenied.
+        """
+        if request.user.is_authenticated and request.user.is_farm_owner:
+            return True
+        raise PermissionDenied(self.message)
+
+
+class CanViewCow(BasePermission):
+    """
+    Custom permission class that allows farm staff and workers to view cow details.
+
+    Raises:
+    - `PermissionDenied`: If the user is not a farm owner, a farm worker, a farm manager, or an assistant farm manager.
+
+    Usage:
+        Add the permission class to the view or viewset that requires permission to view cow details:
+        permission_classes = [CanViewCow]
+    """
+    message = {"message": "Only farm staff and workers have permission to perform this action."}
+
+    def has_permission(self, request, view):
+        """
+        Check if the current user is a farm owner, a farm worker, a farm manager, or an assistant farm manager.
+
+        Returns:
+            bool: True if the user has one of the allowed roles, otherwise raises PermissionDenied.
+        """
+        if request.user.is_authenticated and (
+                request.user.is_farm_owner or
+                request.user.is_farm_worker or
+                request.user.is_farm_manager or
+                request.user.is_assistant_farm_manager
+        ):
+            return True
+        raise PermissionDenied(self.message)

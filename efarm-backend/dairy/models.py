@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
+from dairy.managers import CowManager
 from dairy.validators import *
 
 
@@ -22,118 +23,77 @@ class CowBreed(models.Model):
 
 
 class Cow(models.Model):
-    """
-    The `Cow` model represents a single cow in a dairy farm.
-    
-    ### Fields:
-
-    - `name`: A character field for the name of the cow.
-    - `breed`: A choice field for the breed of the cow.
-    - `date_of_birth`: A date field for the date of birth of the cow.
-    - `sire`: A foreign key field that links to the `Cow` model to represent the sire of the cow.
-    - `dam`: A foreign key field that links to the `Cow` model to represent the dam of the cow.
-    - `calf`: A foreign key field that links to the `Cow` model to represent the calf of the cow.
-    - `gender`: A choice field for the gender of the cow.
-    - `availability_status`: A choice field for the availability status of the cow.
-    - `pregnancy_status`: A choice field for the pregnancy status of the cow.
-    - `date_of_death`: A date field for the date of death of the cow.
-
-    ### Properties:
-
-    - `tag_number`: A read-only property that generates a unique tag number for the cow based on its breed, year of birth, and ID.
-    - `parity`: A read-only property that returns the number of calves the cow has had.
-    - `age`: A read-only property that returns the age of the cow in years, months, and weeks.
-    
-    ### Methods:
-        - `get_cow_age()`: returns the age of the cow in days
-        - `clean()`: performs validation on the model fields to ensure data integrity. The following validations are performed:
-
-            - Ensuring that the cow's age is less than 7 years.
-            - Ensuring that the cow is not already pregnant.
-            - Ensuring that a date of death is specified if the cow's status is set to "Dead".
-            - Ensuring that cows must be 21 months or older to be set as pregnant.
-            - Ensuring that a young cow cannot have a calf.
-            - Ensuring that dead cows can only have a "Not Pregnant" status.
-
-    """
-
-    class Meta:
-        verbose_name = "Cow \U0001F404"
-        verbose_name_plural = "Cows \U0001F404"
-
-    name = models.CharField(max_length=64)
-    breed = models.CharField(max_length=32, choices=BreedChoices.choices)
-    date_of_birth = models.DateField(validators=[MaxValueValidator(date.today())],
-                                     error_messages={'max_value': 'The date of birth cannot be in the future!.'})
+    name = models.CharField(max_length=35)
+    breed = models.ForeignKey(CowBreed, on_delete=models.PROTECT, db_index=True, related_name='cows')
+    date_of_birth = models.DateField()
     gender = models.CharField(max_length=6, choices=SexChoices.choices)
-    availability_status = models.CharField(max_length=5, choices=CowAvailabilityChoices.choices, default='Alive')
-    sire = models.ForeignKey('self', on_delete=models.SET_NULL, related_name='offspring', blank=True, null=True)
-    dam = models.ForeignKey('self', on_delete=models.SET_NULL, related_name='calves', blank=True, null=True)
-    calf = models.ForeignKey('self', on_delete=models.SET_NULL, related_name='dams', blank=True, null=True)
-    pregnancy_status = models.CharField(max_length=12, choices=PregnancyChoices.choices, default='Not Pregnant')
-    date_of_death = models.DateField(validators=[MaxValueValidator(date.today())], blank=True, null=True,
-                                     error_messages={'max_value': 'The date of death cannot be in the future!.'})
+    availability_status = models.CharField(choices=CowAvailabilityChoices.choices, default=CowAvailabilityChoices.ALIVE,
+                                           max_length=5)
+    sire = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='offspring')
+    dam = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='calves')
+    current_pregnancy_status = models.CharField(choices=CowPregnancyChoices.choices, default=CowPregnancyChoices.UNAVAILABLE, max_length=12)
+    category = models.CharField(choices=CowCategoryChoices.choices, default=CowCategoryChoices.CALF, max_length=11,)
+    current_production_status = models.CharField(choices=CowProductionStatusChoices.choices, max_length=22, default=CowProductionStatusChoices.CALF)
+    date_introduced_in_farm = models.DateField(auto_now_add=True)
+    is_bought = models.BooleanField(default=False)
+    date_of_death = models.DateField(null=True)
+
+    objects = models.Manager()
+    manager = CowManager()
 
     @property
     def tag_number(self):
-        """Returns the Cow's tag number"""
-        year_of_birth = self.date_of_birth.strftime('%Y')
-        first_letter_of_breed = self.breed[:2].upper()
-        counter = self.id
-        return f'{first_letter_of_breed}-{year_of_birth}-{counter}'
+        """
+        Returns the tag number of the cow.
+        """
+        return Cow.manager.get_tag_number(self)
 
     @property
     def parity(self):
-        """Returns the number of times a cow has calved down"""
-        return self.calves.count()
+        """
+        Calculates and returns the parity of the cow.
+        """
+        return Cow.manager.calculate_parity(self)
 
     @property
     def age(self):
-        """Returns the age of the cow dynamically"""
-        age_in_days = self.get_cow_age()
-        if age_in_days < 30:
-            weeks = int(age_in_days / 7)
-            days = age_in_days % 7
-            return f"{weeks}wk, {days}d"
+        """
+        Calculates and returns the age of the cow in days.
+        """
+        return Cow.manager.calculate_age(self)
 
-        elif age_in_days < 365:
-            months = int(age_in_days / 30)
-            weeks = int((age_in_days % 30) / 7)
-            return f"{months}m, {weeks}wk"
+    @property
+    def age_in_farm(self):
+        """
+        Calculates and returns the age of the cow in days since introduction to the farm.
+        """
+        return Cow.manager.calculate_age_in_farm(self)
 
-        else:
-            years = int(age_in_days / 365)
-            months = int((age_in_days % 365) / 30)
-            return f"{years}y, {months}m"
-
-    def get_cow_age(self):
-        """Calculates the age of a cow in days."""
-        return ((timezone.now().date()) - self.date_of_birth).days
+    @property
+    def calf_records(self):
+        return Cow.manager.get_calf_records(self)
 
     def clean(self):
-        """Performs several validations before saving the cow."""
-
-        cow_age = (self.get_cow_age()) / 365
-        if cow_age > 7:
-            raise ValidationError("Cow cannot be older than 7 years!")
-
-        if self.availability_status == 'Dead':
-            if not self.date_of_death:
-                raise ValidationError("Sorry, this cow died! Update it's status by adding the date of death.")
-            if (timezone.now().date() - self.date_of_death).days > 1:
-                raise ValidationError("Date of death entries longer than 24 hours ago are not allowed.")
-
-        if (self.get_cow_age() / 12) < 21 and self.pregnancy_status == 'Pregnant':
-            raise ValidationError("Cows must be 21 months or older to be set as pregnant")
-
-        if self.get_cow_age() / 12 < 21 and self.calf is not None:
-            raise ValidationError("This cow is still young and cannot have a calf.")
-
-        if self.availability_status == 'Dead' and self.pregnancy_status != 'Not Pregnant':
-            raise ValidationError("Dead cows can only have a 'Not Pregnant' status")
+        CowValidator.validate_cow_age(self.age, self.date_of_birth)
+        CowValidator.validate_uniqueness(self.name)
+        CowValidator.validate_date_of_death(self.availability_status, self.date_of_death)
+        CowValidator.validate_pregnancy_status(self.age, self.current_pregnancy_status, self.availability_status, self.gender)
+        CowValidator.validate_gender_update(self.pk, self.gender)
+        CowValidator.validate_sire_dam_relationship(self.sire, self.dam)
+        CowValidator.validate_age_category(self.age, self.category, self.gender, self.calf_records, self.is_bought)
+        CowValidator.validate_production_status(self.current_production_status, self.gender, self.category, self.age,
+                                                self.calf_records, self.is_bought)
 
     def __str__(self):
+        """
+        Returns a string representation of the cow.
+        """
         return self.tag_number
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+        CowValidator.validate_introduction_date(self.date_introduced_in_farm)
 
 
 class Pregnancy(models.Model):

@@ -1,5 +1,28 @@
 from django.db import models
 
+
+class CowProductionStatusChoices(models.TextChoices):
+    OPEN = 'Open'
+    PREGNANT_NOT_LACTATING = 'Pregnant not Lactating'
+    PREGNANT_AND_LACTATING = 'Pregnant and Lactating'
+    DRY = 'Dry'
+    CULLED = 'Culled'
+    BULL = 'Bull'
+    YOUNG_BULL = 'Young Bull'
+    YOUNG_HEIFER = 'Young Heifer'
+    MATURE_BULL = 'Mature Bull'
+    CALF = 'Calf'
+    WEANER = 'Weaner'
+
+
+class CowCategoryChoices(models.TextChoices):
+    CALF = 'Calf'
+    WEANER = 'Weaner'
+    HEIFER = 'Heifer'
+    BULL = 'Bull'
+    MILKING_COW = 'Milking Cow'
+
+
 class CowBreedChoices(models.TextChoices):
     """
     Choices for the breed of a cow.
@@ -18,41 +41,6 @@ class CowBreedChoices(models.TextChoices):
     CROSSBREED = 'Crossbreed'
     GUERNSEY = 'Guernsey'
 
-class ProductionStatusChoices(models.TextChoices):
-    """
-    Choices for the production status of a cow.
-
-    - `OPEN`: Cow is open.
-    - `PREGNANT_NOT_LACTATING`: Cow is pregnant but not lactating.
-    - `PREGNANT_AND_LACTATING`: Cow is pregnant and lactating.
-    - `DRY`: Cow is in a dry period.
-    - `CULLED`: Cow has been culled.
-    """
-    OPEN = 'Open'
-    PREGNANT_NOT_LACTATING = 'Pregnant not Lactating'
-    PREGNANT_AND_LACTATING = 'Pregnant and Lactating'
-    DRY = 'Dry'
-    CULLED = 'Culled'
-
-
-class BreedChoices(models.TextChoices):
-    """
-    Choices for the breed of a cow.
-
-    - `Friesian`: Friesian breed.
-    - `Ayrshire`: Ayrshire breed.
-    - `Sahiwal`: Sahiwal breed.
-    - `Jersey`: Jersey breed.
-    - `Crossbreed`: Crossbreed of multiple breeds.
-    - `Guernsey`: Guernsey breed.
-    """
-    Friesian = 'Friesian'
-    Ayrshire = 'Ayrshire'
-    Sahiwal = 'Sahiwal'
-    Jersey = 'Jersey'
-    Crossbreed = 'Crossbreed'
-    Guernsey = 'Guernsey'
-
 
 class SexChoices(models.TextChoices):
     """
@@ -61,8 +49,8 @@ class SexChoices(models.TextChoices):
     - `Male`: Male sex.
     - `Female`: Female sex.
     """
-    Male = 'Male'
-    Female = 'Female'
+    MALE = 'Male'
+    FEMALE = 'Female'
 
 
 class CowAvailabilityChoices(models.TextChoices):
@@ -73,22 +61,24 @@ class CowAvailabilityChoices(models.TextChoices):
     - `Sold`: Cow has been sold.
     - `Dead`: Cow has died.
     """
-    Alive = 'Alive'
-    Sold = 'Sold'
-    Dead = 'Dead'
+    ALIVE = 'Alive'
+    SOLD = 'Sold'
+    DEAD = 'Dead'
 
 
-class PregnancyChoices(models.TextChoices):
+class CowPregnancyChoices(models.TextChoices):
     """
     Choices for the pregnancy status of a cow.
 
     - `Open`: Cow is not pregnant.
     - `Pregnant`: Cow is pregnant.
     - `Calved`: Cow has calved.
+    - `Unavailable`: Cow cannot have pregnancy status.
     """
-    Open = 'Open'
-    Pregnant = 'Pregnant'
-    Calved = 'Calved'
+    OPEN = 'Open'
+    PREGNANT = 'Pregnant'
+    CALVED = 'Calved'
+    UNAVAILABLE = 'Unavailable'
 
 
 class CowPenTypeChoices(models.TextChoices):

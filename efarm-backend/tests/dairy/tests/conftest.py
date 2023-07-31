@@ -1,10 +1,12 @@
 import pytest
-from django.contrib.auth import get_user_model
+from datetime import date, timedelta
+from dairy.models import *
+
+import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-
-from dairy.models import *
+from django.contrib.auth import get_user_model
 from users.choices import *
 
 User = get_user_model()
@@ -96,6 +98,7 @@ def setup_users():
         'phone_number': '+254733333333',
         'sex': SexChoices.MALE,
         'is_team_leader': True,
+        'is_farm_worker': True
     }
     team_leader_login_data = {
         'username': 'leader@example.com',
@@ -186,3 +189,23 @@ def setup_users():
         'farm_worker_user_id': farm_worker_user_id,
         'farm_worker_user_username': farm_worker_user_username,
     }
+
+
+@pytest.fixture
+def setup_cows():
+    """
+    Fixture to create a sample cows object for testing.
+    """
+
+    general_cow = {
+        'name': 'General Cow',
+        'breed': {'name': CowBreedChoices.AYRSHIRE},
+        'date_of_birth': todays_date - timedelta(days=300),
+        'gender': SexChoices.FEMALE,
+        'availability_status': CowAvailabilityChoices.ALIVE,
+        'current_pregnancy_status': CowPregnancyChoices.UNAVAILABLE,
+        'category': CowCategoryChoices.HEIFER,
+        'current_production_status': CowProductionStatusChoices.YOUNG_HEIFER,
+    }
+
+    return general_cow

@@ -8,6 +8,54 @@ class CowBreedSerializer(serializers.ModelSerializer):
         model = CowBreed
         fields = '__all__'
 
+
+class CowSerializer(serializers.ModelSerializer):
+    breed = CowBreedSerializer()
+    tag_number = serializers.ReadOnlyField()
+    parity = serializers.ReadOnlyField()
+    age = serializers.ReadOnlyField()
+    age_in_farm = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Cow
+        fields = '__all__'
+
+    def create(self, validated_data):
+        breed_data = validated_data.pop('breed')
+        breed_name = breed_data.get('name')
+
+        try:
+            breed = CowBreed.objects.get(name=breed_name)
+        except CowBreed.DoesNotExist:
+            breed = CowBreed.objects.create(**breed_data)
+
+        cow = Cow.objects.create(breed=breed, **validated_data)
+        return cow
+
+    def update(self, instance, validated_data):
+        # Exclude updating the breed field
+        validated_data.pop('breed', None)
+        validated_data.pop('gender', None)
+        validated_data.pop('sire', None)
+        validated_data.pop('dam', None)
+        validated_data.pop('is_bought', None)
+        validated_data.pop('date_introduced_in_farm', None)
+
+        # Perform the update on the remaining fields
+        instance.name = validated_data.get('name', instance.name)
+        instance.date_of_birth = validated_data.get('date_of_birth', instance.date_of_birth)
+        instance.availability_status = validated_data.get('availability_status', instance.availability_status)
+        instance.current_pregnancy_status = validated_data.get('current_pregnancy_status',
+                                                               instance.current_pregnancy_status)
+        instance.category = validated_data.get('category', instance.category)
+        instance.current_production_status = validated_data.get('current_production_status',
+                                                                instance.current_production_status)
+        instance.date_of_death = validated_data.get('date_of_death', instance.date_of_death)
+
+        instance.save()
+        return instance
+
+
 class CowInBarnMovementSerializer(serializers.ModelSerializer):
     """
     Serializer for the CowInBarnMovement model.
@@ -75,26 +123,6 @@ class CowPenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CowPen
-        fields = '__all__'
-
-
-class CowSerializer(serializers.ModelSerializer):
-    """
-    Serializer for Cow model instances.
-
-    This serializer includes read-only fields for the cow's tag number, parity, and age.
-
-    #### Attributes:
-        - `tag_number (serializers.ReadOnlyField)`: A read-only field representing the tag number of the cow.
-        - `parity (serializers.ReadOnlyField)`: A read-only field representing the parity of the cow.
-        - `age (serializers.ReadOnlyField)`: A read-only field representing the age of the cow.
-    """
-    tag_number = serializers.ReadOnlyField()
-    parity = serializers.ReadOnlyField()
-    age = serializers.ReadOnlyField()
-
-    class Meta:
-        model = Cow
         fields = '__all__'
 
 

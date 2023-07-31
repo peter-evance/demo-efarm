@@ -59,6 +59,43 @@ class CowBreedViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class CowViewSet(viewsets.ModelViewSet):
+    queryset = Cow.objects.all()
+    serializer_class = CowSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = CowFilterSet
+    ordering_fields = ['date_of_birth', 'name', 'gender', 'breed']
+
+    def get_permissions(self):
+        if self.action == 'create':
+            permission_classes = [CanAddCow]
+        elif self.action == 'destroy':
+            permission_classes = [CanDeleteCow]
+        elif self.action in ['update', 'partial_update']:
+            permission_classes = [CanUpdateCow]
+        else:
+            # For viewing cow breeds, allow farm owner, farm manager, assistant farm manager, team leader,
+            # and farm worker
+            permission_classes = [CanViewCow]
+        return [permission() for permission in permission_classes]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                # If query parameters are provided, but there are no matching cows
+                return Response({"detail": "No cow(s) records found matching the provided filters."},
+                                status=status.HTTP_404_NOT_FOUND)
+            else:
+                # If no query parameters are provided, and there are no cows in the database
+                return Response({"detail": "No cow records found in the farm yet."},
+                                status=status.HTTP_200_OK)
+
+        serializer = self.get_serializer(queryset, many=True)
+        # return Response(serializer.data)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CowInBarnMovementViewSet(viewsets.ReadOnlyModelViewSet):
@@ -123,11 +160,6 @@ class BarnViewSet(viewsets.ModelViewSet):
     """
     serializer_class = BarnSerializer
     queryset = Barn.objects.all()
-
-
-class CowViewSet(viewsets.ModelViewSet):
-    serializer_class = CowSerializer
-    queryset = Cow.objects.all()
 
 
 class MilkViewSet(viewsets.ModelViewSet):
