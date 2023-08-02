@@ -21,7 +21,8 @@ class CowManager(models.Manager):
 
     """
 
-    def get_tag_number(self, cow):
+    @staticmethod
+    def get_tag_number(cow):
         """
         Generates and returns the tag number for a cow.
 
@@ -37,7 +38,8 @@ class CowManager(models.Manager):
         counter = cow.id
         return f"{first_letters_of_breed}-{year_of_birth}-{counter}"
 
-    def calculate_age(self, cow):
+    @staticmethod
+    def calculate_age(cow):
         """
         Calculates and returns the age of a cow in days.
 
@@ -51,7 +53,8 @@ class CowManager(models.Manager):
         age_in_days = (todays_date - cow.date_of_birth).days
         return age_in_days
 
-    def calculate_age_in_farm(self, cow):
+    @staticmethod
+    def calculate_age_in_farm(cow):
         """
         Calculates and returns the age of a cow in days since introduction to the farm.
 
@@ -65,7 +68,25 @@ class CowManager(models.Manager):
         age_in_days = (todays_date - cow.date_introduced_in_farm).days
         return age_in_days
 
-    def calculate_parity(self, cow):
+    def get_calf_records(self, cow):
+        """
+        Returns a list of calf records associated with the cow.
+
+        Args:
+        - `cow`: The cow object.
+
+        Returns:
+        - A list of calf records associated with the cow.
+
+        """
+        if cow.gender == SexChoices.FEMALE:
+            calf_records = self.filter(dam=cow)
+        else:
+            calf_records = self.filter(sire=cow)
+        return list(calf_records)
+
+    @staticmethod
+    def calculate_parity(cow):
         """
         Calculates the parity of a female cow based on its calf records.
 
@@ -140,20 +161,3 @@ class CowManager(models.Manager):
 
         """
         return self.filter(availability_status=CowAvailabilityChoices.DEAD)
-
-    def get_calf_records(self, cow):
-        """
-        Returns a list of calf records associated with the cow.
-
-        Args:
-        - `cow`: The cow object.
-
-        Returns:
-        - A list of calf records associated with the cow.
-
-        """
-        if cow.gender == SexChoices.FEMALE:
-            calf_records = list(self.filter(dam=cow))
-        else:
-            calf_records = list(self.filter(sire=cow))
-        return calf_records

@@ -33,7 +33,6 @@ class CowSerializer(serializers.ModelSerializer):
         return cow
 
     def update(self, instance, validated_data):
-        # Exclude updating the breed field
         validated_data.pop('breed', None)
         validated_data.pop('gender', None)
         validated_data.pop('sire', None)

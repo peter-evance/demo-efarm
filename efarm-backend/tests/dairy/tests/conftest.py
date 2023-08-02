@@ -198,14 +198,14 @@ def setup_cows():
     """
 
     general_cow = {
-        'name': 'General Cow',
-        'breed': {'name': CowBreedChoices.AYRSHIRE},
-        'date_of_birth': todays_date - timedelta(days=300),
-        'gender': SexChoices.FEMALE,
-        'availability_status': CowAvailabilityChoices.ALIVE,
-        'current_pregnancy_status': CowPregnancyChoices.UNAVAILABLE,
-        'category': CowCategoryChoices.HEIFER,
-        'current_production_status': CowProductionStatusChoices.YOUNG_HEIFER,
+        "name": "General Cow",
+        "breed": {"name": CowBreedChoices.AYRSHIRE},
+        "date_of_birth": todays_date - timedelta(days=300),
+        "gender": SexChoices.FEMALE,
+        "availability_status": CowAvailabilityChoices.ALIVE,
+        "current_pregnancy_status": CowPregnancyChoices.UNAVAILABLE,
+        "category": CowCategoryChoices.HEIFER,
+        "current_production_status": CowProductionStatusChoices.YOUNG_HEIFER,
     }
 
     return general_cow

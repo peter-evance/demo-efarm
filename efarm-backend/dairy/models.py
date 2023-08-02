@@ -80,9 +80,6 @@ class Cow(models.Model):
         CowValidator.validate_pregnancy_status(self.age, self.current_pregnancy_status, self.availability_status, self.gender)
         CowValidator.validate_gender_update(self.pk, self.gender)
         CowValidator.validate_sire_dam_relationship(self.sire, self.dam)
-        CowValidator.validate_age_category(self.age, self.category, self.gender, self.calf_records, self.is_bought)
-        CowValidator.validate_production_status(self.current_production_status, self.gender, self.category, self.age,
-                                                self.calf_records, self.is_bought)
 
     def __str__(self):
         """
@@ -94,6 +91,9 @@ class Cow(models.Model):
         self.clean()
         super().save(*args, **kwargs)
         CowValidator.validate_introduction_date(self.date_introduced_in_farm)
+        CowValidator.validate_age_category(self.age, self.category, self.gender, self.calf_records, self.is_bought)
+        CowValidator.validate_production_status(self.current_production_status, self.gender, self.category, self.age,
+                                                self.calf_records, self.is_bought)
 
 
 class Pregnancy(models.Model):

@@ -127,9 +127,9 @@ class CowValidator:
 
         """
 
-        if (age / 30.42) < 12 and pregnancy_status != CowPregnancyChoices.UNAVAILABLE:
+        if (age / 30.417) < 12 and pregnancy_status != CowPregnancyChoices.UNAVAILABLE:
             raise ValidationError(
-                f"Cows must be 12 months or older to be set as pregnant or open. Current age: {round((age / 30.42), 2)} months old.")
+                f"Cows must be 12 months or older to be set as pregnant or open. Current age: {round((age / 30.417), 2)} months old.")
 
         if availability_status == CowAvailabilityChoices.DEAD and pregnancy_status != CowPregnancyChoices.UNAVAILABLE:
             raise ValidationError(
@@ -248,9 +248,9 @@ class CowValidator:
                                                      CowProductionStatusChoices.PREGNANT_NOT_LACTATING,
                                                      CowProductionStatusChoices.CULLED]:
                             raise ValidationError(
-                                f"Heifers should have one of the following production statuses: "
+                                f"Heifers above 1 year should have one of the following production statuses: "
                                 f"'Open', 'Pregnant not Lactating', or 'Culled', "
-                                f"not '{production_status}'.")
+                                f"not '{production_status}', This heifer is {round((age/30.417)/12, 2 )} years old.")
                 elif category == CowCategoryChoices.MILKING_COW:
                     if is_bought:
                         if production_status not in [CowProductionStatusChoices.OPEN,
@@ -263,16 +263,15 @@ class CowValidator:
                         if any(calf_records):
                             if production_status not in [CowProductionStatusChoices.OPEN,
                                                          CowProductionStatusChoices.DRY,
-                                                         CowProductionStatusChoices.PREGNANT_NOT_LACTATING,
                                                          CowProductionStatusChoices.PREGNANT_AND_LACTATING,
                                                          CowProductionStatusChoices.CULLED]:
                                 raise ValidationError(
                                     f"Female cows with calf records should have one of the following production statuses: "
-                                    f"'Open', 'Dry', 'Pregnant not Lactating', 'Pregnant and Lactating', or 'Culled', "
-                                    f"not '{production_status}'.")
+                                    f"'Open', 'Dry', 'Pregnant and Lactating', or 'Culled', not '{production_status}'.")
                         else:
                             raise ValidationError(
-                                f"Female cows categorized as 'Milking Cow' over 1 year old must be associated with calf records.")
+                                f"Female cows categorized as 'Milking Cow' over 1 year old must be associated with "
+                                f"calf records.")
                 else:
                     raise ValidationError(f"Invalid cow category: '{category}'.")
 
@@ -312,10 +311,10 @@ class CowValidator:
                         f"Bought bulls should have the 'Bull' category, Not: ({category}) ")
             else:
                 if gender == SexChoices.FEMALE:
-                    if any(calf_records):
+                    if bool(calf_records):
                         if category != CowCategoryChoices.MILKING_COW:
                             raise ValidationError(
-                                f"Cows with calf records should have the 'Milking Cow' category, Not: ({category})")
+                                f"Cows with calf records should have the 'Milking Cow' category, Not: ({category, calf_records})")
                     else:
                         if category != CowCategoryChoices.HEIFER:
                             raise ValidationError(
