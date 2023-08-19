@@ -5,6 +5,7 @@ from rest_framework import status
 from users.models import *
 
 
+
 @pytest.mark.django_db
 def test_user_flow(client):
     # Register a new user
@@ -38,6 +39,7 @@ def test_user_flow(client):
     token = response.data['auth_token']
 
     # Access user details (with authentication)
+    headers = {'Authorization': f'Token {token}'}
     response = client.get('/auth/users/me', HTTP_AUTHORIZATION=f'Token {token}', follow=True)
     assert response.status_code == status.HTTP_200_OK
     assert 'username' in response.data
@@ -48,6 +50,7 @@ def test_user_flow(client):
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
     # Attempt to access user details after logout
+    headers = {'Authorization': f'Token {token}'}
     response = client.get('/auth/users/me', HTTP_AUTHORIZATION=f'Token {token}', follow=True)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert 'detail' in response.data
@@ -87,125 +90,109 @@ class TestRoleAssignments:
     def test_assign_to_self(self):
         # Assigning the role to oneself should be restricted
         user_ids = [self.farm_owner_user_id]
-        headers = {'Authorization': f'Token {self.farm_owner_token}'}
-        response = self.client.post(reverse('users:assign-farm-manager'), {'user_ids': user_ids}, headers=headers)
+        response = self.client.post(reverse('users:assign-farm-manager'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data[0] == 'Cannot assign roles to yourself.'
 
     def test_assign_farm_owner(self):
-        # Assigning the role to a regular user
         user_ids = [self.regular_user_id]
-        headers = {'Authorization': f'Token {self.farm_owner_token}'}
-        response = self.client.post(reverse('users:assign-farm-owner'), {'user_ids': user_ids}, headers=headers)
+        response = self.client.post(reverse('users:assign-farm-owner'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['message'] == f"User {self.regular_user_username} has been assigned as a farm owner."
 
     def test_assign_farm_manager(self):
-        # Assigning the role to a regular user
         user_ids = [self.regular_user_id]
-        headers = {'Authorization': f'Token {self.farm_owner_token}'}
-        response = self.client.post(reverse('users:assign-farm-manager'), {'user_ids': user_ids}, headers=headers)
+        response = self.client.post(reverse('users:assign-farm-manager'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['message'] == f"User {self.regular_user_username} has been assigned as a farm manager."
 
     def test_assign_asst_farm_manager(self):
-        # Assigning the role to a farm manager
-        user_ids = [self.farm_manager_user_id]
-        headers = {'Authorization': f'Token {self.farm_owner_token}'}
+        user_ids = [self.team_leader_user_id]
         response = self.client.post(reverse('users:assign-assistant-farm-manager'), {'user_ids': user_ids},
-                                    headers=headers)
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_200_OK
         assert response.data[
-                   'message'] == f"User {self.farm_manager_user_username} has been assigned as an assistant farm manager."
+                   'message'] == f"User {self.team_leader_user_username} has been assigned as an assistant farm manager."
 
     def test_assign_team_leader(self):
-        # Assigning the role to a farm owner
         user_ids = [self.regular_user_id]
-        headers = {'Authorization': f'Token {self.asst_farm_manager_token}'}
-        response = self.client.post(reverse('users:assign-team-leader'), {'user_ids': user_ids}, headers=headers)
+        response = self.client.post(reverse('users:assign-team-leader'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['message'] == f"User {self.regular_user_username} has been assigned as a team leader."
 
     def test_assign_farm_worker(self):
-        # Assigning the role to a farm owner and manager
         user_ids = [self.regular_user_id]
-        headers = {'Authorization': f'Token {self.farm_manager_token}'}
-        response = self.client.post(reverse('users:assign-farm-worker'), {'user_ids': user_ids}, headers=headers)
+        response = self.client.post(reverse('users:assign-farm-worker'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['message'] == f"User {self.regular_user_username} has been assigned as a farm worker."
 
     def test_assign_farm_manager_permission_denied(self):
-        # Attempting to assign the role of farm manager without the necessary permission
         user_ids = [self.regular_user_id]
-        headers = {'Authorization': f'Token {self.farm_manager_token}'}
-        response = self.client.post(reverse('users:assign-farm-manager'), {'user_ids': user_ids}, headers=headers)
+        response = self.client.post(reverse('users:assign-farm-manager'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.data['message'] == "Only farm owners have permission to perform this action."
 
     def test_assign_assistant_farm_manager_permission_denied(self):
-        # Attempting to assign the role of assistant farm manager without the necessary permission
         user_ids = [self.regular_user_id]
-        headers = {'Authorization': f'Token {self.asst_farm_manager_token}'}
+
         response = self.client.post(reverse('users:assign-assistant-farm-manager'), {'user_ids': user_ids},
-                                    headers=headers)
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.data['message'] == "Only farm owners have permission to perform this action."
 
     def test_assign_team_leader_permission_denied(self):
-        # Attempting to assign the role of team leader without the necessary permission
         user_ids = [self.regular_user_id]
-        headers = {'Authorization': f'Token {self.farm_worker_token}'}
-        response = self.client.post(reverse('users:assign-team-leader'), {'user_ids': user_ids}, headers=headers)
+        response = self.client.post(reverse('users:assign-team-leader'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.data['message'] == "Only farm owners, managers, and assistants have permission to perform " \
                                            "this action."
 
     def test_assign_farm_worker_permission_denied(self):
-        # Attempting to assign the role of farm worker without the necessary permission
         user_ids = [self.regular_user_id]
-        headers = {'Authorization': f'Token {self.farm_worker_token}'}
-        response = self.client.post(reverse('users:assign-farm-worker'), {'user_ids': user_ids}, headers=headers)
+        response = self.client.post(reverse('users:assign-farm-worker'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.data['message'] == "Only farm owners and managers have permission to perform this action."
 
     def test_dismiss_farm_manager(self):
-        # Dismissing a farm manager
-        user_ids = [self.farm_manager_user_id]
-        headers = {'Authorization': f'Token {self.farm_owner_token}'}
-        response = self.client.post(reverse('users:dismiss-farm-manager'), {'user_ids': user_ids}, headers=headers)
+        user_ids = [self.regular_user_id]
+        response = self.client.post(reverse('users:dismiss-farm-manager'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['message'] == f"User {self.farm_manager_user_username} has been dismissed as a farm manager."
+        assert response.data['message'] == f"User {self.regular_user_username} has been dismissed as a farm manager."
 
     def test_dismiss_asst_farm_manager(self):
-        # Dismissing assistant farm manager
-        user_ids = [self.asst_farm_manager_user_id]
-        headers = {'Authorization': f'Token {self.farm_owner_token}'}
+        user_ids = [self.farm_manager_user_id]
         response = self.client.post(reverse('users:dismiss-assistant-farm-manager'), {'user_ids': user_ids},
-                                    headers=headers)
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['message'] == f"User {self.asst_farm_manager_user_username} has been dismissed as an " \
+        assert response.data['message'] == f"User {self.farm_manager_user_username} has been dismissed as an " \
                                            f"assistant farm manager."
 
     def test_dismiss_team_leader(self):
-        # # Dismissing a team leader
-        user_ids = [self.team_leader_user_id]
-        headers = {'Authorization': f'Token {self.asst_farm_manager_token}'}
-        response = self.client.post(reverse('users:dismiss-team-leader'), {'user_ids': user_ids}, headers=headers)
+        user_ids = [self.regular_user_id]
+        response = self.client.post(reverse('users:dismiss-team-leader'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['message'] == f"User {self.team_leader_user_username} has been dismissed as a team leader."
+        assert response.data['message'] == f"User {self.regular_user_username} has been dismissed as a team leader."
 
     def test_dismiss_farm_worker(self):
-        # Dismissing a farm worker
-        user_ids = [self.farm_worker_user_id]
-        headers = {'Authorization': f'Token {self.farm_manager_token}'}
-        response = self.client.post(reverse('users:dismiss-farm-worker'), {'user_ids': user_ids}, headers=headers)
+        user_ids = [self.regular_user_id]
+        response = self.client.post(reverse('users:dismiss-farm-worker'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['message'] == f"User {self.farm_worker_user_username} has been dismissed as a farm worker."
+        assert response.data['message'] == f"User {self.regular_user_username} has been dismissed as a farm worker."
 
     def test_dismiss_user_not_found(self):
-        # Attempting to dismiss a user who does not exist
         user_ids = ['99']
-        headers = {'Authorization': f'Token {self.farm_owner_token}'}
-        response = self.client.post(reverse('users:dismiss-farm-manager'), {'user_ids': user_ids}, headers=headers)
+        response = self.client.post(reverse('users:dismiss-farm-manager'), {'user_ids': user_ids},
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['error'] == "User with ID '99' was not found."

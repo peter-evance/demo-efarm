@@ -1,4 +1,4 @@
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
 from rest_framework.permissions import BasePermission
 
 
@@ -24,6 +24,8 @@ class CanAddCowBreed(BasePermission):
         """
         if request.user.is_authenticated and (request.user.is_farm_owner or request.user.is_farm_manager):
             return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
         raise PermissionDenied(self.message)
 
 
@@ -49,6 +51,8 @@ class CanDeleteCowBreed(BasePermission):
         """
         if request.user.is_authenticated and (request.user.is_farm_owner or request.user.is_farm_manager):
             return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
         raise PermissionDenied(self.message)
 
 
@@ -79,6 +83,8 @@ class CanViewCowBreeds(BasePermission):
                 request.user.is_assistant_farm_manager
         ):
             return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
         raise PermissionDenied(self.message)
 
 
@@ -105,6 +111,8 @@ class CanAddCow(BasePermission):
         if request.user.is_authenticated and (
                 request.user.is_farm_owner or request.user.is_farm_manager):
             return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
         raise PermissionDenied(self.message)
 
 
@@ -130,6 +138,8 @@ class CanUpdateCow(BasePermission):
         """
         if request.user.is_authenticated and (request.user.is_farm_owner or request.user.is_farm_manager):
             return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
         raise PermissionDenied(self.message)
 
 
@@ -155,6 +165,8 @@ class CanDeleteCow(BasePermission):
         """
         if request.user.is_authenticated and request.user.is_farm_owner:
             return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
         raise PermissionDenied(self.message)
 
 
@@ -185,4 +197,6 @@ class CanViewCow(BasePermission):
                 request.user.is_assistant_farm_manager
         ):
             return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
         raise PermissionDenied(self.message)
