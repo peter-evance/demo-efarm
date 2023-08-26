@@ -6,7 +6,7 @@ from .models import *
 class CowBreedSerializer(serializers.ModelSerializer):
     class Meta:
         model = CowBreed
-        fields = '__all__'
+        fields = "__all__"
 
 
 class CowSerializer(serializers.ModelSerializer):
@@ -18,41 +18,33 @@ class CowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cow
-        fields = '__all__'
+        fields = "__all__"
 
     def create(self, validated_data):
         breed_data = validated_data.pop('breed')
-        breed_name = breed_data.get('name')
-
-        try:
-            breed = CowBreed.objects.get(name=breed_name)
-        except CowBreed.DoesNotExist:
-            breed = CowBreed.objects.create(**breed_data)
+        breed, _ = CowBreed.objects.get_or_create(**breed_data)
 
         cow = Cow.objects.create(breed=breed, **validated_data)
         return cow
 
     def update(self, instance, validated_data):
-        validated_data.pop('breed', None)
-        validated_data.pop('gender', None)
-        validated_data.pop('sire', None)
-        validated_data.pop('dam', None)
-        validated_data.pop('is_bought', None)
-        validated_data.pop('date_introduced_in_farm', None)
+        fields_to_exclude = ['breed', 'gender', 'sire', 'dam', 'is_bought', 'date_introduced_in_farm']
+        for field in fields_to_exclude:
+            validated_data.pop(field, None)
+        return super().update(instance, validated_data)
 
-        # Perform the update on the remaining fields
-        instance.name = validated_data.get('name', instance.name)
-        instance.date_of_birth = validated_data.get('date_of_birth', instance.date_of_birth)
-        instance.availability_status = validated_data.get('availability_status', instance.availability_status)
-        instance.current_pregnancy_status = validated_data.get('current_pregnancy_status',
-                                                               instance.current_pregnancy_status)
-        instance.category = validated_data.get('category', instance.category)
-        instance.current_production_status = validated_data.get('current_production_status',
-                                                                instance.current_production_status)
-        instance.date_of_death = validated_data.get('date_of_death', instance.date_of_death)
+class HeatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Heat
+        fields = "__all__"
 
-        instance.save()
-        return instance
+
+class InseminatorSerializer(serializers.ModelSerializer):
+    phone_number = PhoneNumberField()
+
+    class Meta:
+        model = Inseminator
+        fields = "__all__"
 
 
 class CowInBarnMovementSerializer(serializers.ModelSerializer):
@@ -70,7 +62,7 @@ class CowInBarnMovementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CowInBarnMovement
-        fields = '__all__'
+        fields = "__all__"
 
 
 class CowInPenMovementSerializer(serializers.ModelSerializer):
@@ -88,7 +80,7 @@ class CowInPenMovementSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CowInPenMovement
-        fields = '__all__'
+        fields = "__all__"
 
 
 class BarnSerializer(serializers.ModelSerializer):
@@ -104,7 +96,7 @@ class BarnSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Barn
-        fields = '__all__'
+        fields = "__all__"
 
 
 class CowPenSerializer(serializers.ModelSerializer):
@@ -122,7 +114,7 @@ class CowPenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CowPen
-        fields = '__all__'
+        fields = "__all__"
 
 
 class PregnancySerializer(serializers.ModelSerializer):
@@ -143,15 +135,16 @@ class PregnancySerializer(serializers.ModelSerializer):
         - `cow_breed (serializers.CharField)`: A read-only field representing the breed of the cow associated with the
             pregnancy.
     """
+
     due_date = serializers.ReadOnlyField()
     pregnancy_duration = serializers.ReadOnlyField()
     cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.all())
-    cow_tag_number = serializers.CharField(source='cow.tag_number', read_only=True)
-    cow_breed = serializers.CharField(source='cow.breed', read_only=True)
+    cow_tag_number = serializers.CharField(source="cow.tag_number", read_only=True)
+    cow_breed = serializers.CharField(source="cow.breed", read_only=True)
 
     class Meta:
         model = Pregnancy
-        fields = '__all__'
+        fields = "__all__"
 
 
 class LactationSerializer(serializers.ModelSerializer):
@@ -177,6 +170,7 @@ class LactationSerializer(serializers.ModelSerializer):
             in.
         - `lactation_duration (serializers.ReadOnlyField)`: A read-only field representing the duration of the lactation.
     """
+
     start_date = serializers.ReadOnlyField()
     end_date = serializers.ReadOnlyField()
     cow = CowSerializer(read_only=True)
@@ -208,14 +202,17 @@ class MilkSerializer(serializers.ModelSerializer):
         - `cow_breed (serializers.CharField)`: A read-only field representing the breed of the cow associated with the
             milk record.
     """
+
     lactation = LactationSerializer(read_only=True)
-    cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.filter(gender='Female'))
-    cow_tag_number = serializers.CharField(source='cow.tag_number', read_only=True)
-    cow_breed = serializers.CharField(source='cow.breed', read_only=True)
+    cow = serializers.PrimaryKeyRelatedField(
+        queryset=Cow.objects.filter(gender="Female")
+    )
+    cow_tag_number = serializers.CharField(source="cow.tag_number", read_only=True)
+    cow_breed = serializers.CharField(source="cow.breed", read_only=True)
 
     class Meta:
         model = Milk
-        fields = '__all__'
+        fields = "__all__"
 
 
 class WeightRecordSerializer(serializers.ModelSerializer):
@@ -229,14 +226,15 @@ class WeightRecordSerializer(serializers.ModelSerializer):
         - `cow (serializers.PrimaryKeyRelatedField)`: A field representing the cow associated with the weight record.
             This field is represented by a primary key related field.
     """
+
     cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.all())
 
     class Meta:
         model = WeightRecord
-        fields = '__all__'
+        fields = "__all__"
 
 
 class CullingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Culling
-        fields = '__all__'
+        fields = "__all__"

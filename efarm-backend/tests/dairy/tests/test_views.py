@@ -81,7 +81,7 @@ class TestCowViewSet:
         Test viewing cows as a farm owner.
         """
         response = self.client.get(reverse('dairy:cows-list'), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_200_OK
 
     def test_view_cow_as_farm_manager(self):
@@ -89,7 +89,7 @@ class TestCowViewSet:
         Test viewing cows as a farm manager.
         """
         response = self.client.get(reverse('dairy:cows-list'), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
         assert response.status_code == status.HTTP_200_OK
 
     def test_view_cow_as_asst_farm_manager(self):
@@ -97,7 +97,7 @@ class TestCowViewSet:
         Test viewing cows as an assistant farm manager.
         """
         response = self.client.get(reverse('dairy:cows-list'), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
         assert response.status_code == status.HTTP_200_OK
 
     def test_view_cow_as_team_leader(self):
@@ -105,7 +105,7 @@ class TestCowViewSet:
         Test viewing cows as a team leader.
         """
         response = self.client.get(reverse('dairy:cows-list'), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
         assert response.status_code == status.HTTP_200_OK
 
     def test_view_cow_as_farm_worker(self):
@@ -113,7 +113,7 @@ class TestCowViewSet:
         Test viewing cows as a farm worker.
         """
         response = self.client.get(reverse('dairy:cows-list'), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
         assert response.status_code == status.HTTP_200_OK
 
     def test_view_cow_as_regular_users_permission_denied(self):
@@ -121,7 +121,7 @@ class TestCowViewSet:
         Test viewing cows as regular users (should be denied).
         """
         response = self.client.get(reverse('dairy:cows-list'), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_view_cow_without_authentication(self):
@@ -131,7 +131,6 @@ class TestCowViewSet:
         response = self.client.get(reverse('dairy:cows-list'), format='json')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-
     def test_view_cow_detail_as_farm_owner(self):
         """
         Test viewing cow details as a farm owner.
@@ -140,7 +139,7 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         response = self.client.get(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['name'] == cow.name
 
@@ -152,7 +151,7 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         response = self.client.get(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['name'] == cow.name
 
@@ -164,7 +163,7 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         response = self.client.get(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['name'] == cow.name
 
@@ -176,7 +175,7 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         response = self.client.get(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['name'] == cow.name
 
@@ -188,7 +187,7 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         response = self.client.get(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['name'] == cow.name
 
@@ -200,7 +199,7 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         response = self.client.get(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), format='json',
-                                HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+                                   HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_view_cow_detail_without_authentication(self):
@@ -222,7 +221,8 @@ class TestCowViewSet:
         cow = serializer.save()
         data = {'name': 'Updated Cow'}
 
-        response = self.client.patch(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data,format='json', HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+        response = self.client.patch(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data, format='json',
+                                     HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_200_OK
         assert Cow.objects.get(pk=cow.pk).name == 'Updated Cow'
 
@@ -235,7 +235,8 @@ class TestCowViewSet:
         cow = serializer.save()
         data = {'name': 'Updated Cow'}
 
-        response = self.client.patch( reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data, format='json', HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+        response = self.client.patch(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data, format='json',
+                                     HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
         assert response.status_code == status.HTTP_200_OK
         assert Cow.objects.get(pk=cow.pk).name == 'Updated Cow'
 
@@ -248,7 +249,8 @@ class TestCowViewSet:
         cow = serializer.save()
         data = {'name': 'Updated Cow'}
 
-        response = self.client.patch(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data, format='json', HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+        response = self.client.patch(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data, format='json',
+                                     HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert Cow.objects.get(pk=cow.pk).name != 'Updated Cow'
 
@@ -260,7 +262,8 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         data = {'name': 'Updated Cow'}
-        response = self.client.patch(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data, format='json', HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+        response = self.client.patch(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data, format='json',
+                                     HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert Cow.objects.get(pk=cow.pk).name != 'Updated Cow'
 
@@ -273,7 +276,8 @@ class TestCowViewSet:
         cow = serializer.save()
         data = {'name': 'Updated Cow'}
 
-        response = self.client.patch(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data, format='json', HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+        response = self.client.patch(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data, format='json',
+                                     HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert Cow.objects.get(pk=cow.pk).name != 'Updated Cow'
 
@@ -285,7 +289,8 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         data = {'name': 'Updated Cow'}
-        response = self.client.patch(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data, format='json', HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+        response = self.client.patch(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), data=data, format='json',
+                                     HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert Cow.objects.get(pk=cow.pk).name != 'Updated Cow'
 
@@ -310,7 +315,7 @@ class TestCowViewSet:
         cow = serializer.save()
 
         response = self.client.delete(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), format='json',
-                                    HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+                                      HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Cow.objects.filter(pk=cow.pk).exists()
 
@@ -322,7 +327,7 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         response = self.client.delete(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), format='json',
-                                    HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+                                      HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert Cow.objects.filter(pk=cow.pk).exists()
 
@@ -334,7 +339,7 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         response = self.client.delete(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), format='json',
-                                    HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+                                      HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert Cow.objects.filter(pk=cow.pk).exists()
 
@@ -346,7 +351,7 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         response = self.client.delete(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), format='json',
-                                    HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+                                      HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert Cow.objects.filter(pk=cow.pk).exists()
 
@@ -358,7 +363,7 @@ class TestCowViewSet:
         assert serializer.is_valid()
         cow = serializer.save()
         response = self.client.delete(reverse('dairy:cows-detail', kwargs={'pk': cow.pk}), format='json',
-                                    HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+                                      HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert Cow.objects.filter(pk=cow.pk).exists()
 
@@ -443,6 +448,7 @@ class TestCowViewSet:
         response = self.client.get(url, HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_200_OK
 
+
 @pytest.mark.django_db
 class TestCowBreedViewSet:
     @pytest.fixture(autouse=True)
@@ -482,7 +488,8 @@ class TestCowBreedViewSet:
         """
         cow_breed_data = {'name': CowBreedChoices.GUERNSEY}
         response = self.client.post(
-            reverse('dairy:cow-breeds-list'), cow_breed_data, HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+            reverse('dairy:cow-breeds-list'), cow_breed_data,
+            HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert not CowBreed.objects.filter(name=cow_breed_data['name']).exists()
 
@@ -501,7 +508,8 @@ class TestCowBreedViewSet:
         Test creating a cow breed by a farm worker (should be denied).
         """
         cow_breed_data = {'name': CowBreedChoices.AYRSHIRE}
-        response = self.client.post(reverse('dairy:cow-breeds-list'), cow_breed_data, HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+        response = self.client.post(reverse('dairy:cow-breeds-list'), cow_breed_data,
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert not CowBreed.objects.filter(name=cow_breed_data['name']).exists()
 
@@ -510,7 +518,8 @@ class TestCowBreedViewSet:
         Test creating a cow breed by a regular user (should be denied).
         """
         cow_breed_data = {'name': CowBreedChoices.AYRSHIRE}
-        response = self.client.post(reverse('dairy:cow-breeds-list'), cow_breed_data, HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+        response = self.client.post(reverse('dairy:cow-breeds-list'), cow_breed_data,
+                                    HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert not CowBreed.objects.filter(name=cow_breed_data['name']).exists()
 
@@ -527,35 +536,40 @@ class TestCowBreedViewSet:
         """
         Test retrieving cow breeds by a farm owner.
         """
-        response = self.client.get(reverse('dairy:cow-breeds-list'), HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+        response = self.client.get(reverse('dairy:cow-breeds-list'),
+                                   HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
         assert response.status_code == status.HTTP_200_OK
 
     def test_retrieve_cow_breeds_as_farm_manager(self):
         """
         Test retrieving cow breeds by a farm manager.
         """
-        response = self.client.get(reverse('dairy:cow-breeds-list'), HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+        response = self.client.get(reverse('dairy:cow-breeds-list'),
+                                   HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
         assert response.status_code == status.HTTP_200_OK
 
     def test_retrieve_cow_breeds_as_asst_farm_manager(self):
         """
         Test retrieving cow breeds by an assistant farm manager.
         """
-        response = self.client.get(reverse('dairy:cow-breeds-list'), HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+        response = self.client.get(reverse('dairy:cow-breeds-list'),
+                                   HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
         assert response.status_code == status.HTTP_200_OK
 
     def test_retrieve_cow_breeds_as_team_leader(self):
         """
         Test retrieving cow breeds by a team leader.
         """
-        response = self.client.get(reverse('dairy:cow-breeds-list'), HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+        response = self.client.get(reverse('dairy:cow-breeds-list'),
+                                   HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
         assert response.status_code == status.HTTP_200_OK
 
     def test_retrieve_cow_breeds_as_regular_user_permission_denied(self):
         """
         Test retrieving cow breeds by a regular user (should be denied).
         """
-        response = self.client.get(reverse('dairy:cow-breeds-list'), HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+        response = self.client.get(reverse('dairy:cow-breeds-list'),
+                                   HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_retrieve_cow_breeds_without_authentication(self):
@@ -676,7 +690,7 @@ class TestCowBreedViewSet:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 2
         assert [cow_breed['name'] for cow_breed in response.data] == [CowBreedChoices.JERSEY,
-                                                                    CowBreedChoices.GUERNSEY]
+                                                                      CowBreedChoices.GUERNSEY]
 
     def test_order_cow_breeds_by_multiple_fields(self):
         """
@@ -710,3 +724,641 @@ class TestCowBreedViewSet:
         response = self.client.get(url, HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.data == {'detail': 'No cow breed(s) found matching the provided filters.'}
+
+
+@pytest.mark.django_db
+class TestHeatViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_cows):
+        self.client = setup_users["client"]
+
+        self.regular_user_token = setup_users["regular_user_token"]
+        self.farm_owner_token = setup_users["farm_owner_token"]
+        self.farm_manager_token = setup_users["farm_manager_token"]
+        self.asst_farm_manager_token = setup_users["asst_farm_manager_token"]
+        self.team_leader_token = setup_users["team_leader_token"]
+        self.farm_worker_token = setup_users["farm_worker_token"]
+
+        self.general_cow = setup_cows
+
+    def test_add_heat_record_as_farm_owner(self):
+        """
+        Test adding a heat record as a farm owner.
+        """
+        serializer = CowSerializer(data=self.general_cow)
+        assert serializer.is_valid()
+        cow = serializer.save()
+
+        heat_data = {
+            "observation_time": timezone.now(),
+            "cow": cow.id,
+        }
+
+        response = self.client.post(
+            reverse("dairy:heat-records-list"),
+            data=heat_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == 201
+
+    def test_add_heat_record_as_farm_manager(self):
+        """
+        Test adding a heat record as a farm manager.
+        """
+        serializer = CowSerializer(data=self.general_cow)
+        assert serializer.is_valid()
+        cow = serializer.save()
+
+        heat_data = {
+            "observation_time": timezone.now(),
+            "cow": cow.id,
+        }
+
+        response = self.client.post(
+            reverse("dairy:heat-records-list"),
+            data=heat_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == 201
+        assert Heat.objects.filter(cow=cow).exists()
+
+    def test_add_heat_record_as_asst_farm_manager(self):
+        """
+        Test adding a heat record as an assistant farm manager.
+        """
+        serializer = CowSerializer(data=self.general_cow)
+        assert serializer.is_valid()
+        cow = serializer.save()
+
+        heat_data = {
+            "observation_time": timezone.now(),
+            "cow": cow.id,
+        }
+
+        response = self.client.post(
+            reverse("dairy:heat-records-list"),
+            data=heat_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == 201
+        assert Heat.objects.filter(cow=cow).exists()
+
+    def test_add_heat_record_as_team_leader(self):
+        """
+        Test adding a heat record as a team leader.
+        """
+        serializer = CowSerializer(data=self.general_cow)
+        assert serializer.is_valid()
+        cow = serializer.save()
+
+        heat_data = {
+            "observation_time": timezone.now(),
+            "cow": cow.id,
+        }
+
+        response = self.client.post(
+            reverse("dairy:heat-records-list"),
+            data=heat_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == 201
+        assert Heat.objects.filter(cow=cow).exists()
+
+    def test_add_heat_record_as_farm_worker(self):
+        """
+        Test adding a heat record as a farm worker.
+        """
+        serializer = CowSerializer(data=self.general_cow)
+        assert serializer.is_valid()
+        cow = serializer.save()
+
+        heat_data = {
+            "observation_time": timezone.now(),
+            "cow": cow.id,
+        }
+
+        response = self.client.post(
+            reverse("dairy:heat-records-list"),
+            data=heat_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == 201
+        assert Heat.objects.filter(cow=cow).exists()
+
+    def test_add_heat_record_without_authentication(self):
+        """
+        Test adding a heat record without authentication.
+        """
+        serializer = CowSerializer(data=self.general_cow)
+        assert serializer.is_valid()
+        cow = serializer.save()
+
+        heat_data = {
+            "observation_time": timezone.now(),
+            "cow": cow.id,
+        }
+
+        response = self.client.post(
+            reverse("dairy:heat-records-list"), data=heat_data, format="json"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert not Heat.objects.filter(cow=cow).exists()
+
+    def test_view_heat_records_as_farm_owner(self):
+        """
+        Test viewing heat records as a farm owner.
+        """
+        response = self.client.get(
+            reverse("dairy:heat-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_heat_records_as_farm_manager(self):
+        """
+        Test viewing heat records as a farm manager.
+        """
+        response = self.client.get(
+            reverse("dairy:heat-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_heat_records_as_asst_farm_manager(self):
+        """
+        Test viewing heat records as an assistant farm manager.
+        """
+        response = self.client.get(
+            reverse("dairy:heat-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_heat_records_as_team_leader(self):
+        """
+        Test viewing heat records as a team leader.
+        """
+        response = self.client.get(
+            reverse("dairy:heat-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_heat_records_as_farm_worker(self):
+        """
+        Test viewing heat records as a farm worker.
+        """
+        response = self.client.get(
+            reverse("dairy:heat-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+class TestInseminatorViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_inseminators_data):
+        self.client = setup_users["client"]
+
+        self.regular_user_token = setup_users["regular_user_token"]
+        self.farm_owner_token = setup_users["farm_owner_token"]
+        self.farm_manager_token = setup_users["farm_manager_token"]
+        self.asst_farm_manager_token = setup_users["asst_farm_manager_token"]
+        self.team_leader_token = setup_users["team_leader_token"]
+        self.farm_worker_token = setup_users["farm_worker_token"]
+
+        self.inseminators_data = setup_inseminators_data
+
+    def test_add_inseminator_as_farm_owner(self):
+        """
+        Test adding an inseminator as a farm owner.
+        """
+        response = self.client.post(
+            reverse("dairy:inseminator-records-list"),
+            data=self.inseminators_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Inseminator.objects.filter(
+            license_number=self.inseminators_data["license_number"]
+        ).exists()
+
+    def test_add_inseminator_as_farm_manager(self):
+        """
+        Test adding an inseminator as a farm manager.
+        """
+        response = self.client.post(
+            reverse("dairy:inseminator-records-list"),
+            data=self.inseminators_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Inseminator.objects.filter(
+            license_number=self.inseminators_data["license_number"]
+        ).exists()
+
+    def test_add_inseminator_as_asst_farm_manager(self):
+        """
+        Test adding an inseminator as an assistant farm manager.
+        """
+        response = self.client.post(
+            reverse("dairy:inseminator-records-list"),
+            data=self.inseminators_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Inseminator.objects.filter(
+            license_number=self.inseminators_data["license_number"]
+        ).exists()
+
+    def test_add_inseminator_as_team_leader_permission_denied(self):
+        """
+        Test adding an inseminator as a team leader (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:inseminator-records-list"),
+            data=self.inseminators_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Inseminator.objects.filter(
+            license_number=self.inseminators_data["license_number"]
+        ).exists()
+
+    def test_add_inseminator_as_farm_worker_permission_denied(self):
+        """
+        Test adding an inseminator as a farm worker (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:inseminator-records-list"),
+            data=self.inseminators_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Inseminator.objects.filter(
+            license_number=self.inseminators_data["license_number"]
+        ).exists()
+
+    def test_add_inseminator_as_regular_user_permission_denied(self):
+        """
+        Test adding an inseminator as a regular user (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:inseminator-records-list"),
+            data=self.inseminators_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Inseminator.objects.filter(
+            license_number=self.inseminators_data["license_number"]
+        ).exists()
+
+    def test_add_inseminator_without_authentication(self):
+        """
+        Test adding an inseminator without authentication.
+        """
+        response = self.client.post(
+            reverse("dairy:inseminator-records-list"),
+            data=self.inseminators_data,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert not Inseminator.objects.filter(
+            license_number=self.inseminators_data["license_number"]
+        ).exists()
+
+    def test_update_inseminator_as_farm_owner(self):
+        """
+        Test updating an inseminator as a farm owner.
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+        updated_license_number = {"license_number": "UPDATED123"}
+
+        response = self.client.patch(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            data=updated_license_number,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert Inseminator.objects.filter(
+            license_number=updated_license_number["license_number"]
+        ).exists()
+
+    def test_update_inseminator_as_farm_manager(self):
+        """
+        Test updating an inseminator as a farm manager.
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+
+        updated_license_number = {"license_number": "UPDATED123"}
+
+        response = self.client.patch(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            data=updated_license_number,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert Inseminator.objects.filter(
+            license_number=updated_license_number["license_number"]
+        ).exists()
+
+    def test_update_inseminator_as_asst_farm_manager(self):
+        """
+        Test updating an inseminator as an assistant farm manager.
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+        updated_license_number = {"license_number": "UPDATED123"}
+
+        response = self.client.patch(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            data=updated_license_number,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert Inseminator.objects.filter(
+            license_number=updated_license_number["license_number"]
+        ).exists()
+
+    def test_update_inseminator_as_team_leader_permission_denied(self):
+        """
+        Test updating an inseminator as a team leader (permission denied).
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+        updated_license_number = {"license_number": "UPDATED123"}
+
+        response = self.client.patch(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            data=updated_license_number,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Inseminator.objects.filter(
+            license_number=updated_license_number["license_number"]
+        ).exists()
+
+    def test_update_inseminator_as_farm_worker_permission_denied(self):
+        """
+        Test updating an inseminator as a farm worker (permission denied).
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+        updated_license_number = {"license_number": "UPDATED123"}
+
+        response = self.client.patch(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            data=updated_license_number,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Inseminator.objects.filter(
+            license_number=updated_license_number["license_number"]
+        ).exists()
+
+    def test_update_inseminator_as_regular_user_permission_denied(self):
+        """
+        Test updating an inseminator as a regular user (permission denied).
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+        updated_license_number = {"license_number": "UPDATED123"}
+
+        response = self.client.patch(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            data=updated_license_number,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Inseminator.objects.filter(
+            license_number=updated_license_number["license_number"]
+        ).exists()
+
+    def test_update_inseminator_without_authentication(self):
+        """
+        Test updating an inseminator without authentication.
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+        updated_license_number = {"license_number": "UPDATED123"}
+
+        response = self.client.patch(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            data=updated_license_number,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert not Inseminator.objects.filter(
+            license_number=updated_license_number["license_number"]
+        ).exists()
+
+    def test_view_inseminator_as_farm_owner(self):
+        """
+        Test viewing inseminators as a farm owner.
+        """
+        response = self.client.get(
+            reverse("dairy:inseminator-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_inseminator_as_farm_manager(self):
+        """
+        Test viewing inseminators as a farm manager.
+        """
+        response = self.client.get(
+            reverse("dairy:inseminator-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_inseminator_as_asst_farm_manager(self):
+        """
+        Test viewing inseminators as an assistant farm manager.
+        """
+        response = self.client.get(
+            reverse("dairy:inseminator-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_inseminator_as_team_leader_permission_denied(self):
+        """
+        Test viewing inseminators as a team leader (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:inseminator-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_inseminator_as_farm_worker_permission_denied(self):
+        """
+        Test viewing inseminators as a farm worker (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:inseminator-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_inseminator_as_regular_user_permission_denied(self):
+        """
+        Test viewing inseminators as a regular user (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:inseminator-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_inseminator_without_authentication(self):
+        """
+        Test viewing inseminators without authentication.
+        """
+        response = self.client.get(
+            reverse("dairy:inseminator-records-list"), format="json"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_delete_inseminator_as_farm_owner(self):
+        """
+        Test deleting an inseminator as a farm owner.
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Inseminator.objects.filter(pk=inseminator.pk).exists()
+
+    def test_delete_inseminator_as_farm_manager(self):
+        """
+        Test deleting an inseminator as a farm manager.
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Inseminator.objects.filter(pk=inseminator.pk).exists()
+
+    def test_delete_inseminator_as_asst_farm_manager(self):
+        """
+        Test deleting an inseminator as an assistant farm manager.
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Inseminator.objects.filter(pk=inseminator.pk).exists()
+
+    def test_delete_inseminator_as_team_leader_permission_denied(self):
+        """
+        Test deleting an inseminator as a team leader (permission denied).
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert Inseminator.objects.filter(pk=inseminator.pk).exists()
+
+    def test_delete_inseminator_as_farm_worker_permission_denied(self):
+        """
+        Test deleting an inseminator as a farm worker (permission denied).
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert Inseminator.objects.filter(pk=inseminator.pk).exists()
+
+    def test_delete_inseminator_as_regular_user_permission_denied(self):
+        """
+        Test deleting an inseminator as a regular user (permission denied).
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert Inseminator.objects.filter(pk=inseminator.pk).exists()
+
+    def test_delete_inseminator_without_authentication(self):
+        """
+        Test deleting an inseminator without authentication.
+        """
+        serializer = InseminatorSerializer(data=self.inseminators_data)
+        assert serializer.is_valid()
+        inseminator = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:inseminator-records-detail", kwargs={"pk": inseminator.pk})
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert Inseminator.objects.filter(pk=inseminator.pk).exists()

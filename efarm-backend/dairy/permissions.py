@@ -13,7 +13,10 @@ class CanAddCowBreed(BasePermission):
         Add the permission class to the view or viewset that requires permission to add cow breeds:
         permission_classes = [CanAddCowBreed]
     """
-    message = {"message": "Only farm owners and managers have permission to perform this action."}
+
+    message = {
+        "message": "Only farm owners and managers have permission to perform this action."
+    }
 
     def has_permission(self, request, view):
         """
@@ -22,10 +25,14 @@ class CanAddCowBreed(BasePermission):
         Returns:
             bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
         """
-        if request.user.is_authenticated and (request.user.is_farm_owner or request.user.is_farm_manager):
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner or request.user.is_farm_manager
+        ):
             return True
         if not request.user.is_authenticated:
-            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
         raise PermissionDenied(self.message)
 
 
@@ -40,7 +47,10 @@ class CanDeleteCowBreed(BasePermission):
         Add the permission class to the view or viewset that requires permission to delete cow breeds:
         permission_classes = [CanDeleteCowBreed]
     """
-    message = {"message": "Only farm owners and managers have permission to perform this action."}
+
+    message = {
+        "message": "Only farm owners and managers have permission to perform this action."
+    }
 
     def has_permission(self, request, view):
         """
@@ -49,10 +59,14 @@ class CanDeleteCowBreed(BasePermission):
         Returns:
             bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
         """
-        if request.user.is_authenticated and (request.user.is_farm_owner or request.user.is_farm_manager):
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner or request.user.is_farm_manager
+        ):
             return True
         if not request.user.is_authenticated:
-            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
         raise PermissionDenied(self.message)
 
 
@@ -67,7 +81,10 @@ class CanViewCowBreeds(BasePermission):
         Add the permission class to the view or viewset that requires permission to view cow breeds:
         permission_classes = [CanViewCowBreeds]
     """
-    message = {"message": "Only farm staff and workers have permission to perform this action."}
+
+    message = {
+        "message": "Only farm staff and workers have permission to perform this action."
+    }
 
     def has_permission(self, request, view):
         """
@@ -77,14 +94,16 @@ class CanViewCowBreeds(BasePermission):
             bool: True if the user has one of the allowed roles, otherwise raises PermissionDenied.
         """
         if request.user.is_authenticated and (
-                request.user.is_farm_owner or
-                request.user.is_farm_worker or
-                request.user.is_farm_manager or
-                request.user.is_assistant_farm_manager
+            request.user.is_farm_owner
+            or request.user.is_farm_worker
+            or request.user.is_farm_manager
+            or request.user.is_assistant_farm_manager
         ):
             return True
         if not request.user.is_authenticated:
-            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
         raise PermissionDenied(self.message)
 
 
@@ -99,7 +118,10 @@ class CanAddCow(BasePermission):
         Add the permission class to the view or viewset that requires permission to add cows:
         permission_classes = [CanAddCow]
     """
-    message = {"message": "Only farm owners and managers have permission to perform this action."}
+
+    message = {
+        "message": "Only farm owners and managers have permission to perform this action."
+    }
 
     def has_permission(self, request, view):
         """
@@ -109,10 +131,13 @@ class CanAddCow(BasePermission):
             bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
         """
         if request.user.is_authenticated and (
-                request.user.is_farm_owner or request.user.is_farm_manager):
+            request.user.is_farm_owner or request.user.is_farm_manager
+        ):
             return True
         if not request.user.is_authenticated:
-            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
         raise PermissionDenied(self.message)
 
 
@@ -127,7 +152,10 @@ class CanUpdateCow(BasePermission):
         Add the permission class to the view or viewset that requires permission to update cow details:
         permission_classes = [CanUpdateCow]
     """
-    message = {"message": "Only farm owners and managers have permission to perform this action."}
+
+    message = {
+        "message": "Only farm owners and managers have permission to perform this action."
+    }
 
     def has_permission(self, request, view):
         """
@@ -136,10 +164,14 @@ class CanUpdateCow(BasePermission):
         Returns:
             bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
         """
-        if request.user.is_authenticated and (request.user.is_farm_owner or request.user.is_farm_manager):
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner or request.user.is_farm_manager
+        ):
             return True
         if not request.user.is_authenticated:
-            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
         raise PermissionDenied(self.message)
 
 
@@ -154,6 +186,7 @@ class CanDeleteCow(BasePermission):
         Add the permission class to the view or viewset that requires permission to delete cows:
         permission_classes = [CanDeleteCow]
     """
+
     message = {"message": "Only farm owners have permission to perform this action."}
 
     def has_permission(self, request, view):
@@ -166,7 +199,9 @@ class CanDeleteCow(BasePermission):
         if request.user.is_authenticated and request.user.is_farm_owner:
             return True
         if not request.user.is_authenticated:
-            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
         raise PermissionDenied(self.message)
 
 
@@ -181,7 +216,10 @@ class CanViewCow(BasePermission):
         Add the permission class to the view or viewset that requires permission to view cow details:
         permission_classes = [CanViewCow]
     """
-    message = {"message": "Only farm staff and workers have permission to perform this action."}
+
+    message = {
+        "message": "Only farm staff and workers have permission to perform this action."
+    }
 
     def has_permission(self, request, view):
         """
@@ -191,12 +229,92 @@ class CanViewCow(BasePermission):
             bool: True if the user has one of the allowed roles, otherwise raises PermissionDenied.
         """
         if request.user.is_authenticated and (
-                request.user.is_farm_owner or
-                request.user.is_farm_worker or
-                request.user.is_farm_manager or
-                request.user.is_assistant_farm_manager
+            request.user.is_farm_owner
+            or request.user.is_farm_worker
+            or request.user.is_farm_manager
+            or request.user.is_assistant_farm_manager
         ):
             return True
         if not request.user.is_authenticated:
-            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanAddHeatRecord(BasePermission):
+    message = {
+        "message": "Only farm staff and workers have permission to view heat records."
+    }
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner
+            or request.user.is_farm_worker
+            or request.user.is_farm_manager
+            or request.user.is_assistant_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanViewHeatRecord(BasePermission):
+    message = {
+        "message": "Only farm staff and workers have permission to view heat records."
+    }
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner
+            or request.user.is_farm_worker
+            or request.user.is_farm_manager
+            or request.user.is_assistant_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanUpdateAndDeleteHeatRecord(BasePermission):
+    message = {
+        "message": "Only management have permission to update delete heat records."
+    }
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner
+            or request.user.is_farm_manager
+            or request.user.is_assistant_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanActOnInseminatorRecord(BasePermission):
+    message = {
+        "message": "Only farm owners and managers have permission to perform this action."
+    }
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner
+            or request.user.is_farm_manager
+            or request.user.is_assistant_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
         raise PermissionDenied(self.message)

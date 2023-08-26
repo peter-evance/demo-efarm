@@ -196,16 +196,27 @@ def setup_cows():
     """
     Fixture to create a sample cows object for testing.
     """
-
     general_cow = {
-        "name": "General Cow",
-        "breed": {"name": CowBreedChoices.AYRSHIRE},
-        "date_of_birth": todays_date - timedelta(days=300),
-        "gender": SexChoices.FEMALE,
-        "availability_status": CowAvailabilityChoices.ALIVE,
-        "current_pregnancy_status": CowPregnancyChoices.UNAVAILABLE,
-        "category": CowCategoryChoices.HEIFER,
-        "current_production_status": CowProductionStatusChoices.YOUNG_HEIFER,
+        'name': 'General Cow',
+        'breed': {'name': CowBreedChoices.AYRSHIRE},
+        'date_of_birth': todays_date - timedelta(days=370),
+        'gender': SexChoices.FEMALE,
+        'availability_status': CowAvailabilityChoices.ALIVE,
+        'current_pregnancy_status': CowPregnancyChoices.OPEN,
+        'category': CowCategoryChoices.HEIFER,
+        'current_production_status': CowProductionStatusChoices.OPEN,
     }
-
     return general_cow
+
+
+@pytest.fixture
+def setup_inseminators_data():
+    inseminators_data = {
+        "first_name": "Peter",
+        "last_name": "Evance",
+        "phone_number": "+254712345678",
+        "sex": SexChoices.MALE,
+        "company": "Peter's Breeders",
+        "license_number": "ABC-2023"
+    }
+    return inseminators_data
