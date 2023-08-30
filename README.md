@@ -1,4 +1,7 @@
 # eFarm: Streamlining Agriculture Operations
+![GitHub top language](https://img.shields.io/github/languages/top/peter-evance/demo-efarm)
+![GitHub last commit](https://img.shields.io/github/last-commit/peter-evance/demo-efarm)
+![GitHub repo size](https://img.shields.io/github/repo-size/peter-evance/demo-efarm)
 
 eFarm is a comprehensive Django-Angular project designed to enhance farming operations through digital solutions. The platform focuses on precision agriculture, providing tailored apps for different sectors - Dairy, Poultry, and soon Swine.
 
