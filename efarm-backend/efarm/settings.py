@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'corsheaders',
     'djoser',
+    'django_filters',
     'drf_yasg',
     'phonenumber_field',
     'dairy',
@@ -49,6 +50,7 @@ INSTALLED_APPS = [
     'poultry',
     'poultry_inventory',
     'users',
+
     
 ]
 

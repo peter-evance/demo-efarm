@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 from .choices import *
 from dairy.utils import *
@@ -33,7 +35,7 @@ class CowManager(models.Manager):
         - The tag number of the cow in the format "XX-YYYY-ID".
 
         """
-        year_of_birth = cow.date_of_birth.strftime('%Y')
+        year_of_birth = cow.date_of_birth.strftime("%Y")
         first_letters_of_breed = cow.breed.name[:2].upper()
         counter = cow.id
         return f"{first_letters_of_breed}-{year_of_birth}-{counter}"
@@ -130,7 +132,9 @@ class CowManager(models.Manager):
         - A queryset of available (alive) male cows.
 
         """
-        return self.filter(availability_status=CowAvailabilityChoices.ALIVE, gender=SexChoices.MALE)
+        return self.filter(
+            availability_status=CowAvailabilityChoices.ALIVE, gender=SexChoices.MALE
+        )
 
     def get_female_cows(self):
         """
@@ -140,7 +144,9 @@ class CowManager(models.Manager):
         - A queryset of available (alive) female cows.
 
         """
-        return self.filter(availability_status=CowAvailabilityChoices.ALIVE, gender=SexChoices.FEMALE)
+        return self.filter(
+            availability_status=CowAvailabilityChoices.ALIVE, gender=SexChoices.FEMALE
+        )
 
     def get_sold_cows(self):
         """
@@ -161,3 +167,60 @@ class CowManager(models.Manager):
 
         """
         return self.filter(availability_status=CowAvailabilityChoices.DEAD)
+
+    @staticmethod
+    def mark_a_recently_calved_cow(cow):
+        cow.category = CowCategoryChoices.MILKING_COW
+        cow.current_pregnancy_status = CowPregnancyChoices.CALVED
+        cow.save()
+
+
+class InseminationManager(models.Manager):
+    @staticmethod
+    def days_since_insemination(insemination):
+        elapsed_time = todays_date - insemination.date_of_insemination.date()
+        return int(f"{elapsed_time.days}")
+
+
+class PregnancyManager(models.Manager):
+    @staticmethod
+    def pregnancy_duration(pregnancy):
+        if pregnancy.start_date and not (
+            pregnancy.date_of_calving and pregnancy.pregnancy_outcome
+        ):
+            return (todays_date - pregnancy.start_date).days
+        if pregnancy.date_of_calving and pregnancy.pregnancy_outcome:
+            return "Ended"
+
+    @staticmethod
+    def due_date(pregnancy):
+        if pregnancy.start_date and not pregnancy.pregnancy_outcome:
+            return pregnancy.start_date + timedelta(days=285)
+        return "Ended"
+
+    @staticmethod
+    def latest_lactation_stage(pregnancy):
+        latest_lactation = pregnancy.cow.lactations.latest()
+        if latest_lactation:
+            return latest_lactation.lactation_stage
+        else:
+            return "No lactation"
+
+    def get_confirmed_pregnancies(self):
+        return self.filter(pregnancy_status=PregnancyStatusChoices.CONFIRMED)
+
+    def get_unconfirmed_pregnancies(self):
+        return self.filter(pregnancy_status=PregnancyStatusChoices.UNCONFIRMED)
+
+    def get_failed_pregnancies(self):
+        return self.filter(pregnancy_status=PregnancyStatusChoices.FAILED)
+
+    def get_successful_pregnancies(self):
+        return self.filter(pregnancy_outcome=PregnancyOutcomeChoices.LIVE)
+
+    def get_miscarried_pregnancies(self):
+        return self.filter(pregnancy_outcome=PregnancyOutcomeChoices.MISCARRIAGE)
+
+    def get_stillborn_pregnancies(self):
+        return self.filter(pregnancy_outcome=PregnancyOutcomeChoices.STILLBORN)
+

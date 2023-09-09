@@ -1,48 +1,54 @@
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from datetime import timedelta
-from . import models
+from dairy.models import *
 
 
-@receiver(pre_save, sender=models.Cow)
-def update_cow_status_on_death(sender, instance, **kwargs):
-    if instance.date_of_death:
-        instance.status = 'Dead'
-
-
-@receiver(post_save, sender=models.Pregnancy)
+@receiver(post_save, sender=Pregnancy)
 def create_lactation(sender, instance, **kwargs):
-    if not instance.date_of_calving or not instance.start_date:
+    if not instance.date_of_calving and instance.pregnancy_outcome not in [
+        PregnancyOutcomeChoices.LIVE,
+        PregnancyOutcomeChoices.STILLBORN,
+    ]:
         return
 
-    previous_lactation = models.Lactation.objects.filter(cow=instance.cow).order_by('-start_date').first()
+    Cow.manager.mark_a_recently_calved_cow(instance.cow)
 
-    if previous_lactation and not previous_lactation.end_date:
-        # If the previous lactation doesn't have an end date, set it to one day before the start date of the new
-        # lactation
-        previous_lactation.end_date = instance.date_of_calving - timedelta(days=1)
-        previous_lactation.save()
+    try:
+        previous_lactation = Lactation.objects.filter(cow=instance.cow).latest()
 
-    lactation = models.Lactation(
-        start_date=instance.date_of_calving,
-        cow=instance.cow,
-        pregnancy=instance,
-        lactation_number=(previous_lactation.lactation_number + 1 if previous_lactation else 1))
-    lactation.save()
+        if previous_lactation and not previous_lactation.end_date:
+            # If the previous lactation doesn't have an end date, set it to one day before the start date of the new
+            # lactation
+            previous_lactation.end_date = instance.date_of_calving - timedelta(days=1)
+            previous_lactation.save()
+
+            Lactation.objects.create(
+                start_date=instance.date_of_calving,
+                cow=instance.cow,
+                pregnancy=instance,
+                lactation_number=previous_lactation.lactation_number + 1,
+            )
+    except Lactation.DoesNotExist:
+        Lactation.objects.create(
+            start_date=instance.date_of_calving, cow=instance.cow, pregnancy=instance
+        )
 
 
-@receiver(pre_save, sender=models.Milk)
-def assign_lactation(sender, instance, **kwargs):
-    cow = instance.cow
-    latest_lactation = cow.lactation_set.latest('start_date')
-    instance.lactation = latest_lactation
-
-
-@receiver(post_save, sender=models.Insemination)
+@receiver(post_save, sender=Insemination)
 def create_pregnancy_from_successful_insemination(sender, instance, **kwargs):
     if instance.success and not instance.pregnancy:
-        pregnancy = models.Pregnancy.objects.create(cow=instance.cow, start_date=instance.date_of_insemination)
+        pregnancy = Pregnancy.objects.create(
+            cow=instance.cow, start_date=instance.date_of_insemination.date()
+        )
         pregnancy.save()
 
         instance.pregnancy = pregnancy
         instance.save()
+
+
+@receiver(pre_save, sender=Milk)
+def assign_lactation(sender, instance, **kwargs):
+    cow = instance.cow
+    latest_lactation = cow.lactation_set.latest("start_date")
+    instance.lactation = latest_lactation

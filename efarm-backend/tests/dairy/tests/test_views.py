@@ -1362,3 +1362,751 @@ class TestInseminatorViewSet:
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert Inseminator.objects.filter(pk=inseminator.pk).exists()
+
+
+@pytest.mark.django_db
+class TestPregnancyViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_pregnancy_data):
+        self.client = setup_users['client']
+
+        self.regular_user_token = setup_users['regular_user_token']
+        self.farm_owner_token = setup_users['farm_owner_token']
+        self.farm_manager_token = setup_users['farm_manager_token']
+        self.asst_farm_manager_token = setup_users['asst_farm_manager_token']
+        self.team_leader_token = setup_users['team_leader_token']
+        self.farm_worker_token = setup_users['farm_worker_token']
+
+        self.pregnancy_data = setup_pregnancy_data
+
+    def test_add_pregnancy_as_farm_owner(self):
+        """
+        Test adding pregnancy record as a farm owner.
+        """
+        response = self.client.post(reverse("dairy:pregnancy-records-list"),
+                                    data=self.pregnancy_data, format="json",
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Pregnancy.objects.filter(cow=self.pregnancy_data['cow']).exists()
+
+    def test_add_pregnancy_as_farm_manager(self):
+        """
+        Test adding pregnancy record as a farm manager.
+        """
+        response = self.client.post(reverse("dairy:pregnancy-records-list"),
+                                    data=self.pregnancy_data, format="json",
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Pregnancy.objects.filter(cow=self.pregnancy_data['cow']).exists()
+
+    def test_add_pregnancy_as_assistant_farm_manager_permission_denied(self):
+        """
+        Test adding pregnancy record as an assistant farm manager (permission denied).
+        """
+        response = self.client.post(reverse("dairy:pregnancy-records-list"),
+                                    data=self.pregnancy_data, format="json",
+                                    HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_add_pregnancy_as_team_leader_permission_denied(self):
+        """
+        Test adding pregnancy record as a team leader (permission denied).
+        """
+        response = self.client.post(reverse("dairy:pregnancy-records-list"),
+                                    data=self.pregnancy_data, format="json",
+                                    HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_add_pregnancy_as_farm_worker_permission_denied(self):
+        """
+        Test adding pregnancy record as a farm worker (permission denied).
+        """
+        response = self.client.post(reverse("dairy:pregnancy-records-list"),
+                                    data=self.pregnancy_data, format="json",
+                                    HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_add_pregnancy_as_regular_user_permission_denied(self):
+        """
+        Test adding pregnancy record as a regular user (permission denied).
+        """
+        response = self.client.post(reverse("dairy:pregnancy-records-list"),
+                                    data=self.pregnancy_data, format="json",
+                                    HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_add_pregnancy_unauthorized(self):
+        """
+        Test adding pregnancy record without authentication (unauthorized).
+        """
+        response = self.client.post(reverse("dairy:pregnancy-records-list"),
+                                    data=self.pregnancy_data, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_view_pregnancy_as_farm_owner(self):
+        """
+        Test viewing pregnancy records as a farm owner.
+        """
+        response = self.client.get(reverse("dairy:pregnancy-records-list"),
+                                   format="json",
+                                   HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_pregnancy_as_farm_manager(self):
+        """
+        Test viewing pregnancy records as a farm manager.
+        """
+        response = self.client.get(reverse("dairy:pregnancy-records-list"),
+                                   format="json",
+                                   HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_pregnancy_as_assistant_farm_manager(self):
+        """
+        Test viewing pregnancy records as an assistant farm manager.
+        """
+        response = self.client.get(reverse("dairy:pregnancy-records-list"),
+                                   format="json",
+                                   HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_pregnancy_as_team_leader(self):
+        """
+        Test viewing pregnancy records as a team leader.
+        """
+        response = self.client.get(reverse("dairy:pregnancy-records-list"),
+                                   format="json",
+                                   HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_pregnancy_as_farm_worker(self):
+        """
+        Test viewing pregnancy records as a farm worker.
+        """
+        response = self.client.get(reverse("dairy:pregnancy-records-list"),
+                                   format="json",
+                                   HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_pregnancy_as_regular_user_permission_denied(self):
+        """
+        Test viewing pregnancy record as a regular user (permission denied).
+        """
+        response = self.client.get(reverse("dairy:pregnancy-records-list"),
+                                   HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_pregnancy_unauthorized(self):
+        """
+        Test viewing pregnancy record without authentication (unauthorized).
+        """
+        response = self.client.get(reverse("dairy:pregnancy-records-list"))
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_update_pregnancy_as_farm_owner(self):
+        """
+        Test updating pregnancy records as a farm owner.
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        update_data = {
+            "pregnancy_status": PregnancyStatusChoices.FAILED,
+            "pregnancy_notes": "Updated pregnancy status as failed",
+            "pregnancy_failed_date": todays_date - timedelta(days=700)
+        }
+        response = self.client.patch(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+        assert response.status_code == status.HTTP_200_OK
+        assert Pregnancy.objects.get(id=pregnancy.id).pregnancy_status == update_data['pregnancy_status']
+        assert Pregnancy.objects.get(id=pregnancy.id).pregnancy_notes == update_data['pregnancy_notes']
+
+    def test_update_pregnancy_as_farm_manager(self):
+        """
+        Test updating pregnancy records as a farm manager.
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        update_data = {
+            "pregnancy_status": PregnancyStatusChoices.FAILED,
+            "pregnancy_notes": "Updated pregnancy status as failed",
+            "pregnancy_failed_date": todays_date - timedelta(days=100)
+        }
+        response = self.client.patch(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+        assert response.status_code == status.HTTP_200_OK
+        assert Pregnancy.objects.get(id=pregnancy.id).pregnancy_status == update_data['pregnancy_status']
+        assert Pregnancy.objects.get(id=pregnancy.id).pregnancy_notes == update_data['pregnancy_notes']
+
+    def test_update_pregnancy_as_assistant_farm_manager(self):
+        """
+        Test updating pregnancy records as an assistant farm manager.
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        update_data = {
+            "pregnancy_status": PregnancyStatusChoices.FAILED,
+            "pregnancy_notes": "Updated pregnancy status as failed",
+            "pregnancy_failed_date": todays_date - timedelta(days=102)
+        }
+        response = self.client.patch(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+        assert response.status_code == status.HTTP_200_OK
+        assert Pregnancy.objects.get(id=pregnancy.id).pregnancy_status == update_data['pregnancy_status']
+        assert Pregnancy.objects.get(id=pregnancy.id).pregnancy_notes == update_data['pregnancy_notes']
+
+    def test_update_pregnancy_as_team_leader_permission_denied(self):
+        """
+        Test updating pregnancy records as team leader(permission denied)
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        update_data = {
+            "pregnancy_status": PregnancyStatusChoices.FAILED,
+            "pregnancy_notes": "Updated pregnancy status as failed",
+            "pregnancy_failed_date": todays_date - timedelta(days=100)
+        }
+        response = self.client.patch(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_pregnancy_as_farm_worker_permission_denied(self):
+        """
+        Test updating pregnancy records as farm worker (permission denied)
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        update_data = {
+            "pregnancy_status": PregnancyStatusChoices.FAILED,
+            "pregnancy_notes": "Updated pregnancy status as failed",
+            "pregnancy_failed_date": todays_date - timedelta(days=100)
+        }
+        response = self.client.patch(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_pregnancy_as_regular_user_permission_denied(self):
+        """
+        Test updating pregnancy records as regular user (permission denied)
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        update_data = {
+            "pregnancy_status": PregnancyStatusChoices.FAILED,
+            "pregnancy_notes": "Updated pregnancy status as failed",
+            "pregnancy_failed_date": todays_date - timedelta(days=100)
+        }
+        response = self.client.patch(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_pregnancy_unauthorized(self):
+        """
+        Test updating pregnancy records by unauthorized request
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        update_data = {
+            "pregnancy_status": PregnancyStatusChoices.FAILED,
+            "pregnancy_notes": "Updated pregnancy status as failed",
+            "pregnancy_failed_date": todays_date - timedelta(days=100)
+        }
+        response = self.client.patch(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                     data=update_data, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_delete_pregnancy_as_farm_owner(self):
+        """
+        Test deleting pregnancy records as a farm owner
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        response = self.client.delete(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                      format="json",
+                                      HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Pregnancy.objects.filter(id=pregnancy.id).exists()
+
+    def test_delete_pregnancy_as_farm_manager(self):
+        """
+        Test deleting pregnancy records as a farm manager
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        response = self.client.delete(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                      format="json",
+                                      HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not Pregnancy.objects.filter(id=pregnancy.id).exists()
+
+    def test_delete_pregnancy_as_assistant_farm_manager_permission_denied(self):
+        """
+        Test deleting pregnancy records as an assistant farm manager (permission denied)
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        response = self.client.delete(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                      format="json",
+                                      HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert Pregnancy.objects.filter(id=pregnancy.id).exists()
+
+    def test_delete_pregnancy_as_team_leader_permission_denied(self):
+        """
+        Test deleting pregnancy records as a team leader (permission denied)
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        response = self.client.delete(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                      format="json",
+                                      HTTP_AUTHORIZATION=f'Token {self.team_leader_token}'
+                                      )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert Pregnancy.objects.filter(id=pregnancy.id).exists()
+
+    def test_delete_pregnancy_as_farm_worker_permission_denied(self):
+        """
+        Test deleting pregnancy records as a farm worker (permission denied)
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        response = self.client.delete(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                      format="json",
+                                      HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert Pregnancy.objects.filter(id=pregnancy.id).exists()
+
+    def test_delete_pregnancy_as_regular_user_permission_denied(self):
+        """
+        Test deleting pregnancy records as a regular user (permission denied)
+        """
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        response = self.client.delete(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                      format="json",
+                                      HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert Pregnancy.objects.filter(id=pregnancy.id).exists()
+
+    def test_delete_pregnancy_unauthorized(self):
+        """
+        Test deleting pregnancy by unauthorized request."""
+        serializer = PregnancySerializer(data=self.pregnancy_data)
+        assert serializer.is_valid()
+        pregnancy = serializer.save()
+        response = self.client.delete(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
+                                      format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert Pregnancy.objects.filter(id=pregnancy.id).exists()
+
+
+@pytest.mark.django_db
+class TestInseminationViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_insemination_data):
+        self.client = setup_users['client']
+
+        self.regular_user_token = setup_users['regular_user_token']
+        self.farm_owner_token = setup_users['farm_owner_token']
+        self.farm_manager_token = setup_users['farm_manager_token']
+        self.asst_farm_manager_token = setup_users['asst_farm_manager_token']
+        self.team_leader_token = setup_users['team_leader_token']
+        self.farm_worker_token = setup_users['farm_worker_token']
+
+        self.insemination_data = setup_insemination_data
+
+    def test_add_insemination_as_farm_owner(self):
+        """
+        Test adding insemination record as farm owner.
+        """
+
+        response = self.client.post(reverse("dairy:insemination-records-list"), data=self.insemination_data,
+                                    format="json", HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Insemination.objects.filter(cow=self.insemination_data['cow']).exists()
+
+    def test_add_insemination_as_farm_manager(self):
+        """
+        Test adding insemination record as farm manager.
+        """
+        response = self.client.post(reverse("dairy:insemination-records-list"), data=self.insemination_data,
+                                    format="json", HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Insemination.objects.filter(cow=self.insemination_data['cow']).exists()
+
+    def test_add_insemination_as_assistant_manager(self):
+        """
+        Test adding insemination record as assistant farm manager.
+        """
+
+        response = self.client.post(reverse("dairy:insemination-records-list"), data=self.insemination_data,
+                                    format="json", HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Insemination.objects.filter(cow=self.insemination_data['cow']).exists()
+
+    def test_add_insemination_as_team_leader(self):
+        """
+        Test adding insemination record as a team leader.
+        """
+        response = self.client.post(reverse("dairy:insemination-records-list"), data=self.insemination_data,
+                                    format="json", HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Insemination.objects.filter(cow=self.insemination_data['cow']).exists()
+
+    def test_add_insemination_as_farm_worker(self):
+        """
+        Test adding insemination record as a farm worker.
+        """
+        response = self.client.post(reverse("dairy:insemination-records-list"), data=self.insemination_data,
+                                    format="json", HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Insemination.objects.filter(cow=self.insemination_data['cow']).exists()
+
+    def test_add_insemination_as_regular_user(self):
+        """
+        Test adding insemination record as regular user.
+        """
+        response = self.client.post(reverse("dairy:insemination-records-list"), data=self.insemination_data,
+                                    format="json", HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not Insemination.objects.filter(cow=self.insemination_data['cow']).exists()
+
+    def test_add_insemination_without_authentication(self):
+        """
+        Test adding insemination record without authentication (unauthorized).
+        """
+        response = self.client.post(reverse("dairy:insemination-records-list"),
+                                    data=self.insemination_data, format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert not Insemination.objects.filter(cow=self.insemination_data['cow']).exists()
+
+    def test_view_insemination_as_farm_owner(self):
+        """
+        Test viewing insemination records as a farm owner.
+        """
+        response = self.client.get(reverse("dairy:insemination-records-list"),
+                                   format="json", HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_insemination_as_farm_manager(self):
+        """
+        Test viewing insemination records as a farm manager.
+        """
+        response = self.client.get(reverse("dairy:insemination-records-list"),
+                                   format="json", HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_insemination_as_assistant_manager(self):
+        """
+        Test viewing insemination records as an assistant farm manager.
+        """
+        response = self.client.get(reverse("dairy:insemination-records-list"),
+                                   format="json", HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_insemination_as_team_leader_permission_denied(self):
+        """
+        Test viewing insemination records as a team leader (permission denied).
+        """
+        response = self.client.get(reverse("dairy:insemination-records-list"),
+                                   format="json", HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_insemination_as_farm_worker_permission_denied(self):
+        """
+        Test viewing insemination records as a farm worker (permission denied).
+        """
+        response = self.client.get(reverse("dairy:insemination-records-list"),
+                                   format="json", HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_insemination_as_regular_user_permission_denied(self):
+        """
+        Test viewing insemination records as a regular user (permission denied).
+        """
+        response = self.client.get(reverse("dairy:insemination-records-list"),
+                                   format="json", HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_insemination_without_authentication(self):
+        """
+        Test viewing insemination records without authentication (unauthorized).
+        """
+        response = self.client.get(reverse("dairy:insemination-records-list"), format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_update_insemination_as_farm_owner(self):
+        """
+        Test updating insemination record as a farm owner.
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        update_data = {
+            "success": True,
+            "notes": "Updated notes for insemination"
+        }
+
+        response = self.client.patch(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['success'] == update_data['success']
+        assert response.data['notes'] == update_data['notes']
+        assert Insemination.objects.get(id=insemination.id).success == update_data['success']
+        assert Insemination.objects.get(id=insemination.id).notes == update_data['notes']
+        # Ensure other fields remain unchanged
+        assert response.data['cow'] == self.insemination_data['cow']
+        assert response.data['inseminator'] == self.insemination_data['inseminator']
+
+    def test_update_insemination_as_farm_manager(self):
+        """
+        Test updating insemination record as a farm manager.
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        update_data = {
+            "success": True,
+            "notes": "Updated notes for insemination"
+        }
+
+        response = self.client.patch(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['success'] == update_data['success']
+        assert response.data['notes'] == update_data['notes']
+        assert Insemination.objects.get(id=insemination.id).success == update_data['success']
+        assert Insemination.objects.get(id=insemination.id).notes == update_data['notes']
+        # Ensure other fields remain unchanged
+        assert response.data['cow'] == self.insemination_data['cow']
+        assert response.data['inseminator'] == self.insemination_data['inseminator']
+
+    def test_update_insemination_as_asst_farm_manager(self):
+        """
+        Test updating insemination record as an assistant farm manager.
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        update_data = {
+            "success": True,
+            "notes": "Updated notes for insemination"
+        }
+
+        response = self.client.patch(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['success'] == update_data['success']
+        assert response.data['notes'] == update_data['notes']
+        assert Insemination.objects.get(id=insemination.id).success == update_data['success']
+        assert Insemination.objects.get(id=insemination.id).notes == update_data['notes']
+        # Ensure other fields remain unchanged
+        assert response.data['cow'] == self.insemination_data['cow']
+        assert response.data['inseminator'] == self.insemination_data['inseminator']
+
+    def test_update_insemination_as_team_leader_permission_denied(self):
+        """
+        Test updating insemination record as a team leader (permission denied).
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        update_data = {
+            "success": True,
+            "notes": "Updated notes for insemination"
+        }
+
+        response = self.client.patch(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_insemination_as_farm_worker_permission_denied(self):
+        """
+        Test updating insemination record as a farm worker (permission denied).
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        update_data = {
+            "success": True,
+            "notes": "Updated notes for insemination"
+        }
+
+        response = self.client.patch(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_insemination_as_regular_user_permission_denied(self):
+        """
+        Test updating insemination record as a regular user (permission denied).
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        update_data = {
+            "success": True,
+            "notes": "Updated notes for insemination"
+        }
+
+        response = self.client.patch(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                     data=update_data, format="json",
+                                     HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_insemination_unauthorized(self):
+        """
+        Test updating insemination record without authentication (unauthorized).
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        update_data = {
+            "success": True,
+            "notes": "Updated notes for insemination"
+        }
+
+        response = self.client.patch(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                     data=update_data, format="json")
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_delete_insemination_as_farm_owner(self):
+        """
+        Test deleting insemination record as a farm owner.
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        response = self.client.delete(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                      HTTP_AUTHORIZATION=f'Token {self.farm_owner_token}')
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_delete_insemination_as_farm_manager(self):
+        """
+        Test deleting an insemination record as a farm manager.
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        response = self.client.delete(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                      HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_delete_insemination_as_asst_farm_manager(self):
+        """
+        Test deleting an insemination record as an assistant farm manager.
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        response = self.client.delete(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                      HTTP_AUTHORIZATION=f'Token {self.asst_farm_manager_token}')
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_delete_insemination_as_team_leader_permission_denied(self):
+        """
+        Test deleting an insemination record as a team leader (permission denied).
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        response = self.client.delete(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                      HTTP_AUTHORIZATION=f'Token {self.team_leader_token}')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_delete_insemination_as_farm_worker_permission_denied(self):
+        """
+        Test deleting an insemination record as a farm worker (permission denied).
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        response = self.client.delete(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                      HTTP_AUTHORIZATION=f'Token {self.farm_worker_token}')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_delete_insemination_as_regular_user_permission_denied(self):
+        """
+        Test deleting an insemination record as a regular user (permission denied).
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        response = self.client.delete(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                      HTTP_AUTHORIZATION=f'Token {self.regular_user_token}')
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_delete_insemination_unauthorized(self):
+        """
+        Test deleting an insemination record without authentication (unauthorized).
+        """
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        response = self.client.delete(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}))
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_delete_insemination_associated_with_pregnancy(self):
+        """
+        Test deleting an insemination record associated with a pregnancy.
+        """
+        self.insemination_data["success"] = True
+        serializer = InseminationSerializer(data=self.insemination_data)
+        assert serializer.is_valid()
+        insemination = serializer.save()
+
+        response = self.client.delete(reverse("dairy:insemination-records-detail", kwargs={"pk": insemination.id}),
+                                      HTTP_AUTHORIZATION=f'Token {self.farm_manager_token}')
+        assert "Deletion not allowed. Insemination record is associated with a pregnancy." in response.data['detail']
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -284,7 +284,7 @@ class CanViewHeatRecord(BasePermission):
 
 class CanUpdateAndDeleteHeatRecord(BasePermission):
     message = {
-        "message": "Only management have permission to update delete heat records."
+        "message": "Only management have permission to update and delete heat records."
     }
 
     def has_permission(self, request, view):
@@ -318,3 +318,76 @@ class CanActOnInseminatorRecord(BasePermission):
                 {"message": "Authentication credentials were not provided."}
             )
         raise PermissionDenied(self.message)
+
+
+class CanActOnInseminationRecord(BasePermission):
+    message = {"message": "Only farm owners and managers have permission to perform this action."}
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+                request.user.is_farm_owner or
+                request.user.is_farm_manager or
+                request.user.is_assistant_farm_manager):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+        raise PermissionDenied(self.message)
+
+
+class CanAddPregnancyRecord(BasePermission):
+    message = {"message": "Only farm owners and managers have permission to add pregnancy records."}
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+                request.user.is_farm_owner or
+                request.user.is_farm_manager):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+        raise PermissionDenied(self.message)
+
+
+class CanViewPregnancyRecord(BasePermission):
+    message = {"message": "Only farm staff have permission to view pregnancy records."}
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+                request.user.is_farm_owner or
+                request.user.is_farm_worker or
+                request.user.is_farm_manager or
+                request.user.is_assistant_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+        raise PermissionDenied(self.message)
+
+
+class CanUpdatePregnancyRecord(BasePermission):
+    message = {"message": "Only farm managers have permission to update pregnancy records."}
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+                request.user.is_farm_owner or
+                request.user.is_farm_manager or
+                request.user.is_assistant_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+        raise PermissionDenied(self.message)
+
+
+class CanDeletePregnancyRecord(BasePermission):
+    message = {"message": "Only farm owners and managers have permission to delete pregnancy records."}
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+                request.user.is_farm_owner or
+                request.user.is_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed({"message": "Authentication credentials were not provided."})
+        raise PermissionDenied(self.message)
+

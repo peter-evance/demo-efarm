@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
-from dairy.managers import CowManager
+from dairy.managers import *
 from dairy.validators import *
 
 
@@ -218,199 +218,128 @@ class Heat(models.Model):
 
 class Pregnancy(models.Model):
     """
-    This model represents a pregnancy record for a cow.
+    Represents a pregnancy record for a cow.
 
-    ### Fields:
+    Attributes:
+    - `cow` (Cow): The cow associated with the pregnancy.
+    - `start_date` (date): The start date of the pregnancy.
+    - `date_of_calving` (date or None): The date of calving if the pregnancy resulted in a calving.
+    - `pregnancy_status` (str): The status of the pregnancy.
+    - `pregnancy_notes` (str): Additional notes related to the pregnancy.
+    - `calving_notes` (str): Additional notes related to the calving.
+    - `pregnancy_scan_date` (date or None): The date of pregnancy scan.
+    - `pregnancy_failed_date` (date or None): The date when the pregnancy failed, if applicable.
+    - `pregnancy_outcome` (str or None): The outcome of the pregnancy, if known.
 
-    - `cow`: a foreign key to the Cow model, representing the cow that is pregnant
-    - `start_date`: a date field representing the start date of the pregnancy
-    - `date_of_calving`: a date field representing the date of calving (i.e., when the cow gives birth)
-    - `pregnancy_status`: a character field with a max length of 11, representing the pregnancy status.
-    - `pregnancy_notes`: a text field representing any notes related to the pregnancy
-    - `calving_notes`: a text field representing any notes related to the calving process
-    - `pregnancy_scan_date`: a date field representing the date of the pregnancy scan (if any)
-    - `pregnancy_failed_date`: a date field representing the date when the pregnancy failed (if applicable)
-    - `pregnancy_outcome`: a character field with a max length of 11, representing the outcome of the pregnancy.
-    ### Properties:
-
-     - `pregnancy_duration`: returns the duration of the pregnancy in days (if the date of calving is known).
-     - `due_date`: returns the due date of the pregnancy (if the start date is known).
-    ### Methods:
-
-        - `latest_lactation_stage()`: returns the lactation stage of the cow's latest lactation (if any).
-        - `clean()`: performs validation on the model fields to ensure data integrity. The following validations are performed:
-
-            - The cow must be at least 1 year old to be pregnant.
-            - The pregnancy status must be 'Confirmed' if a date of calving is provided.
-            - The date of calving cannot be in the future.
-            - Cannot add a pregnancy record for a dead or sold cow.
-            - This cow cannot already be pregnant.
-            - This is a female cow.
-            - The date of calving must be after the start date.
-            - A pregnancy scan date must be after the start date.
-            - A pregnancy scan date must be before the due date.
-            - Pregnancy status must be 'Confirmed' if the pregnancy outcome is provided.
-            - Date of calving must be provided if pregnancy outcome is 'Live'.
-            - Start date cannot be in the future.
-            - Pregnancy scan date cannot be in the future.
-            - A pregnancy failed date must be provided when pregnancy status is 'Failed'.
-            - Pregnancy failed date cannot be in the future.
-            - Pregnancy failed date cannot be before the start date.
-            - Pregnancy status must be 'Failed' if the pregnancy outcome is 'Miscarriage'.
-            - Pregnancy status must be 'Confirmed' if the pregnancy outcome is 'Live'.
-            - Date of calving must be provided if the pregnancy outcome is 'Live'.
-    """
-
-    class Meta:
-        verbose_name = "Pregnancies \U0001F930"
-        verbose_name_plural = "Pregnancies \U0001F930"
-
-    cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name="pregnancies")
+    Note: The terms "calving" and "scan" are related to cattle reproduction.
+"""
+    cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name='pregnancies')
     start_date = models.DateField()
     date_of_calving = models.DateField(null=True, blank=True)
-    pregnancy_status = models.CharField(
-        max_length=11,
-        choices=(
-            ("Confirmed", "Confirmed"),
-            ("Unconfirmed", "Unconfirmed"),
-            ("Failed", "Failed"),
-        ),
-        default="Unconfirmed",
-    )
+    pregnancy_status = models.CharField(max_length=11, choices=PregnancyStatusChoices.choices,
+                                        default=PregnancyStatusChoices.UNCONFIRMED)
     pregnancy_notes = models.TextField(blank=True)
     calving_notes = models.TextField(blank=True)
     pregnancy_scan_date = models.DateField(null=True, blank=True)
-    pregnancy_failed_date = models.DateField(
-        validators=[MaxValueValidator(date.today())],
-        error_messages={"max_value": "Future records not allowed!."},
-        blank=True,
-        null=True,
-    )
-    pregnancy_outcome = models.CharField(
-        max_length=11,
-        choices=(
-            ("Live", "Live"),
-            ("Stillborn", "Stillborn"),
-            ("Miscarriage", "Miscarriage"),
-        ),
-        blank=True,
-        null=True,
-    )
+    pregnancy_failed_date = models.DateField(null=True, blank=True)
+    pregnancy_outcome = models.CharField(max_length=11, choices=PregnancyOutcomeChoices.choices, blank=True, null=True)
+
+    objects = models.Manager()
+    manager = PregnancyManager()
 
     @property
     def pregnancy_duration(self):
-        if self.date_of_calving and self.date_of_calving:
-            return f"{(self.date_of_calving - self.start_date).days} days"
-        else:
-            return None
+        """
+        Returns: Number of days since inception of pregnancy.
+        """
+        return PregnancyManager.pregnancy_duration(self)
 
     @property
-    def due_date(self):
-        if self.date_of_calving and self.start_date:
-            return "Ended"
-        elif self.start_date:
-            return self.start_date + timedelta(days=260)
-
     def latest_lactation_stage(self):
-        latest_lactation = self.cow.lactation_set.order_by("-start_date").first()
-        if latest_lactation:
-            return latest_lactation.lactation_stage
-        else:
-            return "No lactation"
-
-    latest_lactation_stage.short_description = "Lactation stage"
+        """
+        Returns: Most recent lactation stage for the cow
+        """
+        return PregnancyManager.latest_lactation_stage(self)
 
     def clean(self):
-        cow = self.cow
-        if cow.get_cow_age() < 370:
-            raise ValidationError(
-                "This cow must have the pregnancy threshold age of 1 year"
-            )
+        """
+        Performs validation checks before saving the pregnancy record.
 
-        if self.date_of_calving and self.pregnancy_status != "Confirmed":
-            raise ValidationError(
-                "Pregnancy status must be 'Confirmed' if a date of calving is provided."
-            )
-
-        if self.date_of_calving and self.date_of_calving > timezone.now().date():
-            raise ValidationError("Date of calving can not be in the future.")
-
-        if cow.availability_status == "Dead":
-            raise ValidationError("Cannot add pregnancy record for a dead cow.")
-
-        if cow.availability_status == "Sold":
-            raise ValidationError("Cannot add pregnancy record for sold cow.")
-
-        if cow.pregnancy_status == "Pregnant":
-            raise ValidationError("This cow is already pregnant!")
-
-        if cow.gender == "Male":
-            raise ValidationError("This is a male cow!")
-
-        if (
-            self.date_of_calving
-            and self.start_date
-            and self.date_of_calving < self.start_date
-        ):
-            raise ValidationError("Date of calving must be after start date.")
-
-        if (
-            self.pregnancy_scan_date
-            and self.start_date
-            and self.pregnancy_scan_date < self.start_date
-        ):
-            raise ValidationError("Pregnancy scan date must be after start date.")
-
-        if self.pregnancy_outcome == "Live" and self.pregnancy_status != "Confirmed":
-            raise ValidationError(
-                "Pregnancy status must be 'Confirmed' if pregnancy outcome is provided."
-            )
-
-        if self.pregnancy_outcome == "Live" and not self.date_of_calving:
-            raise ValidationError(
-                "Date of calving must be provided if pregnancy outcome is 'Live'."
-            )
-
-        if self.start_date and self.start_date > timezone.now().date():
-            raise ValidationError("Start date cannot be in the future.")
-
-        if (
-            self.pregnancy_scan_date
-            and self.pregnancy_scan_date > timezone.now().date()
-        ):
-            raise ValidationError("Pregnancy scan date cannot be in the future.")
-
-        if self.pregnancy_status == "Failed" and not self.pregnancy_failed_date:
-            raise ValidationError(
-                "A pregnancy failed date must be provided when pregnancy status is 'Failed'."
-            )
-
-        if (
-            self.pregnancy_failed_date
-            and self.pregnancy_failed_date > timezone.now().date()
-        ):
-            raise ValidationError("Pregnancy failed date cannot be in the future.")
-
-        if self.pregnancy_failed_date and self.pregnancy_failed_date < self.start_date:
-            raise ValidationError("Pregnancy failed date cannot be before start date.")
-
-        if (
-            self.pregnancy_outcome == "Miscarriage"
-            and self.pregnancy_status != "Failed"
-        ):
-            raise ValidationError(
-                "Pregnancy status must be 'Failed' if pregnancy outcome is a 'Miscarriage'."
-            )
+        Raises:
+        - `ValidationError`: If pregnancy record validation fails.
+        """
+        PregnancyValidator.validate_age(self.cow.age, self.start_date, self.cow)
+        PregnancyValidator.validate_cow_current_pregnancy_status(self.cow)
+        PregnancyValidator.validate_cow_availability_status(self.cow)
+        PregnancyValidator.validate_dates(self.start_date, self.pregnancy_status, self.date_of_calving,
+                                          self.pregnancy_scan_date, self.pregnancy_failed_date)
+        PregnancyValidator.validate_pregnancy_status(self.pregnancy_status, self.start_date, self.pregnancy_failed_date)
+        PregnancyValidator.validate_outcome(self.pregnancy_outcome, self.pregnancy_status, self.date_of_calving)
 
     def save(self, *args, **kwargs):
-        if self.pk is None:
-            self.cow.pregnancy_status = "Pregnant"
-        elif (
-            self.date_of_calving is not None and self.cow.pregnancy_status == "Pregnant"
-        ):
-            self.cow.pregnancy_status = "Calved"
-
+        """
+        Overrides the save method to ensure validation before saving.
+        """
+        self.clean()
         super().save(*args, **kwargs)
+
+
+class Insemination(models.Model):
+    """
+   Represents a record of cow insemination.
+
+   Attributes:
+   - `date_of_insemination` (datetime): The date and time of the insemination.
+   - `cow` (Cow): The cow that underwent the insemination.
+   - `pregnancy` (Pregnancy or None): The associated pregnancy record, if insemination is successful.
+   - `success` (bool): Indicates whether the insemination was successful or not.
+   - `notes` (str): Additional notes related to the insemination.
+   - `inseminator` (Inseminator): The inseminator responsible for the procedure.
+   - `semen` (Semen or None): The type of semen used for the insemination.
+
+   Note: The term "insemination" refers to the process of introducing semen into the reproductive tract of a female animal.
+    """
+
+    class Meta:
+        ordering = ['-date_of_insemination']
+
+    date_of_insemination = models.DateTimeField(auto_now_add=True)
+    cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name='inseminations')
+    pregnancy = models.OneToOneField(Pregnancy, on_delete=models.PROTECT, editable=False, blank=True, null=True)
+    success = models.BooleanField(default=False)
+    notes = models.TextField(blank=True)
+    inseminator = models.ForeignKey(Inseminator, on_delete=models.PROTECT, related_name='inseminations_done')
+    semen = models.ForeignKey('Semen', on_delete=models.PROTECT, blank=True, null=True)
+
+    objects = models.Manager()
+    manager = InseminationManager()
+
+    @property
+    def days_since_insemination(self):
+        """
+        Returns: Days since the cow was last inseminated
+        """
+        return InseminationManager.days_since_insemination(self)
+
+    def __str__(self):
+        return f"Insemination record for cow {self.cow.tag_number} on {self.date_of_insemination}"
+
+    def clean(self):
+        """
+        Performs validation checks before saving the insemination record.
+
+        Raises:
+        - `ValidationError`: If insemination record validation fails.
+        """
+        InseminationValidator.validate_within_21_days_of_previous_insemination(self.pk, self.cow)
+
+    def save(self, *args, **kwargs):
+        """
+        Overrides the save method to ensure validation before saving.
+        """
+        self.clean()
+        super().save(*args, **kwargs)
+        InseminationValidator.validate_already_in_heat(self.cow, self.date_of_insemination)
 
 
 class Lactation(models.Model):
@@ -601,46 +530,10 @@ class Milk(models.Model):
 
 
 class Semen(models.Model):
-    """
-    A model representing the semen records of a cow.
-
-    ### Fields
-
-    - `inseminator` - a foreign key to the `Inseminator` model representing the inseminator who produced the semen
-    - `producer` - a string representing the producer of the semen
-    - `semen_batch` - a string representing the semen batch number
-    - `date_of_production` - a `DateField` representing the date of production of the semen
-    - `date_of_expiry` - a `DateField` representing the date of expiry of the semen
-    - `notes` - a `TextField` for adding notes to the record
-
-    ### Meta
-
-    - `verbose_name` - a string representing the singular name of the model in the Django admin interface
-    - `verbose_name_plural` - a string representing the plural name of the model in the Django admin interface
-
-    ### Validations
-
-    - `date_of_production` - a validator ensuring that the date is not in the future
-    - `date_of_expiry` - a validator ensuring that the date is in the future
-
-    ### Methods
-
-    - `__str__()` - returns a string representation of the model instance
-
-    """
-
-    class Meta:
-        verbose_name = "Semen \U0001F4A5"
-        verbose_name_plural = "Semen \U0001F4A5"
-
     inseminator = models.ForeignKey(Inseminator, on_delete=models.PROTECT)
     producer = models.CharField(
         max_length=64,
-        choices=(
-            ("KALRO", "Kenya Agricultural and Livestock Research Organization"),
-            ("KAGRIC", "Kenya Agricultural and Livestock Research Institute"),
-        ),
-    )
+        choices=SemenSourceChoices.choices)
     semen_batch = models.CharField(max_length=64)
     date_of_production = models.DateField(
         validators=[MaxValueValidator(date.today())],
@@ -659,98 +552,6 @@ class Semen(models.Model):
     def __str__(self):
         """Returns a string representation of the model instance."""
         return f"Semen batch {self.semen_batch} produced by {self.producer} on {self.date_of_production}"
-
-
-class Insemination(models.Model):
-    """
-    This model represents a record of an insemination event for a cow.
-
-    ### Fields
-        - `date_of_insemination` - A DateField that represents the date on which the insemination was performed. This field is required and is validated to ensure that the date is not in the future.
-        - `cow` - A ForeignKey to the Cow model that represents the cow that was inseminated. This field is required and is protected against deletion.
-        - `pregnancy` - A ForeignKey to the Pregnancy model that represents the pregnancy resulting from the insemination (if successful). This field is not editable, blank and null is allowed.
-        - `success` - A BooleanField that represents whether the insemination was successful or not. This field is optional and defaults to False.
-        - `notes` - A TextField that allows the user to add any additional notes about the insemination. This field is optional.
-        - `inseminator` - A ForeignKey to the Inseminator model that represents the person who performed the insemination. This field is optional and is protected against deletion.
-        - `semen` - A ForeignKey to the Semen model that represents the semen used for the insemination. This field is optional and is protected against deletion.
-
-    ### Properties
-    `days_since_insemination` - A read-only property that calculates the number of days elapsed since the insemination event.
-
-    ### Methods
-        - `__str__()` - returns a string representation of the model instance
-        - `clean` - A method that is automatically called by Django when the model is validated. It checks that:
-            - The cow is alive.
-            - The cow is not already pregnant.
-            - The cow has been in heat within the last 31 days.
-            - The cow is not less than 12 months old.
-            - The cow is not inseminated within 21 days.
-
-    """
-
-    class Meta:
-        verbose_name = "AI Record \U0001F4C6"
-        verbose_name_plural = "AI Records \U0001F4C6"
-        ordering = ["-date_of_insemination"]
-        unique_together = ("cow", "date_of_insemination")
-
-    date_of_insemination = models.DateField(
-        validators=[MaxValueValidator(date.today())],
-        error_messages={"max_value": "Invalid date entry, Dates must not be in future"},
-    )
-    cow = models.ForeignKey(Cow, on_delete=models.PROTECT)
-    pregnancy = models.ForeignKey(
-        Pregnancy, on_delete=models.PROTECT, editable=False, blank=True, null=True
-    )
-    success = models.BooleanField(default=False)
-    notes = models.TextField(blank=True)
-    inseminator = models.ForeignKey(
-        Inseminator, on_delete=models.PROTECT, blank=True, null=True
-    )
-    semen = models.ForeignKey(Semen, on_delete=models.PROTECT, blank=True, null=True)
-
-    @property
-    def days_since_insemination(self):
-        """Calculates the number of days elapsed since the insemination event."""
-        elapsed_time = timezone.now().date() - self.date_of_insemination
-        return f"{elapsed_time.days} days"
-
-    def __str__(self):
-        return f"Insemination record for cow {self.cow.tag_number} on {self.date_of_insemination}"
-
-    def clean(self):
-        """
-        Validates the model instance before saving it.
-        """
-        if self.cow.availability_status == "Dead":
-            raise ValidationError("Cannot inseminate a dead cow.")
-
-        if self.cow.pregnancy_status == "Pregnant":
-            raise ValidationError("Cannot inseminate a cow that is already pregnant.")
-
-        if not Heat.objects.filter(
-            cow=self.cow,
-            observation_time__range=(
-                self.date_of_insemination - timedelta(days=3),
-                self.date_of_insemination + timedelta(days=3),
-            ),
-        ).exists():
-            raise ValidationError("Cow must be in heat at the time of insemination.")
-
-        if self.cow.get_cow_age() < 350:
-            raise ValidationError(
-                "Cow must be at least 12 months old to be inseminated."
-            )
-
-        if self.cow.insemination_set.filter(
-            date_of_insemination__range=(
-                timezone.now() - timedelta(days=21),
-                timezone.now(),
-            )
-        ).exists():
-            raise ValidationError(
-                "Cow cannot be inseminated within 21 days of a previous insemination."
-            )
 
 
 class Symptoms(models.Model):

@@ -87,3 +87,40 @@ class InseminatorFilterSet(filters.FilterSet):
     class Meta:
         model = Inseminator
         fields = ["first_name", "last_name"]
+
+
+class InseminationFilterSet(filters.FilterSet):
+    cow = filters.CharFilter(field_name="cow__tag_number", lookup_expr="icontains")
+    inseminator = filters.CharFilter(
+        field_name="inseminator__first_name", lookup_expr="icontains"
+    )
+    success = CaseInsensitiveBooleanFilter(field_name="success")
+    date_of_insemination = filters.DateTimeFilter(
+        field_name="date_of_insemination", lookup_expr="exact"
+    )
+    year_of_insemination = filters.NumberFilter(
+        field_name="date_of_insemination__year", lookup_expr="exact"
+    )
+    month_of_insemination = filters.NumberFilter(
+        field_name="date_of_insemination__month", lookup_expr="exact"
+    )
+    week_of_insemination = filters.NumberFilter(
+        field_name="date_of_insemination__week", lookup_expr="exact"
+    )
+    day_of_insemination = filters.NumberFilter(
+        field_name="date_of_insemination__day", lookup_expr="exact"
+    )
+
+
+class PregnancyFilterSet(filters.FilterSet):
+    cow = filters.CharFilter(field_name="cow__tag_number", lookup_expr="icontains")
+    start_date = filters.DateFilter(field_name="start_date")
+    year = filters.NumberFilter(field_name="start_date__year", lookup_expr="exact")
+    month = filters.NumberFilter(field_name="start_date__month", lookup_expr="exact")
+    pregnancy_failed_date = filters.DateFilter(field_name="pregnancy_failed_date")
+    pregnancy_outcome = filters.CharFilter(
+        field_name="pregnancy_outcome", lookup_expr="icontains"
+    )
+    pregnancy_status = filters.CharFilter(
+        field_name="pregnancy_status", lookup_expr="icontains"
+    )

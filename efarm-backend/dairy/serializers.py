@@ -21,17 +21,25 @@ class CowSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-        breed_data = validated_data.pop('breed')
+        breed_data = validated_data.pop("breed")
         breed, _ = CowBreed.objects.get_or_create(**breed_data)
 
         cow = Cow.objects.create(breed=breed, **validated_data)
         return cow
 
     def update(self, instance, validated_data):
-        fields_to_exclude = ['breed', 'gender', 'sire', 'dam', 'is_bought', 'date_introduced_in_farm']
+        fields_to_exclude = [
+            "breed",
+            "gender",
+            "sire",
+            "dam",
+            "is_bought",
+            "date_introduced_in_farm",
+        ]
         for field in fields_to_exclude:
             validated_data.pop(field, None)
         return super().update(instance, validated_data)
+
 
 class HeatSerializer(serializers.ModelSerializer):
     class Meta:
@@ -45,6 +53,30 @@ class InseminatorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Inseminator
         fields = "__all__"
+
+
+class InseminationSerializer(serializers.ModelSerializer):
+    days_since_insemination = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Insemination
+        fields = '__all__'
+
+    def update(self, instance, validated_data):
+        fields_to_exclude = ['cow', 'date_of_insemination', 'pregnancy', 'inseminator', 'semen',
+                             'days_since_insemination']
+        for field in fields_to_exclude:
+            validated_data.pop(field, None)
+        return super().update(instance, validated_data)
+
+
+class PregnancySerializer(serializers.ModelSerializer):
+    due_date = serializers.ReadOnlyField()
+    pregnancy_duration = serializers.ReadOnlyField()
+
+    class Meta:
+        model = Pregnancy
+        fields = '__all__'
 
 
 class CowInBarnMovementSerializer(serializers.ModelSerializer):
