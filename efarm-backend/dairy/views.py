@@ -176,6 +176,90 @@ class InseminatorViewset(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class InseminationViewset(viewsets.ModelViewSet):
+    queryset = Insemination.objects.all()
+    serializer_class = InseminationSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = InseminationFilterSet
+    ordering_fields = ['date_of_insemination', 'success', 'cow']
+    permission_classes = [CanActOnInseminationRecord]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                return Response({"detail": "No Insemination records found matching the provided filters."},
+                                status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({"detail": "No Insemination records found."},
+                                status=status.HTTP_200_OK)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed("PUT")
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Check if the insemination record is associated with a pregnancy
+        if instance.pregnancy:
+            raise PermissionDenied("Deletion not allowed. Insemination record is associated with a pregnancy.")
+
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PregnancyViewSet(viewsets.ModelViewSet):
+    queryset = Pregnancy.objects.all()
+    serializer_class = PregnancySerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = PregnancyFilterSet
+    ordering_fields = ["-start_date"]
+
+    def get_permissions(self):
+        if self.action == "create":
+            permission_classes = [CanAddPregnancyRecord]
+        elif self.action in ["update", "partial_update"]:
+            permission_classes = [CanUpdatePregnancyRecord]
+        elif self.action == "destroy":
+            permission_classes = [CanDeletePregnancyRecord]
+        else:
+            permission_classes = [CanViewPregnancyRecord]
+        return [permission() for permission in permission_classes]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                return Response(
+                    {
+                        "detail": "No Pregnancy records found matching the provided filters."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                return Response(
+                    {"detail": "No Pregnancy records found."}, status=status.HTTP_200_OK
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class CowInBarnMovementViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for the CowInBarnMovement model.
@@ -252,11 +336,6 @@ class MilkViewSet(viewsets.ModelViewSet):
 class LactationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LactationSerializer
     queryset = Lactation.objects.all()
-
-
-class PregnancyViewSet(viewsets.ModelViewSet):
-    queryset = Pregnancy.objects.all()
-    serializer_class = PregnancySerializer
 
 
 class WeightRecordViewSet(viewsets.ModelViewSet):
