@@ -34,11 +34,12 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('api-auth/', include('rest_framework.urls')),
-    # Other URL patterns for your project
+
+    # Other URL patterns for the project
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    # ...
-    # Include app-specific URLs
+
+    # app-specific URLs
     path('dairy/', include('dairy.urls', namespace='dairy')),
     path('dairy_inventory/', include('dairy_inventory.urls')),
     path('poultry/', include('poultry.urls', namespace='poultry')),
