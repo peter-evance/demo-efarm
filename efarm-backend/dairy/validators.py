@@ -408,3 +408,140 @@ class HeatValidator:
     def validate_min_age(cow):
         if cow.age < 365:
             raise ValidationError("Cow must be at least 12 months old to be in heat.")
+
+
+class InseminationValidator:
+    @staticmethod
+    def validate_already_in_heat(cow, date_of_insemination):
+        from dairy.models import Heat
+        if not Heat.objects.filter(cow=cow, observation_time__range=(
+                date_of_insemination - timedelta(hours=12), date_of_insemination)).exists():
+            raise ValidationError('Cow must be in heat at the time of insemination.')
+
+    @staticmethod
+    def validate_within_21_days_of_previous_insemination(pk, cow):
+        if pk is None:
+            if cow.inseminations.filter(
+                    date_of_insemination__range=(timezone.now() - timedelta(days=21), timezone.now())).exists():
+                raise ValidationError('Cow cannot be inseminated within 21 days of a previous insemination.')
+
+
+class PregnancyValidator:
+    @staticmethod
+    def validate_age(age, start_date, cow):
+        if age < 365:
+            raise ValidationError("This cow must have a pregnancy threshold age of 1 year. "
+                                  f"This cow is {round(age / 30.417, 2)} months old.")
+        if not start_date:
+            raise ValidationError(f"Provide pregnancy start date.")
+
+        if (start_date - cow.date_of_birth).days < 0:
+            raise ValidationError(f"Invalid start date.")
+
+        if (start_date - cow.date_of_birth).days < 365:
+            raise ValidationError(f"Invalid start date. Cow can not be pregnant at "
+                                  f"{round((start_date - cow.date_of_birth).days / 30.417, 2)} months of age.")
+
+    @staticmethod
+    def validate_cow_current_pregnancy_status(cow):
+        if cow.current_pregnancy_status == CowPregnancyChoices.PREGNANT:
+            raise ValidationError("This cow is already pregnant!")
+        if cow.current_pregnancy_status == CowPregnancyChoices.CALVED:
+            raise ValidationError("This cow just gave birth recently!")
+        if cow.current_pregnancy_status == CowPregnancyChoices.UNAVAILABLE:
+            raise ValidationError("This cow is not ready!")
+
+    @staticmethod
+    def validate_cow_availability_status(cow):
+        if cow.availability_status == CowAvailabilityChoices.DEAD:
+            raise ValidationError("Cannot add pregnancy record for a dead cow.")
+
+        if cow.availability_status == CowAvailabilityChoices.SOLD:
+            raise ValidationError("Cannot add pregnancy record for a sold cow.")
+
+    @staticmethod
+    def validate_pregnancy_status(pregnancy_status, start_sate, pregnancy_failed_date):
+        if pregnancy_status not in PregnancyStatusChoices.values:
+            raise ValidationError(f"Invalid pregnancy status: '{pregnancy_status}'.")
+
+        if pregnancy_status == PregnancyStatusChoices.FAILED and not pregnancy_failed_date:
+            raise ValidationError("Pregnancy is marked as failed, provide the date of failure")
+
+        if (todays_date - start_sate) < timedelta(days=21) and pregnancy_status != PregnancyStatusChoices.UNCONFIRMED:
+            raise ValidationError(f"Confirm the pregnancy status on {start_sate + timedelta(days=21)}")
+
+    @staticmethod
+    def validate_dates(start_date, pregnancy_status, date_of_calving, pregnancy_scan_date, pregnancy_failed_date):
+
+        if start_date > todays_date:
+            raise ValidationError("Start date cannot be in the future.")
+
+        if date_of_calving and start_date:
+            if date_of_calving < start_date:
+                raise ValidationError("Date of calving must be after the start date.")
+
+            if date_of_calving > todays_date:
+                raise ValidationError("Calving date cannot be in the future.")
+
+            min_days_between_calving_and_start = 270
+            max_days_between_calving_and_start = 295
+            days_difference = (date_of_calving - start_date).days
+            if not (min_days_between_calving_and_start <= days_difference <= max_days_between_calving_and_start):
+                raise ValidationError(
+                    f"Difference between calving date and start date should be between 270 and 295 days. "
+                    f"Current difference {days_difference} day(s)")
+
+        if pregnancy_scan_date and start_date:
+            if pregnancy_scan_date < start_date:
+                raise ValidationError("Pregnancy scan date must be after the start date.")
+
+            if pregnancy_scan_date.date() > todays_date:
+                raise ValidationError("Pregnancy scan date cannot be in the future.")
+
+            min_days_after_start_date_for_scan = 21
+            max_days_after_start_date_for_scan = 60
+            days_after_start_date_for_scan = (pregnancy_scan_date - start_date).days
+            if not (
+                    min_days_after_start_date_for_scan <= days_after_start_date_for_scan <= max_days_after_start_date_for_scan):
+                raise ValidationError(f"Scan date should be between 21 and 60 days from the start date."
+                                      f"Currently {days_after_start_date_for_scan} elapsed.")
+
+        if pregnancy_failed_date and start_date:
+            if pregnancy_failed_date > todays_date:
+                raise ValidationError("Pregnancy failed date cannot be in the future.")
+
+            if pregnancy_failed_date < start_date:
+                raise ValidationError("Pregnancy failed date cannot be before the start date.")
+
+            if pregnancy_failed_date and pregnancy_status != PregnancyStatusChoices.FAILED:
+                raise ValidationError("Pregnancy status must be 'Failed' if pregnancy failed date is provided.")
+
+            min_days_after_start_date_for_failure = 21
+            max_days_after_start_date_for_failure = 295
+            days_after_start_date_for_failure = (pregnancy_failed_date - start_date).days
+            if not (
+                    min_days_after_start_date_for_failure <= days_after_start_date_for_failure <= max_days_after_start_date_for_failure):
+                raise ValidationError("Pregnancy failed date must be between 21 and 295 days from the start date.")
+
+    @staticmethod
+    def validate_outcome(pregnancy_outcome, pregnancy_status, date_of_calving):
+        if pregnancy_outcome:
+            if pregnancy_outcome not in PregnancyOutcomeChoices.values:
+                raise ValidationError(f"Invalid pregnancy outcome: '{pregnancy_outcome}'.")
+
+            if pregnancy_outcome in [PregnancyOutcomeChoices.LIVE,
+                                     PregnancyOutcomeChoices.STILLBORN] and pregnancy_status != PregnancyStatusChoices.CONFIRMED:
+                raise ValidationError(
+                    f"Pregnancy status must be 'Confirmed' if the pregnancy outcome is '{pregnancy_outcome}'.")
+
+            if pregnancy_outcome == PregnancyOutcomeChoices.LIVE and not date_of_calving:
+                raise ValidationError(
+                    f"Date of calving must be provided if the pregnancy outcome is '{pregnancy_outcome}'.")
+
+            if pregnancy_outcome == PregnancyOutcomeChoices.MISCARRIAGE and pregnancy_status != PregnancyStatusChoices.FAILED:
+                raise ValidationError(f"Pregnancy status must be 'Failed' if the pregnancy outcome is 'Miscarriage'. "
+                                      f"Currently its {pregnancy_status}")
+
+        if date_of_calving and pregnancy_outcome not in [PregnancyOutcomeChoices.LIVE,
+                                                         PregnancyOutcomeChoices.STILLBORN]:
+            raise ValidationError(f"Provide the pregnancy outcome")
