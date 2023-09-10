@@ -1513,7 +1513,7 @@ class TestPregnancyViewSet:
         update_data = {
             "pregnancy_status": PregnancyStatusChoices.FAILED,
             "pregnancy_notes": "Updated pregnancy status as failed",
-            "pregnancy_failed_date": todays_date - timedelta(days=700)
+            "pregnancy_failed_date": todays_date - timedelta(days=100)
         }
         response = self.client.patch(reverse("dairy:pregnancy-records-detail", kwargs={"pk": pregnancy.id}),
                                      data=update_data, format="json",
