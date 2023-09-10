@@ -97,6 +97,14 @@ class PregnancyOutcomeChoices(models.TextChoices):
     MISCARRIAGE = "Miscarriage"
 
 
+class LactationStageChoices(models.TextChoices):
+    EARLY = "Early"
+    MID = "Mid"
+    LATE = "Late"
+    DRY = "Dry"
+    ENDED = "Ended"
+
+
 class CowPenTypeChoices(models.TextChoices):
     """
     Choices for the type of cow pen.
