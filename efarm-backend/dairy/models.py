@@ -344,189 +344,135 @@ class Insemination(models.Model):
 
 class Lactation(models.Model):
     """
+    Represents a lactation period for a cow.
 
-    A model representing a lactation period of a cow.
-
-    ### Fields
-
-    - `start_date` - a `DateField` representing the start date of the lactation period
-    - `end_date` - a `DateField` representing the end date of the lactation period
-    - `cow` - a foreign key to the `Cow` model representing the cow associated with this lactation period
-    - `lactation_number` - a `PositiveSmallIntegerField` representing the lactation number for this period
-    - `pregnancy` - a foreign key to the `Pregnancy` model representing the pregnancy associated with this lactation period
-
-    ### Meta
-
-    - `verbose_name` - a string representing the singular name of the model in the Django admin interface
-    - `verbose_name_plural` - a string representing the plural name of the model in the Django admin interface
-    - `unique_together` - a tuple of field names that must be unique together
-    - `get_latest_by` - a string representing the field to use for retrieving the latest record
-
-    ### Properties
-
-    - `lactation_stage` - a string representing the current stage of the lactation period based on the number of days in lactation
-    - `lactation_duration` - a string representing the duration of the lactation period in days
-    - `end_date_` - a string representing the end date of the lactation period formatted as YYYY-MM-DD, or "Ongoing" if the lactation period is ongoing
-
-    ### Methods
-
-    - `days_in_lactation()` - returns the number of days in the lactation period
+    Attributes:
+    - `start_date` (date): The start date of the lactation period.
+    - `end_date` (date or None): The end date of the lactation period, if available.
+    - `cow` (Cow): The cow associated with the lactation.
+    - `lactation_number` (int): The number assigned to the lactation.
+    - `pregnancy` (Pregnancy or None): The associated pregnancy record, if applicable.
     """
 
     class Meta:
-        verbose_name = "Lactation \U0001F37C"
-        verbose_name_plural = "Lactations \U0001F37C"
-        # unique_together = ('start_date', 'cow')
-        get_latest_by = "start_date"
+        get_latest_by = "-start_date"
 
     start_date = models.DateField()
-    end_date = models.DateField(null=True, editable=False)
-    cow = models.ForeignKey(Cow, on_delete=models.PROTECT, editable=False)
-    lactation_number = models.PositiveSmallIntegerField(default=1, editable=False)
-    pregnancy = models.OneToOneField(
-        Pregnancy, on_delete=models.CASCADE, editable=False
-    )
+    end_date = models.DateField(null=True)
+    cow = models.ForeignKey(Cow, on_delete=models.CASCADE, related_name="lactations")
+    lactation_number = models.PositiveSmallIntegerField(default=1)
+    pregnancy = models.OneToOneField(Pregnancy, on_delete=models.CASCADE, null=True)
 
+    objects = models.Manager()
+    manager = LactationManager()
+
+    @property
     def days_in_lactation(self):
-        """Returns the days in lactation for this lactation instance."""
-        today = datetime.today().date()
-        if self.end_date:
-            end_date = self.end_date
-        else:
-            end_date = today
-        days = (end_date - self.start_date).days
-        return days
+        """
+        Calculates and returns the number of days in the lactation period.
+
+        Returns:
+        - `int`: The number of days in the lactation period.
+        """
+        manager = LactationManager()
+        return manager.days_in_lactation(self)
 
     @property
     def lactation_stage(self):
         """
-        Returns a string representing the current stage of the lactation period based on the number of days in lactation.
-        """
-        days = self.days_in_lactation()
+        Determines and returns the lactation stage based on the days in lactation.
 
-        if self.end_date:
-            return "Ended"
-        elif days <= 100:
-            return "Early"
-        elif days <= 200:
-            return "Mid"
-        elif days <= 260:
-            return "Late"
-        else:
-            return "Dry"
-
-    @property
-    def lactation_duration(self):
+        Returns:
+        - `str`: The lactation stage.
         """
-        Returns a string representing the duration of the lactation period in days.
-        """
-        if self.end_date and self.start_date:
-            return f"{(self.end_date - self.start_date).days} days"
-        else:
-            return f"{self.days_in_lactation()} days"
+        manager = LactationManager()
+        return manager.lactation_stage(self)
 
     @property
     def end_date_(self):
-        if self.end_date:
-            return self.end_date.strftime("%Y-%m-%d")
-        else:
-            return "Ongoing"
+        """
+        Calculates and returns the expected end date of the lactation period.
+
+        Returns:
+        - `date` or `str`: The end date of the lactation period or Ongoing.
+        """
+        manager = LactationManager()
+        return manager.lactation_end_date(self)
 
     def __str__(self):
+        """
+        Returns a string representation of the lactation record.
+        """
         return f"Lactation record {self.lactation_number} for {self.cow}"
+
+    def clean(self):
+        """
+        Performs validation checks before saving the lactation record.
+
+        Raises:
+        - `ValidationError`: If lactation record validation fails.
+        """
+
+        LactationValidator.validate_age(self.start_date, self.cow)
+        LactationValidator.validate_fields(
+            self.start_date, self.pregnancy, self.lactation_number, self.cow, self
+        )
+        # LactationValidator.validate_cow_category(self.cow.category)
+        # LactationValidator.validate_cow_origin(self.cow)
+
+    def save(self, *args, **kwargs):
+        """
+        Overrides the save method to ensure validation before saving.
+        """
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class Milk(models.Model):
     """
-    The model is a representation of a cow's milk production.
+    Represents a milk record for a cow.
 
-    ### Fields
-
-    - `milking_date`: The date and time the milk was collected.
-    - `cow`: The cow that produced the milk.
-    - `amount_in_kgs`: The amount of milk produced, in kilograms.
-    - `lactation`: The lactation stage of the cow at the time of milking.
-
-    ### Meta options
-
-    - `verbose_name`: The singular name of the model in the Django admin.
-    - `verbose_name_plural`: The plural name of the model in the Django admin.
-    - `constraints`: A list of database constraints for the model.
-
-    ### Methods
-
-        - `__str__()` : returns a string representation of the `Milk` object, showing the name of the cow and the milking date.
-        - `clean()` :  performs validation on the model fields to ensure data integrity. The following validations are performed:
-            - The cow is not dead or sold.
-            - The cow is female and old enough to produce milk.
-            - The cow is currently in a stage of lactation (early, mid, or late).
-            - The amount of milk is greater than 0 and less than or equal to 35 kilograms.
-
+    Attributes:
+    - `milking_date` (datetime): The date and time of the milking.
+    - `cow` (Cow): The cow associated with the milk record.
+    - `amount_in_kgs` (Decimal): The amount of milk produced in kilograms.
+    - `lactation` (Lactation or None): The associated lactation record, if applicable.
     """
 
     class Meta:
-        verbose_name = "Milk \U0001F95B"
-        verbose_name_plural = "Milk \U0001F95B"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["cow", "milking_date"], name="unique_milk_record"
-            ),
-        ]
+        get_latest_by = "-milking_date"
 
     milking_date = models.DateTimeField(auto_now_add=True)
-    cow = models.ForeignKey(Cow, on_delete=models.CASCADE, related_name="milk")
+    cow = models.ForeignKey(Cow, on_delete=models.CASCADE, related_name="milk_records")
     amount_in_kgs = models.DecimalField(
-        verbose_name="Amount (kg)",
-        default=0.00,
-        max_digits=5,
-        decimal_places=2,
-        validators=[
-            MinValueValidator(0, message="Amount of milk can not be less than 0 Kgs."),
-            MaxValueValidator(35, message="Amount of milk cannot exceed 35 Kgs."),
-        ],
+        verbose_name="Amount (kgs)", default=0.00, max_digits=4, decimal_places=2
     )
     lactation = models.ForeignKey(
-        Lactation, on_delete=models.CASCADE, editable=False, null=True
+        Lactation, on_delete=models.CASCADE, null=True, editable=False
     )
 
     def __str__(self):
         """
-        Returns:
-            `str`: A string representation of the milk record.
+        Returns a string representation of the milk record.
         """
         return f"Milk record of cow {self.cow.name} on {self.milking_date.strftime('%Y-%m-%d %H:%M:%S')}"
 
     def clean(self):
-        cow = self.cow
-        latest_lactation_record = self.cow.lactation_set.last()
+        """
+        Performs validation checks before saving the milk record.
 
-        if latest_lactation_record is None:
-            raise ValidationError("Cannot add milk entry, cow has no active lactation")
+        Raises:
+        - `ValidationError`: If milk record validation fails.
+        """
+        MilkValidator.validate_amount_in_kgs(self.amount_in_kgs)
+        MilkValidator.validate_cow_eligibility(self.cow)
 
-        elif latest_lactation_record.lactation_stage == "Dry":
-            raise ValidationError("Cannot add milk entry, Cow has been dried off")
-
-        elif latest_lactation_record.lactation_stage not in ["Early", "Mid", "Late"]:
-            raise ValidationError(
-                "Cannot add milk entry, cow's active lactation is not in stages Early, Mid, or Late"
-            )
-
-        if cow.availability_status == "Dead":
-            raise ValidationError("Cannot add milk record for a dead cow.")
-
-        if cow.availability_status == "Sold":
-            raise ValidationError("Cannot add milk record for sold cow.")
-
-        if cow.get_cow_age() < 21 * 30:
-            raise ValidationError(
-                "Cow is less than 21 months old and should not have a milk record"
-            )
-
-        if cow.gender != "Female":
-            raise ValidationError("This cow is not female and cannot produce milk.")
-
-        if self.amount_in_kgs <= 0:
-            raise ValidationError("Amount in kgs should be greater than 0")
+    def save(self, *args, **kwargs):
+        """
+        Overrides the save method to ensure validation before saving.
+        """
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class Semen(models.Model):

@@ -48,7 +48,10 @@ def create_pregnancy_from_successful_insemination(sender, instance, **kwargs):
 
 
 @receiver(pre_save, sender=Milk)
-def assign_lactation(sender, instance, **kwargs):
-    cow = instance.cow
-    latest_lactation = cow.lactation_set.latest("start_date")
-    instance.lactation = latest_lactation
+def set_lactation_for_new_milk(sender, instance, **kwargs):
+    if instance.lactation is None:
+        # Fetch the most recent lactation for the cow
+        most_recent_lactation = instance.cow.lactations.latest()
+
+        if most_recent_lactation:
+            instance.lactation = most_recent_lactation
