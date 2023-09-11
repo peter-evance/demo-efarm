@@ -124,3 +124,29 @@ class PregnancyFilterSet(filters.FilterSet):
     pregnancy_status = filters.CharFilter(
         field_name="pregnancy_status", lookup_expr="icontains"
     )
+
+
+class LactationFilterSet(filters.FilterSet):
+    start_date = filters.DateFilter(field_name="start_date")
+    year = filters.NumberFilter(field_name="start_date__year", lookup_expr="exact")
+    month = filters.NumberFilter(field_name="start_date__month", lookup_expr="exact")
+    lactation_number = filters.NumberFilter(
+        field_name="lactation_number", lookup_expr="exact"
+    )
+
+
+class MilkFilterSet(filters.FilterSet):
+    cow = filters.CharFilter(field_name="cow__tag_number", lookup_expr="icontains")
+    milking_date = filters.DateTimeFilter(field_name="milking_date")
+    day_of_milking = filters.NumberFilter(
+        field_name="milking_date__day", lookup_expr="exact"
+    )
+    week_of_milking = filters.NumberFilter(
+        field_name="milking_date__week", lookup_expr="exact"
+    )
+    month_of_milking = filters.NumberFilter(
+        field_name="milking_date__month", lookup_expr="exact"
+    )
+    year_of_milking = filters.NumberFilter(
+        field_name="milking_date__year", lookup_expr="exact"
+    )
