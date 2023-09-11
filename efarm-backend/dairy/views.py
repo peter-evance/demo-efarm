@@ -260,6 +260,108 @@ class PregnancyViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class LactationViewSet(viewsets.ModelViewSet):
+    serializer_class = LactationSerializer
+    queryset = Lactation.objects.all()
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = LactationFilterSet
+    ordering_fields = ["-start_date"]
+
+    def get_permissions(self):
+        if self.action == "create":
+            permission_classes = [CanAddLactationRecord]
+        elif self.action == "destroy":
+            permission_classes = [CanDeleteLactationRecord]
+        else:
+            # For viewing lactation, allow farm owner, farm manager, assistant farm manager, team leader,
+            # and farm worker
+            permission_classes = [CanViewLactationRecord]
+        return [permission() for permission in permission_classes]
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed("PUT")
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Check if the insemination record is associated with a pregnancy
+        if instance.pregnancy:
+            raise PermissionDenied(
+                "Deletion not allowed. Lactation record is associated with a pregnancy."
+            )
+
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                return Response(
+                    {
+                        "detail": "No Lactation records found matching the provided filters."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                return Response(
+                    {"detail": "No Lactation records found."}, status=status.HTTP_200_OK
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class MilkViewSet(viewsets.ModelViewSet):
+    serializer_class = MilkSerializer
+    queryset = Milk.objects.all()
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = MilkFilterSet
+    ordering_fields = ["-milking_date"]
+
+    def get_permissions(self):
+        if self.action == "create":
+            permission_classes = [CanAddMilk]
+        elif self.action == "destroy":
+            permission_classes = [CanDeleteMilk]
+        elif self.action == "partial_update":
+            permission_classes = [CanUpdateMilk]
+        else:
+            permission_classes = [CanViewMilk]
+        return [permission() for permission in permission_classes]
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed("PUT")
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                return Response(
+                    {"detail": "No Milk records found matching the provided filters."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                return Response(
+                    {"detail": "No Milk records found."}, status=status.HTTP_200_OK
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class CowInBarnMovementViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for the CowInBarnMovement model.
@@ -326,16 +428,6 @@ class BarnViewSet(viewsets.ModelViewSet):
 
     serializer_class = BarnSerializer
     queryset = Barn.objects.all()
-
-
-class MilkViewSet(viewsets.ModelViewSet):
-    serializer_class = MilkSerializer
-    queryset = Milk.objects.all()
-
-
-class LactationViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = LactationSerializer
-    queryset = Lactation.objects.all()
 
 
 class WeightRecordViewSet(viewsets.ModelViewSet):
