@@ -7,6 +7,7 @@ class CowProductionStatusChoices(models.TextChoices):
     PREGNANT_AND_LACTATING = "Pregnant and Lactating"
     DRY = "Dry"
     CULLED = "Culled"
+    QUARANTINED = "Quarantined"
     BULL = "Bull"
     YOUNG_BULL = "Young Bull"
     YOUNG_HEIFER = "Young Heifer"
@@ -103,6 +104,44 @@ class LactationStageChoices(models.TextChoices):
     LATE = "Late"
     DRY = "Dry"
     ENDED = "Ended"
+
+
+class CullingReasonChoices(models.TextChoices):
+    # MEDICAL_REASONS
+    INJURIES = "Injuries"
+    CHRONIC_HEALTH = "Chronic Health Issues"
+
+    # FINANCIAL_REASONS
+    COST_OF_CARE = "Cost Of Care"
+    UNPROFITABLE = "Unprofitable"
+    LOW_MARKET_DEMAND = "Low Market Demand"
+
+    # PRODUCTION_REASONS
+    AGE = "Age"
+    CONSISTENT_LOW_PRODUCTION = "Consistent_Low Production"
+    CONSISTENT_POOR_QUALITY = "Low Quality"
+    INEFFICIENT_FEED_CONVERSION = "Inefficient Feed Conversion"
+
+    # GENETIC_REASONS
+    INHERITED_DISEASES = "Inherited Diseases"
+    INBREEDING = "Inbreeding"
+    UNWANTED_TRAITS = "Unwanted Traits"
+
+    # ENVIRONMENTAL_REASONS
+    CLIMATE_CHANGE = "Climate Change"
+    NATURAL_DISASTER = "Natural Disaster"
+    OVERPOPULATION = "Overpopulation"
+
+    # LEGAL_REASONS
+    GOVERNMENT_REGULATIONS = "Government Regulations"
+    ANIMAL_WELFARE_STANDARDS = "Animal Welfare Standards"
+    ENVIRONMENT_PROTECTION_LAWS = "Environmental Protection Laws"
+
+
+class QuarantineReasonChoices(models.TextChoices):
+    SICK_COW = "Sick Cow"
+    BOUGHT_COW = "Bought Cow"
+    NEW_COW = "New Cow"
 
 
 class CowPenTypeChoices(models.TextChoices):
