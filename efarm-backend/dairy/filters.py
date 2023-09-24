@@ -111,6 +111,11 @@ class InseminationFilterSet(filters.FilterSet):
         field_name="date_of_insemination__day", lookup_expr="exact"
     )
 
+    class Meta:
+        model = Insemination
+        fields = ["cow", "success", "inseminator", "year_of_insemination", "month_of_insemination",
+                  "week_of_insemination", "day_of_insemination"]
+
 
 class PregnancyFilterSet(filters.FilterSet):
     cow = filters.CharFilter(field_name="cow__tag_number", lookup_expr="icontains")
@@ -125,6 +130,11 @@ class PregnancyFilterSet(filters.FilterSet):
         field_name="pregnancy_status", lookup_expr="icontains"
     )
 
+    class Meta:
+        model = Pregnancy
+        fields = ["cow", "start_date", "year", "month", "pregnancy_failed_date", "pregnancy_outcome",
+                  "pregnancy_status"]
+
 
 class LactationFilterSet(filters.FilterSet):
     start_date = filters.DateFilter(field_name="start_date")
@@ -133,6 +143,10 @@ class LactationFilterSet(filters.FilterSet):
     lactation_number = filters.NumberFilter(
         field_name="lactation_number", lookup_expr="exact"
     )
+
+    class Meta:
+        model = Lactation
+        fields = ["start_date", "year", "month", "lactation_number"]
 
 
 class MilkFilterSet(filters.FilterSet):
@@ -150,3 +164,43 @@ class MilkFilterSet(filters.FilterSet):
     year_of_milking = filters.NumberFilter(
         field_name="milking_date__year", lookup_expr="exact"
     )
+
+    class Meta:
+        model = Milk
+        fields = ["cow", "milking_date", "day_of_milking", "week_of_milking", "month_of_milking",
+                  "year_of_milking"]
+
+
+class WeightRecordFilterSet(filters.FilterSet):
+    cow = filters.CharFilter(field_name="cow__tag_number", lookup_expr="icontains")
+    day_of_weighing = filters.NumberFilter(field_name="date__day", lookup_expr="exact")
+    month_of_weighing = filters.NumberFilter(
+        field_name="date__month", lookup_expr="exact"
+    )
+    year_of_weighing = filters.NumberFilter(
+        field_name="date__year", lookup_expr="exact"
+    )
+
+    class Meta:
+        model = WeightRecord
+        fields = ["cow", "day_of_weighing", "month_of_weighing", "year_of_weighing"]
+
+
+class CullingRecordFilterSet(filters.FilterSet):
+    day_of_culling = filters.NumberFilter(field_name="date__day", lookup_expr="exact")
+    month_of_culling = filters.NumberFilter(
+        field_name="date__month", lookup_expr="exact"
+    )
+    year_of_culling = filters.NumberFilter(field_name="date__year", lookup_expr="exact")
+
+    class Meta:
+        model = CullingRecord
+        fields = ["day_of_culling", "month_of_culling", "year_of_culling"]
+
+
+class QuarantineRecordFilterSet(filters.FilterSet):
+    reason = filters.CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = QuarantineRecord
+        fields = ["reason"]
