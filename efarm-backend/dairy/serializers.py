@@ -111,6 +111,30 @@ class MilkSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class WeightRecordSerializer(serializers.ModelSerializer):
+    cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.all())
+
+    class Meta:
+        model = WeightRecord
+        fields = "__all__"
+
+
+class CullingRecordSerializer(serializers.ModelSerializer):
+    cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.all())
+
+    class Meta:
+        model = CullingRecord
+        fields = "__all__"
+
+
+class QuarantineRecordSerializer(serializers.ModelSerializer):
+    cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.all())
+
+    class Meta:
+        model = QuarantineRecord
+        fields = "__all__"
+
+
 class CowInBarnMovementSerializer(serializers.ModelSerializer):
     """
     Serializer for the CowInBarnMovement model.
@@ -178,29 +202,4 @@ class CowPenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CowPen
-        fields = "__all__"
-
-
-class WeightRecordSerializer(serializers.ModelSerializer):
-    """
-    Serializer for WeightRecord model instances.
-
-    This serializer includes a field for the cow associated with the weight record. The cow field is represented by a
-    primary key related field.
-
-    #### Attributes:
-        - `cow (serializers.PrimaryKeyRelatedField)`: A field representing the cow associated with the weight record.
-            This field is represented by a primary key related field.
-    """
-
-    cow = serializers.PrimaryKeyRelatedField(queryset=Cow.objects.all())
-
-    class Meta:
-        model = WeightRecord
-        fields = "__all__"
-
-
-class CullingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Culling
         fields = "__all__"
