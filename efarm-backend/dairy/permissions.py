@@ -529,3 +529,56 @@ class CanDeleteMilk(BasePermission):
                 {"message": "Authentication credentials were not provided."}
             )
         raise PermissionDenied(self.message)
+
+
+class CanActOnWeightRecord(BasePermission):
+    message = {
+        "message": "Only farm owners and managers have permission to perform this action."
+    }
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner
+            or request.user.is_farm_manager
+            or request.user.is_assistant_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanActOnCullingRecord(BasePermission):
+    message = {
+        "message": "Only farm owners and farm manager have permission to perform this action."
+    }
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner or request.user.is_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanActOnQuarantineRecord(BasePermission):
+    message = {
+        "message": "Only farm owners and farm managers have permission to perform this action."
+    }
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner or request.user.is_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
