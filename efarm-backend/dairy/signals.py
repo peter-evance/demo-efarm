@@ -55,3 +55,18 @@ def set_lactation_for_new_milk(sender, instance, **kwargs):
 
         if most_recent_lactation:
             instance.lactation = most_recent_lactation
+
+
+@receiver(post_save, sender=CullingRecord)
+def set_cow_production_status_to_culled(sender, instance, **kwargs):
+    cow = instance.cow
+    cow.current_production_status == CowProductionStatusChoices.CULLED
+    cow.save()
+
+
+@receiver(post_save, sender=QuarantineRecord)
+def set_cow_production_status_to_quarantined(sender, instance, **kwargs):
+    cow = instance.cow
+    if instance.start_date and instance.end_date is None:
+        cow.current_production_status == CowProductionStatusChoices.QUARANTINED
+        cow.save()
