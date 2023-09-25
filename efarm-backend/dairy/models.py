@@ -15,6 +15,7 @@ class CowBreed(models.Model):
     Attributes:
     - `name` (str): The name of the cow breed.
     """
+
     name = models.CharField(max_length=20, choices=CowBreedChoices.choices)
 
     def __str__(self):
@@ -60,19 +61,39 @@ class Cow(models.Model):
     - `is_bought` (bool): Indicates whether the cow was bought or not.
     - `date_of_death` (date or None): The date of death of the cow, if applicable.
     """
+
     name = models.CharField(max_length=35)
-    breed = models.ForeignKey(CowBreed, on_delete=models.PROTECT, db_index=True, related_name='cows')
+    breed = models.ForeignKey(
+        CowBreed, on_delete=models.PROTECT, db_index=True, related_name="cows"
+    )
     date_of_birth = models.DateField()
     gender = models.CharField(max_length=6, choices=SexChoices.choices)
-    availability_status = models.CharField(choices=CowAvailabilityChoices.choices, default=CowAvailabilityChoices.ALIVE,
-                                           max_length=5)
-    sire = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='offspring')
-    dam = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, related_name='calves')
-    current_pregnancy_status = models.CharField(choices=CowPregnancyChoices.choices,
-                                                default=CowPregnancyChoices.UNAVAILABLE, max_length=12)
-    category = models.CharField(choices=CowCategoryChoices.choices, default=CowCategoryChoices.CALF, max_length=11)
-    current_production_status = models.CharField(choices=CowProductionStatusChoices.choices, max_length=22,
-                                                 default=CowProductionStatusChoices.CALF)
+    availability_status = models.CharField(
+        choices=CowAvailabilityChoices.choices,
+        default=CowAvailabilityChoices.ALIVE,
+        max_length=5,
+    )
+    sire = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, null=True, related_name="offspring"
+    )
+    dam = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, null=True, related_name="calves"
+    )
+    current_pregnancy_status = models.CharField(
+        choices=CowPregnancyChoices.choices,
+        default=CowPregnancyChoices.UNAVAILABLE,
+        max_length=12,
+    )
+    category = models.CharField(
+        choices=CowCategoryChoices.choices,
+        default=CowCategoryChoices.CALF,
+        max_length=11,
+    )
+    current_production_status = models.CharField(
+        choices=CowProductionStatusChoices.choices,
+        max_length=22,
+        default=CowProductionStatusChoices.CALF,
+    )
     date_introduced_in_farm = models.DateField(auto_now_add=True)
     is_bought = models.BooleanField(default=False)
     date_of_death = models.DateField(null=True)
@@ -121,7 +142,9 @@ class Cow(models.Model):
         """
         CowValidator.validate_cow_age(self.age, self.date_of_birth)
         CowValidator.validate_uniqueness(self.name)
-        CowValidator.validate_date_of_death(self.availability_status, self.date_of_death)
+        CowValidator.validate_date_of_death(
+            self.availability_status, self.date_of_death
+        )
         CowValidator.validate_gender_update(self.pk, self.gender)
         CowValidator.validate_sire_dam_relationship(self.sire, self.dam)
 
@@ -138,12 +161,30 @@ class Cow(models.Model):
         self.clean()
         super().save(*args, **kwargs)
         CowValidator.validate_introduction_date(self.date_introduced_in_farm)
-        CowValidator.validate_age_category(self.age, self.category, self.gender, self.calf_records, self.is_bought,
-                                           self)
-        CowValidator.validate_pregnancy_status(self, self.age, self.current_pregnancy_status, self.availability_status,
-                                               self.gender)
-        CowValidator.validate_production_status(self.current_production_status, self.gender, self.category, self.age,
-                                                self.calf_records, self.is_bought, self)
+        CowValidator.validate_age_category(
+            self.age,
+            self.category,
+            self.gender,
+            self.calf_records,
+            self.is_bought,
+            self,
+        )
+        CowValidator.validate_pregnancy_status(
+            self,
+            self.age,
+            self.current_pregnancy_status,
+            self.availability_status,
+            self.gender,
+        )
+        CowValidator.validate_production_status(
+            self.current_production_status,
+            self.gender,
+            self.category,
+            self.age,
+            self.calf_records,
+            self.is_bought,
+            self,
+        )
 
 
 class Inseminator(models.Model):
@@ -203,8 +244,12 @@ class Heat(models.Model):
         HeatValidator.validate_production_status(self.cow)
         HeatValidator.validate_dead(self.cow)
         HeatValidator.validate_gender(self.cow)
-        HeatValidator.validate_within_60_days_after_calving(self.cow, self.observation_time)
-        HeatValidator.validate_within_21_days_of_previous_heat(self.cow, self.observation_time)
+        HeatValidator.validate_within_60_days_after_calving(
+            self.cow, self.observation_time
+        )
+        HeatValidator.validate_within_21_days_of_previous_heat(
+            self.cow, self.observation_time
+        )
         HeatValidator.validate_min_age(self.cow)
         HeatValidator.validate_already_in_heat(self.cow)
 
@@ -231,18 +276,23 @@ class Pregnancy(models.Model):
     - `pregnancy_failed_date` (date or None): The date when the pregnancy failed, if applicable.
     - `pregnancy_outcome` (str or None): The outcome of the pregnancy, if known.
 
-    Note: The terms "calving" and "scan" are related to cattle reproduction.
-"""
-    cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name='pregnancies')
+    Note: The terms "calving" and "scan" are related to cattle reproduction."""
+
+    cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name="pregnancies")
     start_date = models.DateField()
     date_of_calving = models.DateField(null=True, blank=True)
-    pregnancy_status = models.CharField(max_length=11, choices=PregnancyStatusChoices.choices,
-                                        default=PregnancyStatusChoices.UNCONFIRMED)
+    pregnancy_status = models.CharField(
+        max_length=11,
+        choices=PregnancyStatusChoices.choices,
+        default=PregnancyStatusChoices.UNCONFIRMED,
+    )
     pregnancy_notes = models.TextField(blank=True)
     calving_notes = models.TextField(blank=True)
     pregnancy_scan_date = models.DateField(null=True, blank=True)
     pregnancy_failed_date = models.DateField(null=True, blank=True)
-    pregnancy_outcome = models.CharField(max_length=11, choices=PregnancyOutcomeChoices.choices, blank=True, null=True)
+    pregnancy_outcome = models.CharField(
+        max_length=11, choices=PregnancyOutcomeChoices.choices, blank=True, null=True
+    )
 
     objects = models.Manager()
     manager = PregnancyManager()
@@ -271,10 +321,19 @@ class Pregnancy(models.Model):
         PregnancyValidator.validate_age(self.cow.age, self.start_date, self.cow)
         PregnancyValidator.validate_cow_current_pregnancy_status(self.cow)
         PregnancyValidator.validate_cow_availability_status(self.cow)
-        PregnancyValidator.validate_dates(self.start_date, self.pregnancy_status, self.date_of_calving,
-                                          self.pregnancy_scan_date, self.pregnancy_failed_date)
-        PregnancyValidator.validate_pregnancy_status(self.pregnancy_status, self.start_date, self.pregnancy_failed_date)
-        PregnancyValidator.validate_outcome(self.pregnancy_outcome, self.pregnancy_status, self.date_of_calving)
+        PregnancyValidator.validate_dates(
+            self.start_date,
+            self.pregnancy_status,
+            self.date_of_calving,
+            self.pregnancy_scan_date,
+            self.pregnancy_failed_date,
+        )
+        PregnancyValidator.validate_pregnancy_status(
+            self.pregnancy_status, self.start_date, self.pregnancy_failed_date
+        )
+        PregnancyValidator.validate_outcome(
+            self.pregnancy_outcome, self.pregnancy_status, self.date_of_calving
+        )
 
     def save(self, *args, **kwargs):
         """
@@ -286,30 +345,34 @@ class Pregnancy(models.Model):
 
 class Insemination(models.Model):
     """
-   Represents a record of cow insemination.
+    Represents a record of cow insemination.
 
-   Attributes:
-   - `date_of_insemination` (datetime): The date and time of the insemination.
-   - `cow` (Cow): The cow that underwent the insemination.
-   - `pregnancy` (Pregnancy or None): The associated pregnancy record, if insemination is successful.
-   - `success` (bool): Indicates whether the insemination was successful or not.
-   - `notes` (str): Additional notes related to the insemination.
-   - `inseminator` (Inseminator): The inseminator responsible for the procedure.
-   - `semen` (Semen or None): The type of semen used for the insemination.
+    Attributes:
+    - `date_of_insemination` (datetime): The date and time of the insemination.
+    - `cow` (Cow): The cow that underwent the insemination.
+    - `pregnancy` (Pregnancy or None): The associated pregnancy record, if insemination is successful.
+    - `success` (bool): Indicates whether the insemination was successful or not.
+    - `notes` (str): Additional notes related to the insemination.
+    - `inseminator` (Inseminator): The inseminator responsible for the procedure.
+    - `semen` (Semen or None): The type of semen used for the insemination.
 
-   Note: The term "insemination" refers to the process of introducing semen into the reproductive tract of a female animal.
+    Note: The term "insemination" refers to the process of introducing semen into the reproductive tract of a female animal.
     """
 
     class Meta:
-        ordering = ['-date_of_insemination']
+        ordering = ["-date_of_insemination"]
 
     date_of_insemination = models.DateTimeField(auto_now_add=True)
-    cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name='inseminations')
-    pregnancy = models.OneToOneField(Pregnancy, on_delete=models.PROTECT, editable=False, blank=True, null=True)
+    cow = models.ForeignKey(Cow, on_delete=models.PROTECT, related_name="inseminations")
+    pregnancy = models.OneToOneField(
+        Pregnancy, on_delete=models.PROTECT, editable=False, blank=True, null=True
+    )
     success = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
-    inseminator = models.ForeignKey(Inseminator, on_delete=models.PROTECT, related_name='inseminations_done')
-    semen = models.ForeignKey('Semen', on_delete=models.PROTECT, blank=True, null=True)
+    inseminator = models.ForeignKey(
+        Inseminator, on_delete=models.PROTECT, related_name="inseminations_done"
+    )
+    semen = models.ForeignKey("Semen", on_delete=models.PROTECT, blank=True, null=True)
 
     objects = models.Manager()
     manager = InseminationManager()
@@ -331,7 +394,9 @@ class Insemination(models.Model):
         Raises:
         - `ValidationError`: If insemination record validation fails.
         """
-        InseminationValidator.validate_within_21_days_of_previous_insemination(self.pk, self.cow)
+        InseminationValidator.validate_within_21_days_of_previous_insemination(
+            self.pk, self.cow
+        )
 
     def save(self, *args, **kwargs):
         """
@@ -339,7 +404,9 @@ class Insemination(models.Model):
         """
         self.clean()
         super().save(*args, **kwargs)
-        InseminationValidator.validate_already_in_heat(self.cow, self.date_of_insemination)
+        InseminationValidator.validate_already_in_heat(
+            self.cow, self.date_of_insemination
+        )
 
 
 class Lactation(models.Model):
@@ -475,11 +542,72 @@ class Milk(models.Model):
         super().save(*args, **kwargs)
 
 
+class WeightRecord(models.Model):
+    cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
+    date = models.DateField(auto_now_add=True)
+    weight_in_kgs = models.DecimalField(max_digits=6, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.cow} - Weight: {self.weight_in_kgs} kgs - Date: {self.date}"
+
+    def clean(self):
+        WeightRecordValidator.validate_weight(self.weight_in_kgs)
+        WeightRecordValidator.validate_cow_availability_status(self.cow)
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+        WeightRecordValidator.validate_frequency_of_weight_records(self.date, self.cow)
+
+
+class CullingRecord(models.Model):
+    cow = models.ForeignKey(
+        Cow, on_delete=models.CASCADE, related_name="culling_record"
+    )
+    reason = models.CharField(max_length=35, choices=CullingReasonChoices.choices)
+    date = models.DateField(auto_now_add=True)
+    notes = models.TextField(null=True, max_length=100)
+
+    def __str__(self):
+        return f"Culling of {self.cow.tag_number} on {self.date}"
+
+    def clean(self):
+        CullingValidator.validate_single_culling(self.cow)
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+
+class QuarantineRecord(models.Model):
+    class Meta:
+        get_latest_by = "-start_date"
+
+    cow = models.ForeignKey(
+        Cow, on_delete=models.CASCADE, related_name="quarantine_record"
+    )
+    reason = models.CharField(max_length=20, choices=QuarantineReasonChoices.choices)
+    start_date = models.DateField(auto_now_add=True)
+    end_date = models.DateField(null=True)
+    notes = models.TextField(null=True, max_length=100)
+
+    def __str__(self):
+        if self.end_date:
+            return f"Quarantine Record of {self.cow.tag_number} from {self.start_date} to {self.end_date}"
+        return f"Quarantine Record of {self.cow.tag_number} from {self.start_date}"
+
+    def clean(self):
+        QuarantineValidator.validate_reason(self.reason, self.cow)
+        QuarantineValidator.validate_date(self.start_date, self.end_date, self.pk)
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+
 class Semen(models.Model):
     inseminator = models.ForeignKey(Inseminator, on_delete=models.PROTECT)
-    producer = models.CharField(
-        max_length=64,
-        choices=SemenSourceChoices.choices)
+    producer = models.CharField(max_length=64, choices=SemenSourceChoices.choices)
     semen_batch = models.CharField(max_length=64)
     date_of_production = models.DateField(
         validators=[MaxValueValidator(date.today())],
@@ -815,142 +943,6 @@ class Disease(models.Model):
             raise ValidationError(
                 "At least one treatment is required for a recovered disease."
             )
-
-
-class WeightRecord(models.Model):
-    """
-    A model representing a weight record of a cow on a particular date.
-
-    ### Fields
-
-    - `cow` - a `ForeignKey` representing the cow whose weight record is being recorded
-    - `date` - a `DateField` representing the date on which the weight was recorded (auto-generated)
-    - `weight` - a `DecimalField` representing the weight of the cow on the given date
-
-    ### Meta
-
-    - `verbose_name` - a string representing the singular name of the model in the Django admin interface
-    - `verbose_name_plural` - a string representing the plural name of the model in the Django admin interface
-    - `unique_together` - a tuple specifying that each weight record must have a unique combination of cow and date
-
-    ### Methods
-
-    - `clean()` - validates that weight can only be recorded for cows with availability status 'Alive'
-    - `__str__()` - returns a string representing the weight record in the format "cow name - Weight: weight kgs - Date: date"
-
-    """
-
-    class Meta:
-        verbose_name = "Weight \U00002696"
-        verbose_name_plural = "Weight \U00002696"
-        unique_together = ("cow", "date")
-
-    cow = models.ForeignKey(Cow, on_delete=models.CASCADE)
-    date = models.DateField(auto_now_add=True)
-    weight = models.DecimalField(
-        default=1,
-        max_digits=6,
-        decimal_places=2,
-        validators=[
-            MinValueValidator(
-                1,
-                message="Invalid weight. A cow's minimum weight record can not be less than 1 Kgs.",
-            ),
-            MaxValueValidator(
-                1500,
-                message="Invalid weight. A cow's maximum weight can not exceed 1500 Kgs.",
-            ),
-        ],
-    )
-
-    def clean(self):
-        if self.cow.availability_status == "Dead":
-            raise ValidationError("Weight cannot be recorded for a dead cow.")
-
-        if self.cow.availability_status == "Sold":
-            raise ValidationError("Weight cannot be recorded for a sold cow.")
-
-    def __str__(self):
-        return f"{self.cow} - Weight: {self.weight} kgs - Date: {self.date}"
-
-
-class Culling(models.Model):
-    """
-    ### Fields
-
-    - `cow`: A foreign key to the `Cow` model, which represents the cow being culled. This field is required.
-    - `reason`: A string representing the reason for culling the cow. The choices for this field are defined in several tuples, including
-        - MEDICAL_REASONS,
-        - FINANCIAL_REASONS,
-        - PRODUCTION_REASONS,
-        - GENETIC_REASONS,
-        - ENVIRONMENTAL_REASONS
-        - LEGAL_REASONS. The CULLING_REASONS tuple is created by concatenating all of these tuples. This field is required and can be at most 100 characters long.
-    - `date`: A date field that is automatically set to the current date when the object is created. This field is required.
-    - `notes`: A text field for any additional notes about the culling. This field is optional.
-
-    ### Meta options
-    - `verbose_name`: A string representing the human-readable name for a single instance of the model. In this case, it is set to "Culling 🗡️".
-    - `verbose_name_plural`: A string representing the human-readable name for multiple instances of the model. In this case, it is set to "Cullings 🗡️".
-    - `ordering`: A list or tuple of fields to use when ordering the Culling objects. In this case, the objects are ordered by date in descending order.
-
-
-    ### Methods
-    - `__str__(self)`: A string representation of the Culling object that returns the name of the culled cow and the date of the culling.
-    """
-
-    MEDICAL_REASONS = [
-        ("disease", "Disease"),
-        ("illness", "Illness"),
-        ("injuries", "Injuries"),
-        ("chronic_health", "Chronic Health Issues"),
-    ]
-    FINANCIAL_REASONS = [
-        ("cost_of_care", "Cost of Care"),
-        ("unprofitable", "Unprofitable"),
-        ("low_market_demand", "Low Market Demand"),
-    ]
-    PRODUCTION_REASONS = [
-        ("low_production", "Low Production"),
-        ("poor_quality", "Poor Quality"),
-        ("inefficient_feed", "Inefficient Feed Conversion"),
-    ]
-    GENETIC_REASONS = [
-        ("inherited_diseases", "Inherited Diseases"),
-        ("inbreeding", "Inbreeding"),
-        ("unwanted_traits", "Unwanted Traits"),
-    ]
-    ENVIRONMENTAL_REASONS = [
-        ("climate_change", "Climate Change"),
-        ("natural_disasters", "Natural Disasters"),
-        ("overpopulation", "Overpopulation"),
-    ]
-    LEGAL_REASONS = [
-        ("government_regulations", "Government Regulations"),
-        ("animal_welfare", "Animal Welfare Standards"),
-        ("environmental_protection", "Environmental Protection Laws"),
-    ]
-    CULLING_REASONS = (
-        MEDICAL_REASONS
-        + FINANCIAL_REASONS
-        + PRODUCTION_REASONS
-        + GENETIC_REASONS
-        + ENVIRONMENTAL_REASONS
-        + LEGAL_REASONS
-    )
-
-    cow = models.ForeignKey(Cow, on_delete=models.CASCADE, related_name="cullings")
-    reason = models.CharField(max_length=100, choices=CULLING_REASONS)
-    date = models.DateField(auto_now_add=True)
-    notes = models.TextField(blank=True, null=True)
-
-    class Meta:
-        verbose_name = "Culling \U0001F5E1"
-        verbose_name_plural = "Cullings \U0001F5E1"
-        ordering = ["-date"]
-
-    def __str__(self):
-        return f"Culling of {self.cow.name} on {self.date}"
 
 
 class Vaccination(models.Model):
