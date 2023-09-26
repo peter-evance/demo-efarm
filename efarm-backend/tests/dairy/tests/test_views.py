@@ -2110,3 +2110,1174 @@ class TestInseminationViewSet:
         assert "Deletion not allowed. Insemination record is associated with a pregnancy." in response.data['detail']
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+class TestWeightRecordViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_weight_record_data):
+        self.client = setup_users["client"]
+
+        self.regular_user_token = setup_users["regular_user_token"]
+        self.farm_owner_token = setup_users["farm_owner_token"]
+        self.farm_manager_token = setup_users["farm_manager_token"]
+        self.asst_farm_manager_token = setup_users["asst_farm_manager_token"]
+        self.team_leader_token = setup_users["team_leader_token"]
+        self.farm_worker_token = setup_users["farm_worker_token"]
+
+        self.weight_data = setup_weight_record_data
+
+    def test_add_weight_record_as_farm_owner(self):
+        """
+        Test adding weight record as a farm owner.
+        """
+        response = self.client.post(
+            reverse("dairy:weight-records-list"),
+            data=self.weight_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        WeightRecord.objects.filter(cow=self.weight_data["cow"]).count()
+
+    def test_add_weight_record_as_farm_manager(self):
+        """
+        Test adding weight record as a farm manager.
+        """
+        response = self.client.post(
+            reverse("dairy:weight-records-list"),
+            data=self.weight_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert WeightRecord.objects.filter(cow=self.weight_data["cow"]).exists()
+
+    def test_add_weight_record_as_asst_farm_manager(self):
+        """
+        Test adding weight record as an assistant farm manager.
+        """
+        response = self.client.post(
+            reverse("dairy:weight-records-list"),
+            data=self.weight_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert WeightRecord.objects.filter(cow=self.weight_data["cow"]).exists()
+
+    def test_add_weight_record_as_team_leader_permission_denied(self):
+        """
+        Test adding weight record as a team leader (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:weight-records-list"),
+            data=self.weight_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not WeightRecord.objects.filter(cow=self.weight_data["cow"]).exists()
+
+    def test_add_weight_record_as_farm_worker_permission_denied(self):
+        """
+        Test adding weight record as a farm worker (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:weight-records-list"),
+            data=self.weight_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not WeightRecord.objects.filter(cow=self.weight_data["cow"]).exists()
+
+    def test_add_weight_record_as_regular_user_permission_denied(self):
+        """
+        Test adding weight record as a regular user (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:weight-records-list"),
+            data=self.weight_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not WeightRecord.objects.filter(cow=self.weight_data["cow"]).exists()
+
+    def test_add_weight_record_without_authentication(self):
+        """
+        Test adding weight record without authentication.
+        """
+        response = self.client.post(
+            reverse("dairy:weight-records-list"), data=self.weight_data, format="json"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert not WeightRecord.objects.filter(cow=self.weight_data["cow"]).exists()
+
+    def test_update_weight_record_as_farm_owner(self):
+        """
+        Test updating weight record as a farm owner.
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+        updated_weight = {"weight_in_kgs": 999}
+
+        response = self.client.patch(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            data=updated_weight,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert WeightRecord.objects.filter(
+            weight_in_kgs=updated_weight["weight_in_kgs"]
+        ).exists()
+
+    def test_update_weight_record_as_farm_manager(self):
+        """
+        Test updating weight record as a farm manager.
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+        updated_weight = {"weight_in_kgs": 999}
+
+        response = self.client.patch(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            data=updated_weight,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert WeightRecord.objects.filter(
+            weight_in_kgs=updated_weight["weight_in_kgs"]
+        ).exists()
+
+    def test_update_weight_record_as_asst_farm_manager(self):
+        """
+        Test updating weight record as an assistant farm manager.
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+        updated_weight = {"weight_in_kgs": 999}
+
+        response = self.client.patch(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            data=updated_weight,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert WeightRecord.objects.filter(
+            weight_in_kgs=updated_weight["weight_in_kgs"]
+        ).exists()
+
+    def test_update_weight_record_as_team_leader_permission_denied(self):
+        """
+        Test updating weight record as a team leader (permission denied).
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+        updated_weight = {"weight_in_kgs": 999}
+
+        response = self.client.patch(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            data=updated_weight,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not WeightRecord.objects.filter(
+            weight_in_kgs=updated_weight["weight_in_kgs"]
+        ).exists()
+
+    def test_update_weight_record_as_farm_worker_permission_denied(self):
+        """
+        Test updating weight record as a farm worker (permission denied).
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+        updated_weight = {"weight_in_kgs": 999}
+
+        response = self.client.patch(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            data=updated_weight,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not WeightRecord.objects.filter(
+            weight_in_kgs=updated_weight["weight_in_kgs"]
+        ).exists()
+
+    def test_update_weight_record_as_regular_user_permission_denied(self):
+        """
+        Test updating weight record as a regular user (permission denied).
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+        updated_weight = {"weight_in_kgs": 999}
+
+        response = self.client.patch(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            data=updated_weight,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not WeightRecord.objects.filter(
+            weight_in_kgs=updated_weight["weight_in_kgs"]
+        ).exists()
+
+    def test_update_weight_record_without_authentication(self):
+        """
+        Test updating weight record without authentication.
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+        updated_weight = {"weight_in_kgs": 999}
+
+        response = self.client.patch(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            data=updated_weight,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert not WeightRecord.objects.filter(
+            weight_in_kgs=updated_weight["weight_in_kgs"]
+        ).exists()
+
+    def test_view_weight_record_as_farm_owner(self):
+        """
+        Test viewing weight record as a farm owner.
+        """
+        response = self.client.get(
+            reverse("dairy:weight-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_weight_record_as_farm_manager(self):
+        """
+        Test viewing weight record as a farm manager.
+        """
+        response = self.client.get(
+            reverse("dairy:weight-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_weight_record_as_asst_farm_manager(self):
+        """
+        Test viewing weight record as an assistant farm manager.
+        """
+        response = self.client.get(
+            reverse("dairy:weight-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_weight_record_as_team_leader_permission_denied(self):
+        """
+        Test viewing weight record as a team leader (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:weight-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_weight_record_as_farm_worker_permission_denied(self):
+        """
+        Test viewing weight record as a farm worker (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:weight-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_weight_record_as_regular_user_permission_denied(self):
+        """
+        Test viewing weight record as a regular user (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:weight-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_weight_record_without_authentication(self):
+        """
+        Test viewing weight record without authentication.
+        """
+        response = self.client.get(reverse("dairy:weight-records-list"), format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_delete_weight_record_as_farm_owner(self):
+        """
+        Test deleting weight record as a farm owner.
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not WeightRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_weight_record_as_farm_manager(self):
+        """
+        Test deleting weight record as a farm manager.
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not WeightRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_weight_record_as_asst_farm_manager(self):
+        """
+        Test deleting weight record as an assistant farm manager.
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not WeightRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_weight_record_as_team_leader_permission_denied(self):
+        """
+        Test deleting weight record as a team leader (permission denied).
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert WeightRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_weight_record_as_farm_worker_permission_denied(self):
+        """
+        Test deleting weight record as a farm worker (permission denied).
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert WeightRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_weight_record_as_regular_user_permission_denied(self):
+        """
+        Test deleting weight record as a regular user (permission denied).
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:weight-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert WeightRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_weight_record_without_authentication(self):
+        """
+        Test deleting weight record without authentication.
+        """
+        serializer = WeightRecordSerializer(data=self.weight_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:culling-records-detail", kwargs={"pk": weight_record.pk})
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert WeightRecord.objects.filter(pk=weight_record.pk).exists()
+
+
+@pytest.mark.django_db
+class TestCullingRecordViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_culling_record_data):
+        self.client = setup_users["client"]
+
+        self.regular_user_token = setup_users["regular_user_token"]
+        self.farm_owner_token = setup_users["farm_owner_token"]
+        self.farm_manager_token = setup_users["farm_manager_token"]
+        self.asst_farm_manager_token = setup_users["asst_farm_manager_token"]
+        self.team_leader_token = setup_users["team_leader_token"]
+        self.farm_worker_token = setup_users["farm_worker_token"]
+
+        self.culling_data = setup_culling_record_data
+
+    def test_add_culling_record_as_farm_owner(self):
+        """
+        Test adding culling record as a farm owner.
+        """
+        response = self.client.post(
+            reverse("dairy:culling-records-list"),
+            data=self.culling_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        CullingRecord.objects.filter(cow=self.culling_data["cow"]).count()
+
+    def test_add_culling_record_as_farm_manager(self):
+        """
+        Test adding culling record as a farm manager.
+        """
+        response = self.client.post(
+            reverse("dairy:culling-records-list"),
+            data=self.culling_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert CullingRecord.objects.filter(cow=self.culling_data["cow"]).exists()
+
+    def test_add_culling_record_as_asst_farm_manager_permission_denied(self):
+        """
+        Test adding culling record as an assistant farm manager.
+        """
+        response = self.client.post(
+            reverse("dairy:culling-records-list"),
+            data=self.culling_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not CullingRecord.objects.filter(cow=self.culling_data["cow"]).exists()
+
+    def test_add_culling_record_as_team_leader_permission_denied(self):
+        """
+        Test adding culling record as a team leader (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:culling-records-list"),
+            data=self.culling_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not CullingRecord.objects.filter(cow=self.culling_data["cow"]).exists()
+
+    def test_add_culling_record_as_farm_worker_permission_denied(self):
+        """
+        Test adding culling record as a farm worker (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:culling-records-list"),
+            data=self.culling_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not CullingRecord.objects.filter(cow=self.culling_data["cow"]).exists()
+
+    def test_add_culling_record_as_regular_user_permission_denied(self):
+        """
+        Test adding culling record as a regular user (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:culling-records-list"),
+            data=self.culling_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not CullingRecord.objects.filter(cow=self.culling_data["cow"]).exists()
+
+    def test_add_culling_record_without_authentication(self):
+        """
+        Test adding culling record without authentication.
+        """
+        response = self.client.post(
+            reverse("dairy:culling-records-list"), data=self.culling_data, format="json"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert not CullingRecord.objects.filter(cow=self.culling_data["cow"]).exists()
+
+    def test_update_culling_record_as_farm_manager_method_not_allowed(self):
+        """
+        Test updating culling record as a farm manager.(Prohibited)
+        """
+        serializer = CullingRecordSerializer(data=self.culling_data)
+        assert serializer.is_valid()
+        culling_record = serializer.save()
+        updated_reason = {"reason": CullingReasonChoices.INJURIES}
+
+        response = self.client.patch(
+            reverse("dairy:culling-records-detail", kwargs={"pk": culling_record.pk}),
+            data=updated_reason,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+    def test_view_culling_record_as_farm_owner(self):
+        """
+        Test viewing culling record as a farm owner.
+        """
+        response = self.client.get(
+            reverse("dairy:culling-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_culling_record_as_farm_manager(self):
+        """
+        Test viewing culling record as a farm manager.
+        """
+        response = self.client.get(
+            reverse("dairy:culling-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_culling_record_as_asst_farm_manager_permission_denied(self):
+        """
+        Test viewing culling record as an assistant farm manager.
+        """
+        response = self.client.get(
+            reverse("dairy:culling-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_culling_record_as_team_leader_permission_denied(self):
+        """
+        Test viewing culling record as a team leader (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:culling-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_culling_record_as_farm_worker_permission_denied(self):
+        """
+        Test viewing culling record as a farm worker (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:culling-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_culling_record_as_regular_user_permission_denied(self):
+        """
+        Test viewing culling record as a regular user (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:culling-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_culling_record_without_authentication(self):
+        """
+        Test viewing culling record without authentication.
+        """
+        response = self.client.get(reverse("dairy:culling-records-list"), format="json")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_delete_culling_record_as_farm_owner(self):
+        """
+        Test deleting culling record as a farm owner.
+        """
+        serializer = CullingRecordSerializer(data=self.culling_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:culling-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not CullingRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_culling_record_as_farm_manager(self):
+        """
+        Test deleting culling record as a farm manager.
+        """
+        serializer = CullingRecordSerializer(data=self.culling_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:culling-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not CullingRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_culling_record_as_asst_farm_manager_permission_denied(self):
+        """
+        Test deleting culling record as an assistant farm manager.
+        """
+        serializer = CullingRecordSerializer(data=self.culling_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:culling-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert CullingRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_culling_record_as_team_leader_permission_denied(self):
+        """
+        Test deleting culling record as a team leader (permission denied).
+        """
+        serializer = CullingRecordSerializer(data=self.culling_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:culling-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert CullingRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_culling_record_as_farm_worker_permission_denied(self):
+        """
+        Test deleting culling record as a farm worker (permission denied).
+        """
+        serializer = CullingRecordSerializer(data=self.culling_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:culling-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert CullingRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_culling_record_as_regular_user_permission_denied(self):
+        """
+        Test deleting culling record as a regular user (permission denied).
+        """
+        serializer = CullingRecordSerializer(data=self.culling_data)
+        assert serializer.is_valid()
+        weight_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:culling-records-detail", kwargs={"pk": weight_record.pk}),
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert CullingRecord.objects.filter(pk=weight_record.pk).exists()
+
+    def test_delete_culling_record_without_authentication(self):
+        """
+        Test deleting culling record without authentication.
+        """
+        serializer = CullingRecordSerializer(data=self.culling_data)
+        assert serializer.is_valid()
+        culling_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:culling-records-detail", kwargs={"pk": culling_record.pk})
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert CullingRecord.objects.filter(pk=culling_record.pk).exists()
+
+
+@pytest.mark.django_db
+class TestQuarantineViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_quarantine_record_data):
+        self.client = setup_users["client"]
+
+        self.regular_user_token = setup_users["regular_user_token"]
+        self.farm_owner_token = setup_users["farm_owner_token"]
+        self.farm_manager_token = setup_users["farm_manager_token"]
+        self.asst_farm_manager_token = setup_users["asst_farm_manager_token"]
+        self.team_leader_token = setup_users["team_leader_token"]
+        self.farm_worker_token = setup_users["farm_worker_token"]
+
+        self.quarantine_data = setup_quarantine_record_data
+
+    def test_add_quarantine_record_as_farm_owner(self):
+        """
+        Test adding quarantine record as a farm owner.
+        """
+        response = self.client.post(
+            reverse("dairy:quarantine-records-list"),
+            data=self.quarantine_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        QuarantineRecord.objects.filter(cow=self.quarantine_data["cow"])
+
+    def test_add_quarantine_record_as_farm_manager(self):
+        """
+        Test adding quarantine record as a farm manager.
+        """
+        response = self.client.post(
+            reverse("dairy:quarantine-records-list"),
+            data=self.quarantine_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert QuarantineRecord.objects.filter(cow=self.quarantine_data["cow"]).exists()
+
+    def test_add_quarantine_record_as_asst_farm_manager_permission_denied(self):
+        """
+        Test adding quarantine record as an assistant farm manager.
+        """
+        response = self.client.post(
+            reverse("dairy:quarantine-records-list"),
+            data=self.quarantine_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not QuarantineRecord.objects.filter(
+            cow=self.quarantine_data["cow"]
+        ).exists()
+
+    def test_add_quarantine_record_as_team_leader_permission_denied(self):
+        """
+        Test adding quarantine record as a team leader (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:quarantine-records-list"),
+            data=self.quarantine_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not QuarantineRecord.objects.filter(
+            cow=self.quarantine_data["cow"]
+        ).exists()
+
+    def test_add_quarantine_record_as_farm_worker_permission_denied(self):
+        """
+        Test adding quarantine record as a farm worker (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:quarantine-records-list"),
+            data=self.quarantine_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not QuarantineRecord.objects.filter(
+            cow=self.quarantine_data["cow"]
+        ).exists()
+
+    def test_add_quarantine_record_as_regular_user_permission_denied(self):
+        """
+        Test adding quarantine record as a regular user (permission denied).
+        """
+        response = self.client.post(
+            reverse("dairy:quarantine-records-list"),
+            data=self.quarantine_data,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not QuarantineRecord.objects.filter(
+            cow=self.quarantine_data["cow"]
+        ).exists()
+
+    def test_add_quarantine_record_without_authentication(self):
+        """
+        Test adding quarantine record without authentication.
+        """
+        response = self.client.post(
+            reverse("dairy:quarantine-records-list"),
+            data=self.quarantine_data,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert not QuarantineRecord.objects.filter(
+            cow=self.quarantine_data["cow"]
+        ).exists()
+
+    def test_update_quarantine_record_as_farm_owner(self):
+        """
+        Test updating quarantine record as a farm owner.
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+        updated_reason = {"reason": QuarantineReasonChoices.SICK_COW}
+
+        response = self.client.patch(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            data=updated_reason,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert QuarantineRecord.objects.filter(reason=updated_reason["reason"]).exists()
+
+    def test_update_quarantine_record_as_farm_manager(self):
+        """
+        Test updating quarantine record as a farm manager.
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+        updated_reason = {"reason": QuarantineReasonChoices.SICK_COW}
+
+        response = self.client.patch(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            data=updated_reason,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert QuarantineRecord.objects.filter(reason=updated_reason["reason"]).exists()
+
+    def test_update_quarantine_record_as_asst_farm_manager_permission_denied(self):
+        """
+        Test updating quarantine record as an assistant farm manager.
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+        updated_reason = {"reason": QuarantineReasonChoices.SICK_COW}
+
+        response = self.client.patch(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            data=updated_reason,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_quarantine_record_as_team_leader_permission_denied(self):
+        """
+        Test updating quarantine record as a team leader (permission denied).
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+        updated_reason = {"reason": QuarantineReasonChoices.SICK_COW}
+
+        response = self.client.patch(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            data=updated_reason,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not QuarantineRecord.objects.filter(
+            reason=updated_reason["reason"]
+        ).exists()
+
+    def test_update_quarantine_record_as_farm_worker_permission_denied(self):
+        """
+        Test updating quarantine record as a farm worker (permission denied).
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+        updated_reason = {"reason": QuarantineReasonChoices.SICK_COW}
+
+        response = self.client.patch(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            data=updated_reason,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not QuarantineRecord.objects.filter(
+            reason=updated_reason["reason"]
+        ).exists()
+
+    def test_update_quarantine_record_as_regular_user_permission_denied(self):
+        """
+        Test updating quarantine record as a regular user (permission denied).
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+        updated_reason = {"reason": QuarantineReasonChoices.SICK_COW}
+
+        response = self.client.patch(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            data=updated_reason,
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert not QuarantineRecord.objects.filter(
+            reason=updated_reason["reason"]
+        ).exists()
+
+    def test_update_quarantine_record_without_authentication(self):
+        """
+        Test updating quarantine record without authentication.
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+        updated_reason = {"reason": QuarantineReasonChoices.SICK_COW}
+
+        response = self.client.patch(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            data=updated_reason,
+            format="json",
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert not QuarantineRecord.objects.filter(
+            reason=updated_reason["reason"]
+        ).exists()
+
+    def test_view_quarantine_record_as_farm_owner(self):
+        """
+        Test viewing quarantine record as a farm owner.
+        """
+        response = self.client.get(
+            reverse("dairy:quarantine-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_quarantine_record_as_farm_manager(self):
+        """
+        Test viewing quarantine record as a farm manager.
+        """
+        response = self.client.get(
+            reverse("dairy:quarantine-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_view_quarantine_record_as_asst_farm_manager_permission_denied(self):
+        """
+        Test viewing quarantine record as an assistant farm manager (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:quarantine-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_quarantine_record_as_team_leader_permission_denied(self):
+        """
+        Test viewing quarantine record as a team leader (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:quarantine-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_quarantine_record_as_farm_worker_permission_denied(self):
+        """
+        Test viewing quarantine record as a farm worker (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:quarantine-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_quarantine_record_as_regular_user_permission_denied(self):
+        """
+        Test viewing quarantine record as a regular user (permission denied).
+        """
+        response = self.client.get(
+            reverse("dairy:quarantine-records-list"),
+            format="json",
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_view_quarantine_record_without_authentication(self):
+        """
+        Test viewing quarantine record without authentication.
+        """
+        response = self.client.get(
+            reverse("dairy:quarantine-records-list"), format="json"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_delete_quarantine_record_as_farm_owner(self):
+        """
+        Test deleting quarantine record as a farm owner.
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+
+        response = self.client.delete(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not QuarantineRecord.objects.filter(pk=quarantine_record.pk).exists()
+
+    def test_delete_quarantine_record_as_farm_manager(self):
+        """
+        Test deleting quarantine record as a farm manager.
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+
+        response = self.client.delete(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not QuarantineRecord.objects.filter(pk=quarantine_record.pk).exists()
+
+    def test_delete_quarantine_record_as_asst_farm_manager_permission_denied(self):
+        """
+        Test deleting quarantine record as an assistant farm manager (permission denied).
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+
+        response = self.client.delete(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert QuarantineRecord.objects.filter(pk=quarantine_record.pk).exists()
+
+    def test_delete_quarantine_record_as_team_leader_permission_denied(self):
+        """
+        Test deleting quarantine record as a team leader (permission denied).
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+
+        response = self.client.delete(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert QuarantineRecord.objects.filter(pk=quarantine_record.pk).exists()
+
+    def test_delete_quarantine_record_as_farm_worker_permission_denied(self):
+        """
+        Test deleting quarantine record as a farm worker (permission denied).
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+
+        response = self.client.delete(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert QuarantineRecord.objects.filter(pk=quarantine_record.pk).exists()
+
+    def test_delete_quarantine_record_as_regular_user_permission_denied(self):
+        """
+        Test deleting quarantine record as a regular user (permission denied).
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+
+        response = self.client.delete(
+            reverse(
+                "dairy:quarantine-records-detail", kwargs={"pk": quarantine_record.pk}
+            ),
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert QuarantineRecord.objects.filter(pk=quarantine_record.pk).exists()
+
+    def test_delete_quarantine_record_without_authentication(self):
+        """
+        Test deleting quarantine record without authentication.
+        """
+        serializer = QuarantineRecordSerializer(data=self.quarantine_data)
+        assert serializer.is_valid()
+        quarantine_record = serializer.save()
+
+        response = self.client.delete(
+            reverse("dairy:culling-records-detail", kwargs={"pk": quarantine_record.pk})
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert QuarantineRecord.objects.filter(pk=quarantine_record.pk).exists()

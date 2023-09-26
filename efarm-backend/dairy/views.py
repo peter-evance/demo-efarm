@@ -181,7 +181,7 @@ class InseminationViewset(viewsets.ModelViewSet):
     serializer_class = InseminationSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = InseminationFilterSet
-    ordering_fields = ['date_of_insemination', 'success', 'cow']
+    ordering_fields = ["date_of_insemination", "success", "cow"]
     permission_classes = [CanActOnInseminationRecord]
 
     def list(self, request, *args, **kwargs):
@@ -189,11 +189,17 @@ class InseminationViewset(viewsets.ModelViewSet):
 
         if not queryset.exists():
             if request.query_params:
-                return Response({"detail": "No Insemination records found matching the provided filters."},
-                                status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {
+                        "detail": "No Insemination records found matching the provided filters."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
             else:
-                return Response({"detail": "No Insemination records found."},
-                                status=status.HTTP_200_OK)
+                return Response(
+                    {"detail": "No Insemination records found."},
+                    status=status.HTTP_200_OK,
+                )
 
         serializer = self.get_serializer(queryset, many=True)
 
@@ -215,7 +221,9 @@ class InseminationViewset(viewsets.ModelViewSet):
 
         # Check if the insemination record is associated with a pregnancy
         if instance.pregnancy:
-            raise PermissionDenied("Deletion not allowed. Insemination record is associated with a pregnancy.")
+            raise PermissionDenied(
+                "Deletion not allowed. Insemination record is associated with a pregnancy."
+            )
 
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -362,6 +370,100 @@ class MilkViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class WeightRecordViewSet(viewsets.ModelViewSet):
+    serializer_class = WeightRecordSerializer
+    queryset = WeightRecord.objects.all()
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = WeightRecordFilterSet
+    ordering_fields = ["-date"]
+    permission_classes = [CanActOnWeightRecord]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                return Response(
+                    {
+                        "detail": "No Weight records found matching the provided filters."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                return Response(
+                    {"detail": "No Weight  records found."}, status=status.HTTP_200_OK
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CullingRecordViewSet(viewsets.ModelViewSet):
+    serializer_class = CullingRecordSerializer
+    queryset = CullingRecord.objects.all()
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = CullingRecordFilterSet
+    ordering_fields = ["-date"]
+    permission_classes = [CanActOnCullingRecord]
+
+    def partial_update(self, request, *args, **kwargs):
+        raise MethodNotAllowed("PATCH")
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed("PUT")
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                return Response(
+                    {
+                        "detail": "No Culling records found matching the provided filters."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                return Response(
+                    {"detail": "No Culling records found."}, status=status.HTTP_200_OK
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class QuarantineRecordViewSet(viewsets.ModelViewSet):
+    serializer_class = QuarantineRecordSerializer
+    queryset = QuarantineRecord.objects.all()
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = QuarantineRecordFilterSet
+    ordering_fields = ["-date"]
+    permission_classes = [CanActOnQuarantineRecord]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                return Response(
+                    {
+                        "detail": "No Quarantine records found matching the provided filters."
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                return Response(
+                    {"detail": "No Quarantine records found."},
+                    status=status.HTTP_200_OK,
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class CowInBarnMovementViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for the CowInBarnMovement model.
@@ -428,16 +530,6 @@ class BarnViewSet(viewsets.ModelViewSet):
 
     serializer_class = BarnSerializer
     queryset = Barn.objects.all()
-
-
-class WeightRecordViewSet(viewsets.ModelViewSet):
-    queryset = WeightRecord.objects.all()
-    serializer_class = WeightRecordSerializer
-
-
-class CullingViewSet(viewsets.ModelViewSet):
-    queryset = Culling.objects.all()
-    serializer_class = CullingSerializer
 
 
 class MilkTodayView(APIView):

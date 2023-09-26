@@ -223,31 +223,28 @@ def setup_insemination_data():
         "phone_number": "+254712345678",
         "sex": SexChoices.MALE,
         "company": "Peter's Breeders",
-        "license_number": "ABC-2023"
+        "license_number": "ABC-2023",
     }
     serializer1 = InseminatorSerializer(data=inseminators_data)
     assert serializer1.is_valid()
     inseminator = serializer1.save()
 
     general_cow = {
-        'name': 'General Cow',
-        'breed': {'name': CowBreedChoices.AYRSHIRE},
-        'date_of_birth': todays_date - timedelta(days=366),
-        'gender': SexChoices.FEMALE,
-        'availability_status': CowAvailabilityChoices.ALIVE,
-        'current_pregnancy_status': CowPregnancyChoices.OPEN,
-        'category': CowCategoryChoices.HEIFER,
-        'current_production_status': CowProductionStatusChoices.OPEN,
+        "name": "General Cow",
+        "breed": {"name": CowBreedChoices.AYRSHIRE},
+        "date_of_birth": todays_date - timedelta(days=366),
+        "gender": SexChoices.FEMALE,
+        "availability_status": CowAvailabilityChoices.ALIVE,
+        "current_pregnancy_status": CowPregnancyChoices.OPEN,
+        "category": CowCategoryChoices.HEIFER,
+        "current_production_status": CowProductionStatusChoices.OPEN,
     }
 
     serializer2 = CowSerializer(data=general_cow)
     assert serializer2.is_valid()
     cow = serializer2.save()
 
-    heat_data = {
-        "observation_time": timezone.now(),
-        "cow": cow.id
-    }
+    heat_data = {"observation_time": timezone.now(), "cow": cow.id}
 
     serializer3 = HeatSerializer(data=heat_data)
     assert serializer3.is_valid()
@@ -308,3 +305,75 @@ def setup_pregnancy_to_lactation_data():
         "pregnancy_status": PregnancyStatusChoices.CONFIRMED,
     }
     return pregnancy_to_lactation_data
+
+
+@pytest.fixture
+@pytest.mark.django_db
+def setup_weight_record_data():
+    general_cow = {
+        "name": "General Cow",
+        "breed": {"name": CowBreedChoices.AYRSHIRE},
+        "date_of_birth": todays_date - timedelta(days=650),
+        "gender": SexChoices.FEMALE,
+        "availability_status": CowAvailabilityChoices.ALIVE,
+        "current_pregnancy_status": CowPregnancyChoices.OPEN,
+        "category": CowCategoryChoices.HEIFER,
+        "current_production_status": CowProductionStatusChoices.OPEN,
+    }
+
+    serializer = CowSerializer(data=general_cow)
+    assert serializer.is_valid()
+    cow = serializer.save()
+
+    weight_data = {"cow": cow.id, "weight_in_kgs": 1150}
+    return weight_data
+
+
+@pytest.fixture
+@pytest.mark.django_db
+def setup_culling_record_data():
+    general_cow = {
+        "name": "General Cow",
+        "breed": {"name": CowBreedChoices.AYRSHIRE},
+        "date_of_birth": todays_date - timedelta(days=650),
+        "gender": SexChoices.FEMALE,
+        "availability_status": CowAvailabilityChoices.ALIVE,
+        "current_pregnancy_status": CowPregnancyChoices.OPEN,
+        "category": CowCategoryChoices.HEIFER,
+        "current_production_status": CowProductionStatusChoices.OPEN,
+    }
+
+    serializer = CowSerializer(data=general_cow)
+    assert serializer.is_valid()
+    cow = serializer.save()
+
+    culling_data = {
+        "cow": cow.id,
+        "reason": CullingReasonChoices.CONSISTENT_LOW_PRODUCTION,
+    }
+    return culling_data
+
+
+@pytest.fixture
+@pytest.mark.django_db
+def setup_quarantine_record_data():
+    general_cow = {
+        "name": "General Cow",
+        "breed": {"name": CowBreedChoices.AYRSHIRE},
+        "date_of_birth": todays_date - timedelta(days=650),
+        "gender": SexChoices.FEMALE,
+        "availability_status": CowAvailabilityChoices.ALIVE,
+        "current_pregnancy_status": CowPregnancyChoices.OPEN,
+        "category": CowCategoryChoices.HEIFER,
+        "current_production_status": CowProductionStatusChoices.OPEN,
+    }
+
+    serializer = CowSerializer(data=general_cow)
+    assert serializer.is_valid()
+    cow = serializer.save()
+
+    quarantine_data = {
+        "cow": cow.id,
+        "reason": QuarantineReasonChoices.NEW_COW,
+    }
+    return quarantine_data

@@ -783,10 +783,55 @@ class MilkValidator:
         if lactation and lactation.lactation_stage == LactationStageChoices.ENDED:
             raise ValidationError("Cannot add milk entry, Previous Lactation Ended!")
 
-    # @staticmethod
-    # def validate_milk_records_per_day(cow, milking_date):
-    #
-    #     today_milk_records = cow.milk_records.filter(milking_date=milking_date)
-    #     print("**************************************")
-    #     if today_milk_records.count() >= 2:
-    #         raise ValidationError("A cow can only have two milk records per day.")
+
+class WeightRecordValidator:
+    @staticmethod
+    def validate_weight(weight_in_kgs):
+        if weight_in_kgs < 10:
+            raise ValidationError(f"A cow can not be less than 10kgs")
+        if weight_in_kgs > 1500:
+            raise ValidationError(f"A cows weight can not exceed 1500 kgs")
+
+    @staticmethod
+    def validate_cow_availability_status(cow):
+        if cow.availability_status != CowAvailabilityChoices.ALIVE:
+            raise ValidationError(
+                f"Weight records only allowed for cows present in the farm. "
+                f"This cow is marked as: {cow.availability_status}"
+            )
+
+    @staticmethod
+    def validate_frequency_of_weight_records(date, cow):
+        from dairy.models import WeightRecord
+
+        if WeightRecord.objects.filter(cow=cow, date=date).count() > 1:
+            raise ValidationError("This cow is already weighed on this date")
+
+
+class CullingValidator:
+    @staticmethod
+    def validate_single_culling(cow):
+        existing_culling_record = cow.culling_record.all()
+        if existing_culling_record:
+            raise ValidationError("A cow can only be tied to one culling record.")
+
+
+class QuarantineValidator:
+    @staticmethod
+    def validate_reason(reason, cow):
+        if reason == QuarantineReasonChoices.BOUGHT_COW and not cow.is_bought:
+            raise ValidationError(
+                "Invalid reason, this cow was not bought therefore, that can not be the reason"
+            )
+
+    @staticmethod
+    def validate_date(start_date, end_date, pk):
+        if end_date and start_date > end_date:
+            raise ValidationError(
+                "Invalid date entry, End dates must be later than start date"
+            )
+
+        if pk is None and end_date:
+            raise ValidationError(
+                "Invalid entry, new quarantine records must not have end dates "
+            )
