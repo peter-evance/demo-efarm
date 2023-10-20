@@ -1,12 +1,13 @@
+from datetime import date, timedelta
 from decimal import Decimal
-from datetime import datetime, date, timedelta
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Sum
 from django.utils import timezone
 
-from .choices import *
+from poultry.choices import *
+from poultry.validators import *
 
 
 class FlockSource(models.Model):
@@ -20,7 +21,17 @@ class FlockSource(models.Model):
 
     """
 
-    source = models.CharField(max_length=13, choices=FlockSourceChoices.choices)
+    name = models.CharField(max_length=13, choices=FlockSourceChoices.choices)
+
+    def clean(self):
+        FlockSourceValidator.validate_source(self.name)
+
+    def save(self, *args, **kwargs):
+        """
+        Overrides the save method to ensure validation before saving.
+        """
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class FlockBreed(models.Model):
@@ -35,6 +46,16 @@ class FlockBreed(models.Model):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        FlockBreedValidator.validate_breed_name(self.name)
+
+    def save(self, *args, **kwargs):
+        """
+        Overrides the save method to ensure validation before saving.
+        """
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class HousingStructure(models.Model):
