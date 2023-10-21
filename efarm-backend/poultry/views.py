@@ -30,11 +30,7 @@ class FlockSourceViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def update(self, request, *args, **kwargs):
-        # Disallow update for flock sources since the source is selected from choices
-        return Response(
-            {"detail": "Updates are not allowed for flock sources."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
+        raise MethodNotAllowed("PUT")
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -82,11 +78,7 @@ class FlockBreedViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def update(self, request, *args, **kwargs):
-        # Disallow update for flock breed since the breed name is selected from choices
-        return Response(
-            {"detail": "Updates are not allowed for flock breeds."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
+        raise MethodNotAllowed("PUT")
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -95,7 +87,9 @@ class FlockBreedViewSet(viewsets.ModelViewSet):
             if request.query_params:
                 # If query parameters are provided, but there are no matching flock breeds
                 return Response(
-                    {"detail": "No flock breed(s) found matching the provided filters."},
+                    {
+                        "detail": "No flock breed(s) found matching the provided filters."
+                    },
                     status=status.HTTP_404_NOT_FOUND,
                 )
             else:

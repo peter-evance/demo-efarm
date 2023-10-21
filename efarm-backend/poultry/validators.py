@@ -1,9 +1,4 @@
-from decimal import Decimal
-from datetime import timedelta
-
 from django.core.exceptions import ValidationError
-from django.db.models import Sum
-from django.utils import timezone
 
 from poultry.choices import *
 

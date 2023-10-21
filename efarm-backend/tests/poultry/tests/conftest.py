@@ -1,15 +1,9 @@
-import datetime
-
 import pytest
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from poultry.serializers import *
 from users.choices import *
-
-User = get_user_model()
 
 
 @pytest.fixture()
@@ -164,22 +158,10 @@ def setup_users():
 
     return {
         "client": client,
-        "regular_user_id": regular_user_id,
         "regular_user_token": regular_user_token,
-        "regular_user_username": regular_user_username,
         "farm_owner_token": farm_owner_token,
-        "farm_owner_user_id": farm_owner_user_id,
-        "farm_owner_user_username": farm_owner_user_username,
         "farm_manager_token": farm_manager_token,
-        "farm_manager_user_id": farm_manager_user_id,
-        "farm_manager_user_username": farm_manager_user_username,
         "asst_farm_manager_token": asst_farm_manager_token,
-        "asst_farm_manager_user_id": asst_farm_manager_user_id,
-        "asst_farm_manager_user_username": asst_farm_manager_user_username,
         "team_leader_token": team_leader_token,
-        "team_leader_user_id": team_leader_user_id,
-        "team_leader_user_username": team_leader_user_username,
         "farm_worker_token": farm_worker_token,
-        "farm_worker_user_id": farm_worker_user_id,
-        "farm_worker_user_username": farm_worker_user_username,
     }
