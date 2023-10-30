@@ -105,82 +105,114 @@ class FlockBreedViewSet(viewsets.ModelViewSet):
 
 
 class HousingStructureViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for managing HousingStructure instances.
-
-    Provides the following actions:
-    - `list`: Retrieves a list of all housing structures.
-    - `create`: Creates a new housing structure.
-    - `retrieve`: Retrieves a specific housing structure by its ID.
-    - `update`: Updates a housing structure.
-    - `destroy`: Deletes a housing structure.
-
-    """
-
     queryset = HousingStructure.objects.all()
     serializer_class = HousingStructureSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = HousingStructureFilterSet
+    ordering_fields = ["house_type", "category"]
+    permission_classes = [CanActOnHousingStructure]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                # If query parameters are provided, but there are no matching housing types
+                return Response(
+                    {"detail": "No Housing structure(s) found matching the provided filters."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                # If no query parameters are provided, and there are no housing structures in the database
+                return Response(
+                    {"detail": "No housing structure found in the farm yet."},
+                    status=status.HTTP_200_OK,
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class FlockViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for managing Flock instances.
-
-    Provides the following actions:
-    - `list`: Retrieves a list of all flocks.
-    - `create`: Creates a new flock.
-    - `retrieve`: Retrieves a specific flock by its ID.
-    - `update`: Updates a flock.
-    - `destroy`: Deletes a flock.
-
-    Additionally, it overrides the 'update' method to check if the 'chicken_type'
-    field is included in the update data and returns an error response if it is.
-
-    """
-
     queryset = Flock.objects.all()
     serializer_class = FlockSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = FlockFilterSet
+    ordering_fields = ["-date_established", "source"]
 
-    def update(self, request, *args, **kwargs):
-        """
-        Updates a Flock instance.
+    def get_permissions(self):
+        if self.action in ["create"]:
+            permission_classes = [CanAddFlock]
+        elif self.action in ["update", "partial_update"]:
+            permission_classes = [CanUpdateFlock]
+        elif self.action in ["destroy"]:
+            permission_classes = [CanDeleteFlock]
+        else:
+            permission_classes = [CanViewFlock]
+        return [permission() for permission in permission_classes]
 
-        Parameters:
-        - `request`: The HTTP request object.
-        - `args`: Additional arguments passed to the view.
-        - `Kwargs`: Additional keyword arguments passed to the view.
-
-        Returns:
-        - A response with the updated serialized data or an error response.
-
-        """
+    def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-        if "chicken_type" in request.data:
-            new_chicken_type = request.data["chicken_type"]
-            if new_chicken_type != instance.chicken_type:
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed("PUT")
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                # If query parameters are provided, but there are no matching flocks
                 return Response(
-                    {"error": "Cannot update the chicken_type"},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    {"detail": "No flock(s) found matching the provided filters."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                # If no query parameters are provided, and there are no flock in the database
+                return Response(
+                    {"detail": "No flock found in the farm yet."},
+                    status=status.HTTP_200_OK,
                 )
 
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class FlockHistoryViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet for retrieving FlockHistory instances.
-
-    Provides the following actions:
-    - `list`: Retrieves a list of all flock histories.
-    - `retrieve`: Retrieves a specific flock history by its ID.
-
-    """
-
     queryset = FlockHistory.objects.all()
     serializer_class = FlockHistorySerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = FlockHistoryFilterSet
+    ordering_fields = ["-date_changed", "flock", "rearing_method"]
+    permission_classes = [CanActOnFlockHistory]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                # If query parameters are provided, but there are no matching flock history records.
+                return Response(
+                    {"detail": "No flock history found matching the provided filters."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                # If no query parameters are provided, and there are no flock history in the database
+                return Response(
+                    {"detail": "No flock history available."},
+                    status=status.HTTP_200_OK,
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class FlockMovementViewSet(viewsets.ModelViewSet):
