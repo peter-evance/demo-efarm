@@ -3,6 +3,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from poultry.choices import *
+from poultry.serializers import *
 from users.choices import *
 
 
@@ -165,3 +167,34 @@ def setup_users():
         "team_leader_token": team_leader_token,
         "farm_worker_token": farm_worker_token,
     }
+
+
+@pytest.fixture()
+def setup_housing_structure_data():
+    housing_structure_data = {
+        "house_type": HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
+        "category": HousingStructureCategoryChoices.BROODER_CHICK_HOUSE,
+    }
+    return {"housing_structure_data": housing_structure_data}
+
+
+@pytest.fixture()
+def setup_flock_data():
+    housing_structure_data = {
+        "house_type": HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
+        "category": HousingStructureCategoryChoices.BROODER_CHICK_HOUSE,
+    }
+
+    serializer1 = HousingStructureSerializer(data=housing_structure_data)
+    serializer1.is_valid()
+    housing_structure = serializer1.save()
+    flock_data = {
+        "source": {"name": FlockSourceChoices.KEN_CHICK},
+        "breed": {"name": FlockBreedTypeChoices.KENBRO},
+        "date_of_hatching": todays_date,
+        "chicken_type": ChickenTypeChoices.LAYERS,
+        "initial_number_of_birds": 300,
+        "current_rearing_method": RearingMethodChoices.DEEP_LITTER,
+        "current_housing_structure": housing_structure.id,
+    }
+    return {"flock_data": flock_data}
