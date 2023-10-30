@@ -3,6 +3,7 @@ from datetime import date
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
+from poultry.utils import todays_date
 from poultry.validators import *
 
 
@@ -38,6 +39,7 @@ class FlockBreed(models.Model):
     - `name`: A CharField representing the name of the breed.
 
     """
+
     name = models.CharField(max_length=20, choices=FlockBreedTypeChoices.choices)
 
     def __str__(self):
@@ -59,7 +61,7 @@ class HousingStructure(models.Model):
     The model represents a housing structure for poultry in a farm.
 
     Fields:
-    - `type`: A character field representing the type of the housing structure.
+    - `house_type`: A character field representing the type of the housing structure.
               It is limited to a maximum length of 22 characters.
               The available choices are defined in the `HousingStructureTypeChoices` enum.
     - `category`: A character field representing the category of the housing structure.
@@ -77,29 +79,29 @@ class HousingStructure(models.Model):
 
     """
 
-    type = models.CharField(max_length=22, choices=HousingStructureTypeChoices.choices)
-    category = models.CharField(max_length=21, choices=HousingStructureCategoryChoices.choices)
+    house_type = models.CharField(
+        max_length=22, choices=HousingStructureTypeChoices.choices
+    )
+    category = models.CharField(
+        max_length=21, choices=HousingStructureCategoryChoices.choices
+    )
+
+    def __str__(self):
+        """
+        Returns a string representation of the housing structure.
+
+        """
+        return f"Housing Structure #{self.id}"
 
     def clean(self):
         """
         Performs validation on the model instance.
 
         Raises:
-        - `ValidationError`: If the combination of `type` and `category` is invalid.
+        - `ValidationError`: If the combination of `house_type` and `category` is invalid.
 
         """
-        if self.category == HousingStructureCategoryChoices.BROODER_CHICK_HOUSE:
-            if self.type not in [
-                HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
-                HousingStructureTypeChoices.CLOSED_SHED
-            ]:
-                raise ValidationError(
-                    "Brood and chick houses are limited to Deep Litter House or Closed Shed structure types."
-                )
-
-        if self.category == HousingStructureCategoryChoices.BREEDERS_HOUSE \
-                and self.type == HousingStructureTypeChoices.PASTURE_HOUSING:
-            raise ValidationError("Breeder houses are not allowed to have the Pasture Housing structure type.")
+        HousingStructureValidator.validate_category(self.category, self.house_type)
 
     def save(self, *args, **kwargs):
         """
@@ -108,13 +110,6 @@ class HousingStructure(models.Model):
         """
         self.clean()
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        """
-        Returns a string representation of the housing structure.
-
-        """
-        return f'Housing Structure #{self.id}'
 
 
 class Flock(models.Model):
@@ -146,18 +141,11 @@ class Flock(models.Model):
     - `age_in_weeks_in_farm`: Calculates and returns the age of the flock in weeks since establishment.
     - `age_in_months_in_farm`: Calculates and returns the age of the flock in months since establishment.
 
-    Methods:
-    - `chicken_type_update_validator()`: Validates the chicken type of the flock during updates.
-    - `flock_housing_validator()`: Validates the housing structure assigned to the flock based on its chicken type and age.
-
     """
 
     source = models.ForeignKey(FlockSource, on_delete=models.PROTECT, related_name="flocks")
     breed = models.ForeignKey(FlockBreed, on_delete=models.PROTECT, related_name="flocks")
-    date_of_hatching = models.DateField(
-        validators=[MinValueValidator(date.today() - timezone.timedelta(weeks=8)),
-                    MaxValueValidator(date.today())]
-    )
+    date_of_hatching = models.DateField()
     chicken_type = models.CharField(max_length=15, choices=ChickenTypeChoices.choices)
     initial_number_of_birds = models.PositiveIntegerField(validators=[MinValueValidator(2)])
     current_rearing_method = models.CharField(max_length=50, choices=RearingMethodChoices.choices)
@@ -179,8 +167,7 @@ class Flock(models.Model):
         Calculates and returns the age of the flock in weeks.
 
         """
-        today = timezone.now().date()
-        age_in_days = (today - self.date_of_hatching).days
+        age_in_days = (todays_date - self.date_of_hatching).days
         age_in_weeks = age_in_days // 7
         return age_in_weeks
 
@@ -190,8 +177,7 @@ class Flock(models.Model):
         Calculates and returns the age of the flock in months.
 
         """
-        today = timezone.now().date()
-        age_in_days = (today - self.date_of_hatching).days
+        age_in_days = (todays_date - self.date_of_hatching).days
         age_in_months = age_in_days // 30
         return age_in_months
 
@@ -201,8 +187,7 @@ class Flock(models.Model):
         Calculates and returns the age of the flock in weeks since establishment.
 
         """
-        today = timezone.now().date()
-        age_in_days = (today - self.date_established).days
+        age_in_days = (todays_date - self.date_established).days
         age_in_weeks_in_farm = age_in_days // 7
         return age_in_weeks_in_farm
 
@@ -212,8 +197,7 @@ class Flock(models.Model):
         Calculates and returns the age of the flock in months since establishment.
 
         """
-        today = timezone.now().date()
-        age_in_days = (today - self.date_established).days
+        age_in_days = (todays_date - self.date_established).days
         age_in_months_in_farm = age_in_days // 30
         return age_in_months_in_farm
 
@@ -224,91 +208,28 @@ class Flock(models.Model):
         """
         return self.name
 
-    def chicken_type_update_validator(self):
-        """
-        Validates the chicken type of the flock during updates.
-        Raises a validation error if the chicken type is being changed.
-
-        """
-        if self.pk:
-            old_instance: Flock = Flock.objects.get(pk=self.pk)
-            if old_instance.chicken_type != self.chicken_type:
-                raise ValidationError("Cannot update the chicken type")
-
-    def flock_housing_validator(self):
-        """
-        Validates the housing structure assigned to the flock based on its chicken type and age.
-
-        Raises:
-        - `ValidationError`: If the assigned housing structure is invalid based on the flock's chicken type and age.
-
-        """
-        if self.chicken_type == ChickenTypeChoices.BROILER and \
-                self.current_housing_structure.category != HousingStructureCategoryChoices.BROILERS_HOUSE:
-            raise ValidationError("BROILER chickens can only be assigned to the BROILER house category.")
-
-        if self.chicken_type == ChickenTypeChoices.LAYERS:
-            if 0 <= self.age_in_weeks <= 8:
-                if self.current_housing_structure.category != HousingStructureCategoryChoices.BROODER_CHICK_HOUSE:
-                    raise ValidationError("LAYERS between 0-8 weeks can only be assigned to the Brooder Chick House.")
-            elif 8 < self.age_in_weeks <= 18:
-                if self.current_housing_structure.category != HousingStructureCategoryChoices.GROWERS_HOUSE:
-                    raise ValidationError("LAYERS between 8-18 weeks can only be assigned to the Growers House.")
-            elif 18 < self.age_in_weeks <= 84:
-                if self.current_housing_structure.category != HousingStructureCategoryChoices.LAYERS_HOUSE:
-                    raise ValidationError("LAYERS between 18-84 weeks can only be assigned to the LAYERS House.")
-            else:
-                raise ValidationError("Invalid age range for LAYERS.")
-
-        if self.chicken_type == ChickenTypeChoices.MULTI_PURPOSE and self.age_in_weeks <= 4:
-            if self.current_housing_structure.category != HousingStructureCategoryChoices.BROODER_CHICK_HOUSE:
-                raise ValidationError(
-                    "Multipurpose chickens of 8 weeks and below can only be assigned to the Brooder Chick House."
-                )
+    def clean(self):
+        FlockValidator.validate_chicken_type_update(self)
+        FlockValidator.validate_flock_date_of_hatching(self.date_of_hatching)
+        FlockValidator.validate_flock_housing(self.chicken_type, self.current_housing_structure, self.age_in_weeks)
 
     def save(self, *args, **kwargs):
-        """
-        Overrides the default save method to perform custom validations before saving the instance.
-        Creates a `FlockHistory` object to track the flock's rearing method and housing structure changes.
-
-        """
-        self.chicken_type_update_validator()
-        self.flock_housing_validator()
+        self.clean()
         super().save(*args, **kwargs)
-
-        FlockHistory.objects.create(
-            flock=self,
-            rearing_method=self.current_rearing_method,
-            current_housing_structure=self.current_housing_structure
-        )
 
 
 class FlockHistory(models.Model):
-    """
-    The model represents the history of a flock in terms of its rearing method and housing structure changes.
-
-    Fields:
-    - `flock`: A foreign key to the `Flock` model, representing the flock associated with the history entry.
-    - `rearing_method`: A character field representing the rearing method of the flock at a specific point in time.
-                        It is limited to a maximum length of 50 characters.
-                        The available choices are defined in the `RearingMethodChoices`.
-    - `current_housing_structure`: A foreign key to the `HousingStructure` model, representing the housing structure
-                                  of the flock at a specific point in time.
-    - `date_changed`: A datetime field that automatically records the date and time when the history entry was created.
-
-    """
-
     flock = models.ForeignKey(Flock, on_delete=models.CASCADE)
-    rearing_method = models.CharField(max_length=50, choices=RearingMethodChoices.choices)
-    current_housing_structure = models.ForeignKey(HousingStructure, on_delete=models.CASCADE)
+    rearing_method = models.CharField(
+        max_length=50, choices=RearingMethodChoices.choices
+    )
+    current_housing_structure = models.ForeignKey(
+        HousingStructure, on_delete=models.CASCADE
+    )
     date_changed = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        """
-        Returns a string representation of the flock history entry.
-
-        """
-        return f'History for {self.flock}'
+        return f"History for {self.flock}"
 
 
 class FlockMovement(models.Model):
@@ -330,8 +251,12 @@ class FlockMovement(models.Model):
     """
 
     flock = models.ForeignKey(Flock, on_delete=models.CASCADE)
-    from_structure = models.ForeignKey(HousingStructure, on_delete=models.CASCADE, related_name='outgoing_movements')
-    to_structure = models.ForeignKey(HousingStructure, on_delete=models.CASCADE, related_name='incoming_movements')
+    from_structure = models.ForeignKey(
+        HousingStructure, on_delete=models.CASCADE, related_name="outgoing_movements"
+    )
+    to_structure = models.ForeignKey(
+        HousingStructure, on_delete=models.CASCADE, related_name="incoming_movements"
+    )
     movement_date = models.DateField(auto_now_add=True)
 
     def flock_movement_validator(self):
@@ -346,14 +271,20 @@ class FlockMovement(models.Model):
         to_structure_type = self.to_structure.type
 
         if self.from_structure != self.flock.current_housing_structure:
-            raise ValidationError('The flock has to be present in the structure it is being moved from')
+            raise ValidationError(
+                "The flock has to be present in the structure it is being moved from"
+            )
 
         if self.from_structure == self.to_structure:
-            raise ValidationError('The destination structure cannot be the same as where the flock is removed from.')
+            raise ValidationError(
+                "The destination structure cannot be the same as where the flock is removed from."
+            )
 
         if rearing_method == RearingMethodChoices.FREE_RANGE:
             if to_structure_type not in [HousingStructureTypeChoices.PASTURE_HOUSING]:
-                raise ValidationError('Flocks reared under free range can only be assigned to pasture housing.')
+                raise ValidationError(
+                    "Flocks reared under free range can only be assigned to pasture housing."
+                )
 
         if rearing_method == RearingMethodChoices.CAGE_SYSTEM:
             allowed_structures = [
@@ -362,21 +293,23 @@ class FlockMovement(models.Model):
                 HousingStructureTypeChoices.BATTERY_CAGE,
                 HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
                 HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
-                HousingStructureTypeChoices.PASTURE_HOUSING
+                HousingStructureTypeChoices.PASTURE_HOUSING,
             ]
             if to_structure_type not in allowed_structures:
                 raise ValidationError(
-                    'Flocks reared under cage system can only be assigned to specific housing structures.')
+                    "Flocks reared under cage system can only be assigned to specific housing structures."
+                )
 
         if rearing_method == RearingMethodChoices.DEEP_LITTER:
             allowed_structures = [
                 HousingStructureTypeChoices.OPEN_SIDED_SHED,
                 HousingStructureTypeChoices.CLOSED_SHED,
-                HousingStructureTypeChoices.DEEP_LITTER_HOUSE
+                HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
             ]
             if to_structure_type not in allowed_structures:
                 raise ValidationError(
-                    'Flocks reared under deep litter can only be assigned to specific housing structures.')
+                    "Flocks reared under deep litter can only be assigned to specific housing structures."
+                )
 
         if rearing_method == RearingMethodChoices.BARN_SYSTEM:
             allowed_structures = [
@@ -385,20 +318,21 @@ class FlockMovement(models.Model):
                 HousingStructureTypeChoices.CLOSED_SHED,
                 HousingStructureTypeChoices.BATTERY_CAGE,
                 HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
-                HousingStructureTypeChoices.PASTURE_HOUSING
+                HousingStructureTypeChoices.PASTURE_HOUSING,
             ]
             if to_structure_type not in allowed_structures:
                 raise ValidationError(
-                    'Flocks reared under barn system can only be assigned to specific housing structures.')
+                    "Flocks reared under barn system can only be assigned to specific housing structures."
+                )
 
         if rearing_method == RearingMethodChoices.PASTURE_BASED:
             allowed_structures = [
                 HousingStructureTypeChoices.PASTURE_HOUSING,
-                HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING
+                HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
             ]
             if to_structure_type not in allowed_structures:
                 raise ValidationError(
-                    'Flocks reared under pasture based can only be assigned to specific housing structures.'
+                    "Flocks reared under pasture based can only be assigned to specific housing structures."
                 )
 
     def save(self, *args, **kwargs):
@@ -414,7 +348,7 @@ class FlockMovement(models.Model):
         Returns a string representation of the flock movement.
 
         """
-        return f'Movement of Flock {self.flock_id} ({self.from_structure} -> {self.to_structure})'
+        return f"Movement of Flock {self.flock_id} ({self.from_structure} -> {self.to_structure})"
 
 
 class FlockInspectionRecord(models.Model):
@@ -433,6 +367,7 @@ class FlockInspectionRecord(models.Model):
     - `save()`: Overrides the default save method to perform custom validations before saving the instance.
 
     """
+
     flock = models.ForeignKey(Flock, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     number_of_dead_birds = models.PositiveIntegerField(default=0)
@@ -452,11 +387,18 @@ class FlockInspectionRecord(models.Model):
         - `ValidationError`: If the maximum number of inspection records per day is exceeded.
 
         """
-        if FlockInspectionRecord.objects.filter(date__date=self.date.date()).count() > 3:
+        if (
+            FlockInspectionRecord.objects.filter(date__date=self.date.date()).count()
+            > 3
+        ):
             next_day = self.date + timedelta(days=1)
-            next_day_str = next_day.astimezone(timezone.get_current_timezone()).strftime("%A, %d %B %Y")
-            raise ValidationError(f"Only three inspection records are allowed per day. "
-                                  f"The next inspection record can be done on {next_day_str}.")
+            next_day_str = next_day.astimezone(
+                timezone.get_current_timezone()
+            ).strftime("%A, %d %B %Y")
+            raise ValidationError(
+                f"Only three inspection records are allowed per day. "
+                f"The next inspection record can be done on {next_day_str}."
+            )
 
     def inspection_record_time_separation_validator(self):
         """
@@ -467,15 +409,23 @@ class FlockInspectionRecord(models.Model):
 
         """
         time_threshold = timedelta(hours=4)
-        existing_records = FlockInspectionRecord.objects.filter(flock=self.flock).exclude(pk=self.pk).order_by('date')
+        existing_records = (
+            FlockInspectionRecord.objects.filter(flock=self.flock)
+            .exclude(pk=self.pk)
+            .order_by("date")
+        )
         if existing_records:
             last_record = existing_records.last()
             time_difference = self.date - last_record.date
             if time_difference < time_threshold:
                 next_time = last_record.date + time_threshold
-                next_time_str = next_time.astimezone(timezone.get_current_timezone()).strftime("%I:%M %p")
-                raise ValidationError(f"Minimum 4 hours of separation is required between inspection records. "
-                                      f"The next inspection record can be done at {next_time_str}.")
+                next_time_str = next_time.astimezone(
+                    timezone.get_current_timezone()
+                ).strftime("%I:%M %p")
+                raise ValidationError(
+                    f"Minimum 4 hours of separation is required between inspection records. "
+                    f"The next inspection record can be done at {next_time_str}."
+                )
 
     def validate_number_of_dead_birds(self):
         """
@@ -487,9 +437,11 @@ class FlockInspectionRecord(models.Model):
         """
         flock_inventory = self.flock.inventory
         if self.number_of_dead_birds > flock_inventory.number_of_alive_birds:
-            raise ValidationError(f"The number of dead birds cannot exceed the number of alive birds"
-                                  f" in the flock inventory, There is {flock_inventory.number_of_alive_birds} birds, "
-                                  f"You entered {self.number_of_dead_birds}.")
+            raise ValidationError(
+                f"The number of dead birds cannot exceed the number of alive birds"
+                f" in the flock inventory, There is {flock_inventory.number_of_alive_birds} birds, "
+                f"You entered {self.number_of_dead_birds}."
+            )
 
     def save(self, *args, **kwargs):
         """
@@ -547,23 +499,41 @@ class FlockBreedInformation(models.Model):
 
         """
 
-        if self.chicken_type != ChickenTypeChoices.BROILER and self.average_egg_production is None:
+        if (
+            self.chicken_type != ChickenTypeChoices.BROILER
+            and self.average_egg_production is None
+        ):
             raise ValidationError("Average egg production must be provided!.")
 
-        if self.chicken_type == ChickenTypeChoices.BROILER and self.average_egg_production is not None:
+        if (
+            self.chicken_type == ChickenTypeChoices.BROILER
+            and self.average_egg_production is not None
+        ):
             raise ValidationError("Broilers should not have egg production!.")
 
-        if self.average_mature_weight_in_kgs < Decimal('1.50'):
+        if self.average_mature_weight_in_kgs < Decimal("1.50"):
             raise ValidationError("Average mature weight should be at least 1.50 Kgs.")
 
-        if self.chicken_type == ChickenTypeChoices.BROILER and not (8 <= self.maturity_age_in_weeks <= 10):
-            raise ValidationError("Broilers should have a maturity age between 8 and 10 weeks.")
+        if self.chicken_type == ChickenTypeChoices.BROILER and not (
+            8 <= self.maturity_age_in_weeks <= 10
+        ):
+            raise ValidationError(
+                "Broilers should have a maturity age between 8 and 10 weeks."
+            )
 
-        if self.chicken_type == ChickenTypeChoices.LAYERS and not (16 <= self.maturity_age_in_weeks <= 18):
-            raise ValidationError("Layers should have a maturity age between 16 and 18 weeks.")
+        if self.chicken_type == ChickenTypeChoices.LAYERS and not (
+            16 <= self.maturity_age_in_weeks <= 18
+        ):
+            raise ValidationError(
+                "Layers should have a maturity age between 16 and 18 weeks."
+            )
 
-        if self.chicken_type == ChickenTypeChoices.MULTI_PURPOSE and not (20 <= self.maturity_age_in_weeks <= 24):
-            raise ValidationError("Multipurpose chickens should have a maturity age between 20 and 24 weeks.")
+        if self.chicken_type == ChickenTypeChoices.MULTI_PURPOSE and not (
+            20 <= self.maturity_age_in_weeks <= 24
+        ):
+            raise ValidationError(
+                "Multipurpose chickens should have a maturity age between 20 and 24 weeks."
+            )
 
     def save(self, *args, **kwargs):
         """
@@ -617,7 +587,9 @@ class EggCollection(models.Model):
         else:
             return "Afternoon"
 
-    def validator(self):  # This is just a custom validator, it is not inherited from django
+    def validator(
+        self,
+    ):  # This is just a custom validator, it is not inherited from django
         """
         Validates the data before saving the egg collection.
 
@@ -629,41 +601,67 @@ class EggCollection(models.Model):
 
         """
         if not self.flock.is_present:
-            raise ValidationError(f"Egg collection is only allowed for flocks marked as present. This flock was "
-                                  f"marked not present on {self.flock.inventory.last_update.astimezone(timezone.get_current_timezone()).strftime('%A %B %d, %Y')}.")
+            raise ValidationError(
+                f"Egg collection is only allowed for flocks marked as present. This flock was "
+                f"marked not present on {self.flock.inventory.last_update.astimezone(timezone.get_current_timezone()).strftime('%A %B %d, %Y')}."
+            )
 
-        count: int = EggCollection.objects.filter(flock=self.flock, date=self.date).count()
+        count: int = EggCollection.objects.filter(
+            flock=self.flock, date=self.date
+        ).count()
         if count > 3:
-            tomorrow = timezone.now().astimezone(timezone.get_current_timezone()).date() + timezone.timedelta(days=1)
-            raise ValidationError(f"Data entry for this flock is limited to thrice per day. "
-                                  f"Please try again on {tomorrow.strftime('%A %B %d, %Y')}.")
+            tomorrow = timezone.now().astimezone(
+                timezone.get_current_timezone()
+            ).date() + timezone.timedelta(days=1)
+            raise ValidationError(
+                f"Data entry for this flock is limited to thrice per day. "
+                f"Please try again on {tomorrow.strftime('%A %B %d, %Y')}."
+            )
 
         if self.broken_eggs > self.collected_eggs:
-            raise ValidationError(f"Broken eggs count ({self.broken_eggs}) cannot be greater than the collected eggs "
-                                  f"count ({self.collected_eggs})")
+            raise ValidationError(
+                f"Broken eggs count ({self.broken_eggs}) cannot be greater than the collected eggs "
+                f"count ({self.collected_eggs})"
+            )
 
         live_bird_count: int = self.flock.inventory.number_of_alive_birds
-        total_collected_eggs: int = (EggCollection.objects.filter(flock=self.flock, date=self.date).exclude(pk=self.pk)
-                                     .aggregate(total=Sum('collected_eggs')).get('total') or 0)
+        total_collected_eggs: int = (
+            EggCollection.objects.filter(flock=self.flock, date=self.date)
+            .exclude(pk=self.pk)
+            .aggregate(total=Sum("collected_eggs"))
+            .get("total")
+            or 0
+        )
 
         if total_collected_eggs + self.collected_eggs > live_bird_count:
             if live_bird_count - total_collected_eggs <= 0:
-                raise ValidationError(f"Collected egg count for the day cannot exceed the count of living birds in the "
-                                      f"flock, This flock has {live_bird_count} birds. The "
-                                      f"total collected eggs today is {total_collected_eggs}.")
+                raise ValidationError(
+                    f"Collected egg count for the day cannot exceed the count of living birds in the "
+                    f"flock, This flock has {live_bird_count} birds. The "
+                    f"total collected eggs today is {total_collected_eggs}."
+                )
 
-            raise ValidationError(f"Collected egg count for the day cannot exceed the count of living birds in the "
-                                  f"flock, This flock has {live_bird_count} birds, and the collected "
-                                  f"eggs today must be {live_bird_count - total_collected_eggs} or lower. The "
-                                  f"total collected eggs today is {total_collected_eggs}.")
+            raise ValidationError(
+                f"Collected egg count for the day cannot exceed the count of living birds in the "
+                f"flock, This flock has {live_bird_count} birds, and the collected "
+                f"eggs today must be {live_bird_count - total_collected_eggs} or lower. The "
+                f"total collected eggs today is {total_collected_eggs}."
+            )
 
-        if self.flock.chicken_type not in [ChickenTypeChoices.LAYERS, ChickenTypeChoices.MULTI_PURPOSE]:
-            raise ValidationError(f"Egg collection is restricted to layers or multipurpose flocks, "
-                                  f"You selected {self.flock.chicken_type.lower()}.")
+        if self.flock.chicken_type not in [
+            ChickenTypeChoices.LAYERS,
+            ChickenTypeChoices.MULTI_PURPOSE,
+        ]:
+            raise ValidationError(
+                f"Egg collection is restricted to layers or multipurpose flocks, "
+                f"You selected {self.flock.chicken_type.lower()}."
+            )
 
         if self.flock.age_in_weeks < 14:
-            raise ValidationError(f"Egg collection is only allowed for flocks of age 14 weeks or older, "
-                                  f"This flock is currently {self.flock.age_in_weeks} weeks old.")
+            raise ValidationError(
+                f"Egg collection is only allowed for flocks of age 14 weeks or older, "
+                f"This flock is currently {self.flock.age_in_weeks} weeks old."
+            )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
