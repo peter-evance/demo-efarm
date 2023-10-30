@@ -5,19 +5,19 @@ from poultry.models import *
 class FlockSourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlockSource
-        fields = '__all__'
+        fields = "__all__"
 
 
 class FlockBreedSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlockBreed
-        fields = '__all__'
+        fields = "__all__"
 
 
 class HousingStructureSerializer(serializers.ModelSerializer):
     class Meta:
         model = HousingStructure
-        fields = '__all__'
+        fields = "__all__"
 
 
 class FlockSerializer(serializers.ModelSerializer):
@@ -25,19 +25,51 @@ class FlockSerializer(serializers.ModelSerializer):
     age_in_months = serializers.ReadOnlyField()
     age_in_weeks_in_farm = serializers.ReadOnlyField()
     age_in_months_in_farm = serializers.ReadOnlyField()
-    current_housing_structure = serializers.PrimaryKeyRelatedField(queryset=HousingStructure.objects.all())
-    source = serializers.PrimaryKeyRelatedField(queryset=FlockSource.objects.all())
+    current_housing_structure = serializers.PrimaryKeyRelatedField(
+        queryset=HousingStructure.objects.all()
+    )
+    source = FlockSourceSerializer()
+    breed = FlockBreedSerializer()
 
     class Meta:
         model = Flock
-        fields = '__all__'
+        fields = "__all__"
+
+    def create(self, validated_data):
+        flock_source_data = validated_data.pop("source")
+        flock_breed_data = validated_data.pop("breed")
+        source, _ = FlockSource.objects.get_or_create(**flock_source_data)
+        breed, _ = FlockBreed.objects.get_or_create(**flock_breed_data)
+        flock = Flock.objects.create(breed=breed, source=source, **validated_data)
+        return flock
+
+    def update(self, instance, validated_data):
+        fields_to_exclude = [
+            "source",
+            "breed",
+            "date_of_hatching",
+            "chicken_type",
+            "initial_number_of_birds",
+            "current_housing_structure",
+            "date_established",
+            "is_present",
+        ]
+
+        for field in fields_to_exclude:
+            validated_data.pop(field, None)
+        return super().update(instance, validated_data)
 
 
 class FlockHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FlockHistory
-        fields = '__all__'
-        read_only_fields = ('flock', 'rearing_method', 'current_housing_structure', 'date_changed')
+        fields = "__all__"
+        read_only_fields = (
+            "flock",
+            "rearing_method",
+            "current_housing_structure",
+            "date_changed",
+        )
 
 
 class FlockMovementSerializer(serializers.ModelSerializer):
@@ -52,12 +84,16 @@ class FlockMovementSerializer(serializers.ModelSerializer):
     """
 
     flock = serializers.PrimaryKeyRelatedField(queryset=Flock.objects.all())
-    from_structure = serializers.PrimaryKeyRelatedField(queryset=HousingStructure.objects.all())
-    to_structure = serializers.PrimaryKeyRelatedField(queryset=HousingStructure.objects.all())
+    from_structure = serializers.PrimaryKeyRelatedField(
+        queryset=HousingStructure.objects.all()
+    )
+    to_structure = serializers.PrimaryKeyRelatedField(
+        queryset=HousingStructure.objects.all()
+    )
 
     class Meta:
         model = FlockMovement
-        fields = '__all__'
+        fields = "__all__"
 
 
 class FlockInspectionRecordSerializer(serializers.ModelSerializer):
@@ -75,7 +111,7 @@ class FlockInspectionRecordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FlockInspectionRecord
-        fields = '__all__'
+        fields = "__all__"
 
 
 class FlockBreedInformationSerializer(serializers.ModelSerializer):
@@ -96,7 +132,7 @@ class FlockBreedInformationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FlockBreedInformation
-        fields = '__all__'
+        fields = "__all__"
 
 
 class EggCollectionSerializer(serializers.ModelSerializer):
@@ -118,4 +154,4 @@ class EggCollectionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EggCollection
-        fields = '__all__'
+        fields = "__all__"
