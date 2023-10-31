@@ -16,8 +16,7 @@ efarm is a Django project designed to help farmers streamline their operations b
 5. Install the dependencies using `pip install -r requirements.txt`.
 6. Run migrations using `python manage.py migrate`.
 7. Start the development server using `python manage.py runserver`.
-8. Run the `python manage.py createsuperuser` and create a superuser of you own liking, you can delete the database in
-or use the username (peterevance) and password (qq) for the database you find in this repository.
+8. Run the `python manage.py createsuperuser` and create a superuser of you own liking, you can use database you find in this repository.
 
 ## Usage
 
