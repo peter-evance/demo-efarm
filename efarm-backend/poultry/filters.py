@@ -110,3 +110,19 @@ class FlockMovementFilterSet(filters.FilterSet):
             "week_of_movement",
             "day_of_movement",
         ]
+
+
+class FlockInspectionRecordFilterSet(filters.FilterSet):
+    flock = filters.CharFilter(lookup_expr="icontains")
+    month_of_inspection = filters.NumberFilter(field_name="date_of_inspection__month", lookup_expr="exact")
+    week_of_inspection = filters.NumberFilter(field_name="date_of_inspection__week", lookup_expr="exact")
+    day_of_inspection = filters.NumberFilter(field_name="date_of_inspection__day", lookup_expr="exact")
+
+    class Meta:
+        model = FlockInspectionRecord
+        fields = [
+            "flock",
+            "month_of_inspection",
+            "week_of_inspection",
+            "day_of_inspection"
+        ]
