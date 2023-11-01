@@ -409,7 +409,41 @@ class CanActOnFlockHistory(BasePermission):
             bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
         """
         if request.user.is_authenticated and (
-                request.user.is_farm_owner or request.user.is_farm_manager
+            request.user.is_farm_owner or request.user.is_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanActOnFlockMovement(BasePermission):
+    """
+    Custom permission class that allows farm owners and managers to act flock movement records.
+
+    Raises:
+    - `PermissionDenied`: If the user is not a farm owner or a farm manager.
+
+    Usage:
+        Add the permission class to the view or viewset that requires permission to act flock movement records:
+        permission_classes = [CanActOnFlockMovement]
+    """
+
+    message = {
+        "message": "Only farm owners and managers have permission to perform this action."
+    }
+
+    def has_permission(self, request, view):
+        """
+        Check if the current user is a farm owner or a farm manager.
+
+        Returns:
+            bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
+        """
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner or request.user.is_farm_manager
         ):
             return True
         if not request.user.is_authenticated:
