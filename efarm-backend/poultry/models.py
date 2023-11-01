@@ -233,122 +233,20 @@ class FlockHistory(models.Model):
 
 
 class FlockMovement(models.Model):
-    """
-    The model represents a movement of a flock from one housing structure to another.
-
-    Fields:
-    - `flock`: A foreign key to the `Flock` model, representing the flock being moved.
-    - `from_structure`: A foreign key to the `HousingStructure` model, representing the housing structure
-                        from which the flock is being moved.
-    - `to_structure`: A foreign key to the `HousingStructure` model, representing the housing structure
-                      to which the flock is being moved.
-    - `movement_date`: A date field that automatically records the date of the flock movement.
-
-    Methods:
-    - `flock_movement_validator()`: Validates the flock movement based on the rearing method and destination structure.
-    - `save()`: Overrides the default save method to perform custom validations before saving the instance.
-
-    """
-
     flock = models.ForeignKey(Flock, on_delete=models.CASCADE)
-    from_structure = models.ForeignKey(
-        HousingStructure, on_delete=models.CASCADE, related_name="outgoing_movements"
-    )
-    to_structure = models.ForeignKey(
-        HousingStructure, on_delete=models.CASCADE, related_name="incoming_movements"
-    )
+    from_structure = models.ForeignKey(HousingStructure, on_delete=models.CASCADE, related_name='outgoing_movements')
+    to_structure = models.ForeignKey(HousingStructure, on_delete=models.CASCADE, related_name='incoming_movements')
     movement_date = models.DateField(auto_now_add=True)
 
-    def flock_movement_validator(self):
-        """
-        Validates the flock movement based on the rearing method and destination structure.
-
-        Raises:
-        - `ValidationError`: If the flock movement is invalid based on the validation rules.
-
-        """
-        rearing_method = self.flock.current_rearing_method
-        to_structure_type = self.to_structure.type
-
-        if self.from_structure != self.flock.current_housing_structure:
-            raise ValidationError(
-                "The flock has to be present in the structure it is being moved from"
-            )
-
-        if self.from_structure == self.to_structure:
-            raise ValidationError(
-                "The destination structure cannot be the same as where the flock is removed from."
-            )
-
-        if rearing_method == RearingMethodChoices.FREE_RANGE:
-            if to_structure_type not in [HousingStructureTypeChoices.PASTURE_HOUSING]:
-                raise ValidationError(
-                    "Flocks reared under free range can only be assigned to pasture housing."
-                )
-
-        if rearing_method == RearingMethodChoices.CAGE_SYSTEM:
-            allowed_structures = [
-                HousingStructureTypeChoices.OPEN_SIDED_SHED,
-                HousingStructureTypeChoices.CLOSED_SHED,
-                HousingStructureTypeChoices.BATTERY_CAGE,
-                HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
-                HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
-                HousingStructureTypeChoices.PASTURE_HOUSING,
-            ]
-            if to_structure_type not in allowed_structures:
-                raise ValidationError(
-                    "Flocks reared under cage system can only be assigned to specific housing structures."
-                )
-
-        if rearing_method == RearingMethodChoices.DEEP_LITTER:
-            allowed_structures = [
-                HousingStructureTypeChoices.OPEN_SIDED_SHED,
-                HousingStructureTypeChoices.CLOSED_SHED,
-                HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
-            ]
-            if to_structure_type not in allowed_structures:
-                raise ValidationError(
-                    "Flocks reared under deep litter can only be assigned to specific housing structures."
-                )
-
-        if rearing_method == RearingMethodChoices.BARN_SYSTEM:
-            allowed_structures = [
-                HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
-                HousingStructureTypeChoices.OPEN_SIDED_SHED,
-                HousingStructureTypeChoices.CLOSED_SHED,
-                HousingStructureTypeChoices.BATTERY_CAGE,
-                HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
-                HousingStructureTypeChoices.PASTURE_HOUSING,
-            ]
-            if to_structure_type not in allowed_structures:
-                raise ValidationError(
-                    "Flocks reared under barn system can only be assigned to specific housing structures."
-                )
-
-        if rearing_method == RearingMethodChoices.PASTURE_BASED:
-            allowed_structures = [
-                HousingStructureTypeChoices.PASTURE_HOUSING,
-                HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
-            ]
-            if to_structure_type not in allowed_structures:
-                raise ValidationError(
-                    "Flocks reared under pasture based can only be assigned to specific housing structures."
-                )
+    def clean(self):
+        FlockMovementValidator.validate_flock_movement(self.flock, self.to_structure, self.from_structure)
 
     def save(self, *args, **kwargs):
-        """
-        Overrides the default save method to perform custom validations before saving the instance.
-
-        """
-        self.flock_movement_validator()
+        self.clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        """
-        Returns a string representation of the flock movement.
-
-        """
-        return f"Movement of Flock {self.flock_id} ({self.from_structure} -> {self.to_structure})"
+        return f'Movement of Flock {self.flock.id} ({self.from_structure} -> {self.to_structure})'
 
 
 class FlockInspectionRecord(models.Model):
