@@ -124,3 +124,76 @@ class FlockValidator:
         if date_of_hatching > todays_date:
             raise ValidationError("Invalid date of hatching, cannot be in future!")
 
+
+class FlockMovementValidator:
+    @staticmethod
+    def validate_flock_movement(flock, to_structure, from_structure):
+        """
+        Validates the flock movement based on the rearing method and destination structure.
+
+        Raises:
+        - `ValidationError`: If the flock movement is invalid based on the validation rules.
+
+        """
+        rearing_method = flock.current_rearing_method
+        to_structure_type = to_structure.house_type
+
+        if from_structure == to_structure:
+            raise ValidationError(
+                "The destination structure cannot be the same as where the flock is removed from."
+            )
+
+        if rearing_method == RearingMethodChoices.FREE_RANGE:
+            if to_structure_type not in [HousingStructureTypeChoices.PASTURE_HOUSING]:
+                raise ValidationError(
+                    "Flocks reared under free range can only be assigned to pasture housing."
+                )
+
+        if rearing_method == RearingMethodChoices.CAGE_SYSTEM:
+            allowed_structures = [
+                HousingStructureTypeChoices.OPEN_SIDED_SHED,
+                HousingStructureTypeChoices.CLOSED_SHED,
+                HousingStructureTypeChoices.BATTERY_CAGE,
+                HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
+                HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
+                HousingStructureTypeChoices.PASTURE_HOUSING,
+            ]
+            if to_structure_type not in allowed_structures:
+                raise ValidationError(
+                    "Flocks reared under cage system can only be assigned to specific housing structures."
+                )
+
+        if rearing_method == RearingMethodChoices.DEEP_LITTER:
+            allowed_structures = [
+                HousingStructureTypeChoices.OPEN_SIDED_SHED,
+                HousingStructureTypeChoices.CLOSED_SHED,
+                HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
+            ]
+            if to_structure_type not in allowed_structures:
+                raise ValidationError(
+                    "Flocks reared under deep litter can only be assigned to specific housing structures."
+                )
+
+        if rearing_method == RearingMethodChoices.BARN_SYSTEM:
+            allowed_structures = [
+                HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
+                HousingStructureTypeChoices.OPEN_SIDED_SHED,
+                HousingStructureTypeChoices.CLOSED_SHED,
+                HousingStructureTypeChoices.BATTERY_CAGE,
+                HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
+                HousingStructureTypeChoices.PASTURE_HOUSING,
+            ]
+            if to_structure_type not in allowed_structures:
+                raise ValidationError(
+                    "Flocks reared under barn system can only be assigned to specific housing structures."
+                )
+
+        if rearing_method == RearingMethodChoices.PASTURE_BASED:
+            allowed_structures = [
+                HousingStructureTypeChoices.PASTURE_HOUSING,
+                HousingStructureTypeChoices.SEMI_INTENSIVE_HOUSING,
+            ]
+            if to_structure_type not in allowed_structures:
+                raise ValidationError(
+                    "Flocks reared under pasture based can only be assigned to specific housing structures."
+                )
