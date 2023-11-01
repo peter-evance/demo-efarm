@@ -1,4 +1,8 @@
+from datetime import timedelta
+from decimal import Decimal
+
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 from poultry.choices import *
 from poultry.utils import todays_date
@@ -197,3 +201,134 @@ class FlockMovementValidator:
                 raise ValidationError(
                     "Flocks reared under pasture based can only be assigned to specific housing structures."
                 )
+
+
+class FlockInspectionRecordValidator:
+    @staticmethod
+    def validate_daily_number_of_inspection_records(date_of_inspection):
+        from poultry.models import FlockInspectionRecord
+
+        """
+        Validates the maximum number of inspection records per day.
+
+        Raises:
+        - `ValidationError`: If the maximum number of inspection records per day is exceeded.
+
+        """
+        if (
+            FlockInspectionRecord.objects.filter(
+                date_of_inspection__date=date_of_inspection.date()
+            ).count()
+            > 3
+        ):
+            next_day = date_of_inspection + timedelta(days=1)
+            next_day_str = next_day.astimezone(
+                timezone.get_current_timezone()
+            ).strftime("%A, %d %B %Y")
+            raise ValidationError(
+                f"Only three inspection records are allowed per day. "
+                f"The next inspection record can be done on {next_day_str}."
+            )
+
+    @staticmethod
+    def validate_inspection_record_time_separation(flock, instance):
+        from poultry.models import FlockInspectionRecord
+
+        """
+        Validates the time separation between inspection records.
+
+        Raises:
+        - `ValidationError`: If the time separation between inspection records is less than the threshold.
+
+        """
+        time_threshold = timedelta(hours=4)
+        existing_records = (
+            FlockInspectionRecord.objects.filter(flock=flock)
+            .exclude(pk=instance.pk)
+            .order_by("date_of_inspection")
+        )
+        if existing_records:
+            last_record = existing_records.last()
+            time_difference = (
+                instance.date_of_inspection - last_record.date_of_inspection
+            )
+            if time_difference < time_threshold:
+                next_time = last_record.date_of_inspection + time_threshold
+                next_time_str = next_time.astimezone(
+                    timezone.get_current_timezone()
+                ).strftime("%I:%M %p")
+                raise ValidationError(
+                    f"Minimum 4 hours of separation is required between inspection records. "
+                    f"The next inspection record can be done at {next_time_str}."
+                )
+
+    @staticmethod
+    def validate_number_of_dead_birds(instance):
+        """
+        Validates that the number of dead birds does not exceed the number of living birds in the flock inventory.
+
+        Raises:
+        - `ValidationError`: If the number of dead birds exceeds the number of living birds.
+
+        """
+        flock_inventory = instance.flock.inventory
+        if instance.number_of_dead_birds > flock_inventory.number_of_alive_birds:
+            raise ValidationError(
+                f"The number of dead birds cannot exceed the number of alive birds"
+                f" in the flock inventory, There is {flock_inventory.number_of_alive_birds} birds, "
+                f"You entered {instance.number_of_dead_birds}."
+            )
+        if instance.number_of_dead_birds < 0:
+            raise ValidationError(
+                "Invalid entry, The number of dead birds cannot be less than 0"
+            )
+
+    @staticmethod
+    def validate_flock_availability(flock):
+        if not flock.is_present:
+            raise ValidationError("This flock is no longer available in the farm.")
+
+
+class FlockBreedInformationValidator:
+    @staticmethod
+    def validate_fields(
+        chicken_type,
+        average_egg_production,
+        average_mature_weight_in_kgs,
+        maturity_age_in_weeks,
+    ):
+        if (
+            chicken_type == ChickenTypeChoices.BROILER
+            and average_egg_production is not None
+        ):
+            raise ValidationError("Broilers should not have egg production!.")
+
+        if (
+            chicken_type != ChickenTypeChoices.BROILER
+            and average_egg_production is None
+        ):
+            raise ValidationError("Average egg production must be provided!.")
+
+        if average_mature_weight_in_kgs < Decimal("1.50"):
+            raise ValidationError("Average mature weight should be at least 1.50 Kgs.")
+
+        if chicken_type == ChickenTypeChoices.BROILER and not (
+            8 <= maturity_age_in_weeks <= 10
+        ):
+            raise ValidationError(
+                "Broilers should have a maturity age between 8 and 10 weeks."
+            )
+
+        if chicken_type == ChickenTypeChoices.LAYERS and not (
+            16 <= maturity_age_in_weeks <= 18
+        ):
+            raise ValidationError(
+                "Layers should have a maturity age between 16 and 18 weeks."
+            )
+
+        if chicken_type == ChickenTypeChoices.MULTI_PURPOSE and not (
+            20 <= maturity_age_in_weeks <= 24
+        ):
+            raise ValidationError(
+                "Multipurpose chickens should have a maturity age between 20 and 24 weeks."
+            )
