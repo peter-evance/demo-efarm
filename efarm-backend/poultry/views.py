@@ -246,38 +246,59 @@ class FlockMovementViewSet(viewsets.ModelViewSet):
 
 
 class FlockInspectionRecordViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for managing FlockInspectionRecord instances.
-
-    Provides the following actions:
-    - `list`: Retrieves a list of all flock inspection records.
-    - `create`: Creates a new flock inspection record.
-    - `retrieve`: Retrieves a specific flock inspection record by its ID.
-    - `update`: Updates a flock inspection record.
-    - `destroy`: Deletes a flock inspection record.
-
-    """
-
     queryset = FlockInspectionRecord.objects.all()
     serializer_class = FlockInspectionRecordSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = FlockInspectionRecordFilterSet
+    ordering_fields = ["-date_of_inspection", "flock"]
+
+    def get_permissions(self):
+        if self.action in ["destroy"]:
+            permission_classes = [CanDeleteFlockInspection]
+        else:
+            permission_classes = [CanAddViewUpdateFlockInspection]
+        return [permission() for permission in permission_classes]
+
+    def update(self, request, *args, **kwargs):
+        # Disallowed updated for flock inspection records for sake of brevity—Temporary
+        return Response(
+            {"detail": "Updates are rejected!"},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        # Disallowed deletion for flock inspection records for sake of brevity—Temporary
+        return Response(
+            {"detail": "Deletion not allowed!"},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                # If query parameters are provided, but there are no matching flock inspection records.
+                return Response(
+                    {"detail": "No flock inspection records found matching the provided filters."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                # If no query parameters are provided, and there are no flock inspection records in the database
+                return Response(
+                    {"detail": "No flock inspection records available."},
+                    status=status.HTTP_200_OK,
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class FlockBreedInformationViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for managing FlockBreedInformation instances.
-
-    Provides the following actions:
-    - `list`: Retrieves a list of all flock breed information.
-    - `create`: Creates new flock breed information.
-    - `retrieve`: Retrieves specific flock breed information by its ID.
-    - `update`: Updates flock breed information.
-    - `destroy`: Deletes flock breed information.
-
-    """
-
     queryset = FlockBreedInformation.objects.all()
     serializer_class = FlockBreedInformationSerializer
-
+    permission_classes = [CanActOnFlockBreedInformation]
 
 class EggCollectionViewSet(viewsets.ModelViewSet):
     """
