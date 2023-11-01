@@ -198,3 +198,48 @@ def setup_flock_data():
         "current_housing_structure": housing_structure.id,
     }
     return {"flock_data": flock_data}
+
+
+@pytest.fixture()
+@pytest.mark.django_db
+def setup_flock_movement_data():
+    housing_structure_data = {
+        "house_type": HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
+        "category": HousingStructureCategoryChoices.BROODER_CHICK_HOUSE,
+    }
+
+    serializer1 = HousingStructureSerializer(data=housing_structure_data)
+    serializer1.is_valid()
+    housing_structure_1 = serializer1.save()
+
+    flock_data = {
+        "source": {"name": FlockSourceChoices.KEN_CHICK},
+        "breed": {"name": FlockBreedTypeChoices.KENBRO},
+        "date_of_hatching": todays_date,
+        "chicken_type": ChickenTypeChoices.LAYERS,
+        "initial_number_of_birds": 300,
+        "current_rearing_method": RearingMethodChoices.DEEP_LITTER,
+        "current_housing_structure": housing_structure_1.id,
+    }
+    serializer2 = FlockSerializer(data=flock_data)
+    serializer2.is_valid()
+    flock = serializer2.save()
+
+    serializer3 = HousingStructureSerializer(data=housing_structure_data)
+    serializer3.is_valid()
+    housing_structure_2 = serializer3.save()
+
+    serializer4 = HousingStructureSerializer(data=housing_structure_data)
+    serializer4.is_valid()
+    housing_structure_3 = serializer4.save()
+
+    flock_movement_data = {
+        "flock": flock.id,
+        "from_structure": housing_structure_1.id,
+        "to_structure": housing_structure_2.id,
+    }
+
+    return {
+        "flock_movement_data": flock_movement_data,
+        "housing_structure_3": housing_structure_3.id,
+    }
