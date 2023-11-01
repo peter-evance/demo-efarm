@@ -216,20 +216,33 @@ class FlockHistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class FlockMovementViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for managing FlockMovement instances.
-
-    Provides the following actions:
-    - `list`: Retrieves a list of all flock movements.
-    - `create`: Creates a new flock movement.
-    - `retrieve`: Retrieves a specific flock movement by its ID.
-    - `update`: Updates a flock movement.
-    - `destroy`: Deletes a flock movement.
-
-    """
-
     queryset = FlockMovement.objects.all()
     serializer_class = FlockMovementSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = FlockMovementFilterSet
+    ordering_fields = ["-movement_date", "flock"]
+    permission_classes = [CanActOnFlockMovement]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                # If query parameters are provided, but there are no matching flock movement records.
+                return Response(
+                    {"detail": "No flock movement records found matching the provided filters."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                # If no query parameters are provided, and there are no flock movement records in the database
+                return Response(
+                    {"detail": "No flock movement records available."},
+                    status=status.HTTP_200_OK,
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class FlockInspectionRecordViewSet(viewsets.ModelViewSet):
