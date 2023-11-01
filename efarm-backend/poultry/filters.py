@@ -79,7 +79,34 @@ class FlockHistoryFilterSet(filters.FilterSet):
 
     class Meta:
         model = FlockHistory
+        fields = ["flock", "rearing_method"]
+
+
+class FlockMovementFilterSet(filters.FilterSet):
+    flock = filters.CharFilter(lookup_expr="icontains")
+    from_structure = filters.CharFilter(lookup_expr="icontains")
+    to_structure = filters.CharFilter(lookup_expr="icontains")
+    year_of_movement = filters.NumberFilter(
+        field_name="movement_date__year", lookup_expr="exact"
+    )
+    month_of_movement = filters.NumberFilter(
+        field_name="movement_date__month", lookup_expr="exact"
+    )
+    week_of_movement = filters.NumberFilter(
+        field_name="movement_date__week", lookup_expr="exact"
+    )
+    day_of_movement = filters.NumberFilter(
+        field_name="movement_date__day", lookup_expr="exact"
+    )
+
+    class Meta:
+        model = FlockMovement
         fields = [
             "flock",
-            "rearing_method"
+            "from_structure",
+            "to_structure",
+            "year_of_movement",
+            "month_of_movement",
+            "week_of_movement",
+            "day_of_movement",
         ]
