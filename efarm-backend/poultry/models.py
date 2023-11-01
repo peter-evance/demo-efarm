@@ -250,106 +250,19 @@ class FlockMovement(models.Model):
 
 
 class FlockInspectionRecord(models.Model):
-    """
-    The model represents an inspection record of a flock.
-
-    Fields:
-    - `flock`: A foreign key to the `Flock` model, representing the inspected flock.
-    - `date`: A DateTime field that automatically records the date and time of the inspection.
-    - `number_of_dead_birds`: A positive integer field representing the number of dead birds found during the inspection.
-
-    Methods:
-    - `daily_number_of_inspection_records_validator()`: Validates the maximum number of inspection records per day.
-    - `inspection_record_time_separation_validator()`: Validates the time separation between inspection records.
-    - `validate_number_of_dead_birds()`: Validates the number of dead birds in the specified inspection records.
-    - `save()`: Overrides the default save method to perform custom validations before saving the instance.
-
-    """
-
     flock = models.ForeignKey(Flock, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
+    date_of_inspection = models.DateTimeField(auto_now_add=True)
     number_of_dead_birds = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        """
-        Returns a string representation of the flock inspection record.
-
-        """
-        return f"Inspection Report - {self.date}"
-
-    def daily_number_of_inspection_records_validator(self):
-        """
-        Validates the maximum number of inspection records per day.
-
-        Raises:
-        - `ValidationError`: If the maximum number of inspection records per day is exceeded.
-
-        """
-        if (
-            FlockInspectionRecord.objects.filter(date__date=self.date.date()).count()
-            > 3
-        ):
-            next_day = self.date + timedelta(days=1)
-            next_day_str = next_day.astimezone(
-                timezone.get_current_timezone()
-            ).strftime("%A, %d %B %Y")
-            raise ValidationError(
-                f"Only three inspection records are allowed per day. "
-                f"The next inspection record can be done on {next_day_str}."
-            )
-
-    def inspection_record_time_separation_validator(self):
-        """
-        Validates the time separation between inspection records.
-
-        Raises:
-        - `ValidationError`: If the time separation between inspection records is less than the threshold.
-
-        """
-        time_threshold = timedelta(hours=4)
-        existing_records = (
-            FlockInspectionRecord.objects.filter(flock=self.flock)
-            .exclude(pk=self.pk)
-            .order_by("date")
-        )
-        if existing_records:
-            last_record = existing_records.last()
-            time_difference = self.date - last_record.date
-            if time_difference < time_threshold:
-                next_time = last_record.date + time_threshold
-                next_time_str = next_time.astimezone(
-                    timezone.get_current_timezone()
-                ).strftime("%I:%M %p")
-                raise ValidationError(
-                    f"Minimum 4 hours of separation is required between inspection records. "
-                    f"The next inspection record can be done at {next_time_str}."
-                )
-
-    def validate_number_of_dead_birds(self):
-        """
-        Validates that the number of dead birds does not exceed the number of living birds in the flock inventory.
-
-        Raises:
-        - `ValidationError`: If the number of dead birds exceeds the number of living birds.
-
-        """
-        flock_inventory = self.flock.inventory
-        if self.number_of_dead_birds > flock_inventory.number_of_alive_birds:
-            raise ValidationError(
-                f"The number of dead birds cannot exceed the number of alive birds"
-                f" in the flock inventory, There is {flock_inventory.number_of_alive_birds} birds, "
-                f"You entered {self.number_of_dead_birds}."
-            )
+        return f"{self.flock} Inspection Report on: {self.date_of_inspection}"
 
     def save(self, *args, **kwargs):
-        """
-        Overrides the default save method to perform custom validations before saving the instance.
-
-        """
-        self.validate_number_of_dead_birds()
+        FlockInspectionRecordValidator.validate_flock_availability(self.flock)
+        FlockInspectionRecordValidator.validate_number_of_dead_birds(self)
         super().save(*args, **kwargs)
-        self.daily_number_of_inspection_records_validator()
-        self.inspection_record_time_separation_validator()
+        FlockInspectionRecordValidator.validate_daily_number_of_inspection_records(self.date_of_inspection)
+        FlockInspectionRecordValidator.validate_inspection_record_time_separation(self.flock, self)
 
 
 class FlockBreedInformation(models.Model):
@@ -363,82 +276,26 @@ class FlockBreedInformation(models.Model):
     - breed: ForeignKey to the FlockBreed model, specifying the breed of the flock.
     - chicken_type: CharField specifying the type of chicken, chosen from a set of choices.
     - date_added: DateField automatically set to the date of creation.
-    - average_mature_weight_in_kgs: DecimalField specifying the average mature weight of the flock breed in kilograms
+    - average_mature_weight_in_kgs: DecimalField specifying the average mature weight of the flock in kilograms,
+      with no specific minimum value.
     - average_egg_production: PositiveIntegerField specifying the average egg production of the flock,
       with the option to be null.
     - maturity_age_in_weeks: PositiveIntegerField specifying the maturity age of the flock in weeks,
-      with a minimum value of 6.
-
-    Methods:
-    - clean(): Performs validation on the model fields. Raises a ValidationError if the chicken type is 'broiler'
-      and average egg production is not null. Raises a ValidationError if the average mature weight is less than 1.50 Kgs.
-      Raises a ValidationError if the maturity age is not within the acceptable range for the chicken type.
-    - save(): Overrides the default save method to perform custom validations before saving the instance.
-
-    """
+      with a minimum value of 6."""
 
     breed = models.ForeignKey(FlockBreed, on_delete=models.CASCADE)
     chicken_type = models.CharField(max_length=15, choices=ChickenTypeChoices.choices)
     date_added = models.DateField(auto_now_add=True)
     average_mature_weight_in_kgs = models.DecimalField(max_digits=3, decimal_places=2)
     average_egg_production = models.PositiveIntegerField(null=True)
-    maturity_age_in_weeks = models.PositiveIntegerField()
+    maturity_age_in_weeks = models.PositiveIntegerField(validators=[MinValueValidator(8), MaxValueValidator(24)])
 
-    class Meta:
-        verbose_name_plural = "Flock Breed Information"
-
-    def validator(self):
-        """
-        Validator method to perform validation on the model fields.
-
-        Raises a ValidationError if the chicken type is 'broiler' and average egg production is not null.
-        Raises a ValidationError if the average mature weight is less than 1.50 Kgs.
-        Raises a ValidationError if the maturity age is not within the acceptable range for the chicken type.
-
-        """
-
-        if (
-            self.chicken_type != ChickenTypeChoices.BROILER
-            and self.average_egg_production is None
-        ):
-            raise ValidationError("Average egg production must be provided!.")
-
-        if (
-            self.chicken_type == ChickenTypeChoices.BROILER
-            and self.average_egg_production is not None
-        ):
-            raise ValidationError("Broilers should not have egg production!.")
-
-        if self.average_mature_weight_in_kgs < Decimal("1.50"):
-            raise ValidationError("Average mature weight should be at least 1.50 Kgs.")
-
-        if self.chicken_type == ChickenTypeChoices.BROILER and not (
-            8 <= self.maturity_age_in_weeks <= 10
-        ):
-            raise ValidationError(
-                "Broilers should have a maturity age between 8 and 10 weeks."
-            )
-
-        if self.chicken_type == ChickenTypeChoices.LAYERS and not (
-            16 <= self.maturity_age_in_weeks <= 18
-        ):
-            raise ValidationError(
-                "Layers should have a maturity age between 16 and 18 weeks."
-            )
-
-        if self.chicken_type == ChickenTypeChoices.MULTI_PURPOSE and not (
-            20 <= self.maturity_age_in_weeks <= 24
-        ):
-            raise ValidationError(
-                "Multipurpose chickens should have a maturity age between 20 and 24 weeks."
-            )
+    def clean(self):
+        FlockBreedInformationValidator.validate_fields(self.chicken_type, self.average_egg_production,
+                                                       self.average_mature_weight_in_kgs, self.maturity_age_in_weeks)
 
     def save(self, *args, **kwargs):
-        """
-        Overrides the default save method to perform custom validations before saving the instance.
-
-        """
-        self.validator()
+        self.clean()
         super().save(*args, **kwargs)
 
 
