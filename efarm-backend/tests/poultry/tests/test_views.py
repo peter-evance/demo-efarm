@@ -2053,3 +2053,639 @@ class TestFlockMovementViewSet:
             format="json",
         )
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+class TestFlockInspectionViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_flock_inspection_data):
+        self.client = setup_users["client"]
+
+        self.regular_user_token = setup_users["regular_user_token"]
+        self.farm_owner_token = setup_users["farm_owner_token"]
+        self.farm_manager_token = setup_users["farm_manager_token"]
+        self.asst_farm_manager_token = setup_users["asst_farm_manager_token"]
+        self.team_leader_token = setup_users["team_leader_token"]
+        self.farm_worker_token = setup_users["farm_worker_token"]
+
+        self.flock_inspection_data = setup_flock_inspection_data["flock_inspection_data"]
+
+    def test_add_flock_inspection_as_farm_owner(self):
+        """
+        Test add flock inspection record by a farm owner.
+        """
+        response = self.client.post(
+            reverse("poultry:flock-inspection-records-list"),
+            data=self.flock_inspection_data,
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_add_flock_movement_as_farm_manager(self):
+        """
+        Test add flock inspection data by a farm manager.
+        """
+        response = self.client.post(
+            reverse("poultry:flock-inspection-records-list"),
+            data=self.flock_inspection_data,
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_add_flock_movement_as_an_assistant_farm_manager(self):
+        """
+        Test add flock inspection data by an assistant farm manager.
+        """
+        response = self.client.post(
+            reverse("poultry:flock-inspection-records-list"),
+            data=self.flock_inspection_data,
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_add_flock_movement_as_team_leader(self):
+        """
+        Test add flock inspection data by a team leader.
+        """
+        response = self.client.post(
+            reverse("poultry:flock-inspection-records-list"),
+            data=self.flock_inspection_data,
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_add_flock_movement_as_farm_worker(self):
+        """
+        Test add flock inspection data by a farm worker.
+        """
+        response = self.client.post(
+            reverse("poultry:flock-inspection-records-list"),
+            data=self.flock_inspection_data,
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_add_flock_movement_as_regular_user(self):
+        """
+        Test add flock inspection data by a regular user.
+        """
+        response = self.client.post(
+            reverse("poultry:flock-inspection-records-list"),
+            data=self.flock_inspection_data,
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_add_flock_movement_without_authentication(self):
+        """
+        Test add flock inspection data without authentication.
+        """
+        response = self.client.post(
+            reverse("poultry:flock-inspection-records-list"),
+            data=self.flock_inspection_data,
+            format="json"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_list_flock_movement_as_farm_owner(self):
+        """
+        Test list flock inspection records by a farm owner.
+        """
+        response = self.client.get(
+            reverse("poultry:flock-inspection-records-list"),
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_list_flock_movement_as_farm_manager(self):
+        """
+        Test list flock inspection records by a farm manager.
+        """
+        response = self.client.get(
+            reverse("poultry:flock-inspection-records-list"),
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_list_flock_movement_as_an_assistant_farm_manager(self):
+        """
+        Test list flock inspection records by an assistant farm manager.
+        """
+        response = self.client.get(
+            reverse("poultry:flock-inspection-records-list"),
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_list_flock_movement_as_team_leader(self):
+        """
+        Test list flock inspection records by a team leader.
+        """
+        response = self.client.get(
+            reverse("poultry:flock-inspection-records-list"),
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_list_flock_movement_as_farm_worker(self):
+        """
+        Test list flock inspection data by a farm worker.
+        """
+        response = self.client.get(
+            reverse("poultry:flock-inspection-records-list"),
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_list_flock_movement_as_regular_user_permission_denied(self):
+        """
+        Test list flock inspection data by a regular user (permission denied).
+        """
+        response = self.client.get(
+            reverse("poultry:flock-inspection-records-list"),
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_list_flock_movement_without_authentication(self):
+        """
+        Test list flock inspection data without authentication. (permission denied).
+        """
+        response = self.client.get(
+            reverse("poultry:flock-inspection-records-list"),
+            format="json"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_update_flock_movement_as_farm_owner(self):
+        """
+        Test update flock inspection records by a farm owner.
+        """
+        serializer = FlockInspectionRecordSerializer(data=self.flock_inspection_data)
+        serializer.is_valid()
+        flock_inspection = serializer.save()
+
+        flock_inspection_update_data = {
+            "number_of_dead_birds": 10
+        }
+
+        response = self.client.patch(
+            reverse("poultry:flock-inspection-records-detail", kwargs={"pk": flock_inspection.id}),
+            data=flock_inspection_update_data,
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+    def test_delete_flock_breed_information_as_farm_owner(self):
+        """
+        Test delete flock inspection records by a farm owner.
+        """
+
+        serializer = FlockInspectionRecordSerializer(data=self.flock_inspection_data)
+        serializer.is_valid()
+        flock_inspection = serializer.save()
+
+        response = self.client.delete(
+            reverse("poultry:flock-inspection-records-detail", kwargs={"pk": flock_inspection.id}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+
+
+@pytest.mark.django_db
+class TestFlockBreedInformationViewSet:
+    @pytest.fixture(autouse=True)
+    def setup(self, setup_users, setup_flock_breed_information_data):
+        self.client = setup_users["client"]
+
+        self.regular_user_token = setup_users["regular_user_token"]
+        self.farm_owner_token = setup_users["farm_owner_token"]
+        self.farm_manager_token = setup_users["farm_manager_token"]
+        self.asst_farm_manager_token = setup_users["asst_farm_manager_token"]
+        self.team_leader_token = setup_users["team_leader_token"]
+        self.farm_worker_token = setup_users["farm_worker_token"]
+
+        self.flock_breed_information_data = setup_flock_breed_information_data["flock_breed_information_data"]
+
+    def test_add_flock_breed_information_as_farm_owner(self):
+        """
+        Test add flock breed information record by a farm owner.
+        """
+        response = self.client.post(
+            reverse("poultry:flock-breed-information-list"),
+            data=self.flock_breed_information_data,
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_add_flock_breed_information_as_farm_manager(self):
+        """
+        Test add flock breed information data by a farm manager.
+        """
+        response = self.client.post(
+            reverse("poultry:flock-breed-information-list"),
+            data=self.flock_breed_information_data,
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_add_flock_breed_information_as_an_assistant_farm_manager_permission_denied(self):
+        """
+        Test add flock breed information data by an assistant farm manager (permission denied).
+        """
+        response = self.client.post(
+            reverse("poultry:flock-breed-information-list"),
+            data=self.flock_breed_information_data,
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_add_flock_breed_information_as_team_leader_permission_denied(self):
+        """
+        Test add flock breed information data by a team leader (permission denied).
+        """
+        response = self.client.post(
+            reverse("poultry:flock-breed-information-list"),
+            data=self.flock_breed_information_data,
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_add_flock_breed_information_as_farm_worker_permission_denied(self):
+        """
+        Test add flock breed information data by a farm worker(permission denied).
+        """
+        response = self.client.post(
+            reverse("poultry:flock-breed-information-list"),
+            data=self.flock_breed_information_data,
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_add_flock_breed_information_as_regular_user_permission_denied(self):
+        """
+        Test add flock breed information data by a regular user (permission denied).
+        """
+        response = self.client.post(
+            reverse("poultry:flock-breed-information-list"),
+            data=self.flock_breed_information_data,
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_add_flock_breed_information_without_authentication(self):
+        """
+        Test add flock breed information data without authentication (permission denied).
+        """
+        response = self.client.post(
+            reverse("poultry:flock-breed-information-list"),
+            data=self.flock_breed_information_data,
+            format="json"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_list_flock_breed_information_as_farm_owner(self):
+        """
+        Test list flock breed information records by a farm owner.
+        """
+        response = self.client.get(
+            reverse("poultry:flock-breed-information-list"),
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_list_flock_breed_information_as_farm_manager(self):
+        """
+        Test list flock breed information records by a farm manager.
+        """
+        response = self.client.get(
+            reverse("poultry:flock-breed-information-list"),
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_list_flock_breed_information_as_an_assistant_farm_manager_permission_denied(self):
+        """
+        Test list flock breed information records by an assistant farm manager (permission denied).
+        """
+        response = self.client.get(
+            reverse("poultry:flock-breed-information-list"),
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_list_flock_breed_information_as_team_leader_permission_denied(self):
+        """
+        Test list flock breed information records by a team leader (permission denied).
+        """
+        response = self.client.get(
+            reverse("poultry:flock-breed-information-list"),
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_list_flock_breed_information_as_farm_worker_permission_denied(self):
+        """
+        Test list flock breed information data by a farm worker(permission denied).
+        """
+        response = self.client.get(
+            reverse("poultry:flock-breed-information-list"),
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_list_flock_breed_information_as_regular_user_permission_denied(self):
+        """
+        Test list flock breed information data by a regular user (permission denied).
+        """
+        response = self.client.get(
+            reverse("poultry:flock-breed-information-list"),
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_list_flock_breed_information_without_authentication(self):
+        """
+        Test list flock breed information data without authentication. (permission denied).
+        """
+        response = self.client.get(
+            reverse("poultry:flock-breed-information-list"),
+            format="json"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_update_flock_breed_information_as_farm_owner(self):
+        """
+        Test update flock breed information records by a farm owner.
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+        flock_breed_information_update_data = {
+            "average_mature_weight_in_kgs": 2.7
+        }
+
+        response = self.client.patch(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            data=flock_breed_information_update_data,
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_update_flock_breed_information_as_farm_manager(self):
+        """
+        Test update flock breed information records by a farm manager.
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+        flock_breed_information_update_data = {
+            "average_mature_weight_in_kgs": 2.7
+        }
+
+        response = self.client.patch(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            data=flock_breed_information_update_data,
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_update_flock_breed_information_as_assistant_farm_manager_permission_denied(self):
+        """
+        Test update flock breed information records by an assistant farm manager (should be denied).
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+        flock_breed_information_update_data = {
+            "average_mature_weight_in_kgs": 2.7
+        }
+
+        response = self.client.patch(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            data=flock_breed_information_update_data,
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_flock_breed_information_as_team_leader_permission_denied(self):
+        """
+        Test update flock breed information records by a team leader (should be denied).
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+        flock_breed_information_update_data = {
+            "average_mature_weight_in_kgs": 2.7
+        }
+
+        response = self.client.patch(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            data=flock_breed_information_update_data,
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_flock_breed_information_a_farm_worker_permission_denied(self):
+        """
+        Test update flock breed information records by a farm worker (should be denied).
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+        flock_breed_information_update_data = {
+            "average_mature_weight_in_kgs": 2.7
+        }
+
+        response = self.client.patch(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            data=flock_breed_information_update_data,
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_flock_breed_information_a_regular_user_permission_denied(self):
+        """
+        Test update flock breed information records by a regular user(should be denied).
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+        flock_breed_information_update_data = {
+            "average_mature_weight_in_kgs": 2.7
+        }
+
+        response = self.client.patch(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            data=flock_breed_information_update_data,
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_update_flock_breed_information_without_authentication(self):
+        """
+        Test update flock breed information records without authentication. (should be denied).
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+        flock_breed_information_update_data = {
+            "to_structure": self.flock_breed_information_data
+        }
+
+        response = self.client.patch(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            data=flock_breed_information_update_data,
+            format="json"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_delete_flock_breed_information_as_farm_owner(self):
+        """
+        Test delete flock breed information records by a farm owner.
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+
+        response = self.client.delete(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_owner_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_delete_flock_breed_information_as_farm_manager(self):
+        """
+        Test delete flock breed information records by a farm manager.
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+
+        response = self.client.delete(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_delete_flock_breed_information_as_assistant_farm_manager_permission_denied(self):
+        """
+        Test delete flock breed information records by an assistant farm manager (should be denied).
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+
+        response = self.client.delete(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            HTTP_AUTHORIZATION=f"Token {self.asst_farm_manager_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_delete_flock_breed_information_as_team_leader_permission_denied(self):
+        """
+        Test delete flock breed information records by a team leader (should be denied).
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+
+        response = self.client.delete(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            HTTP_AUTHORIZATION=f"Token {self.team_leader_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_delete_flock_breed_information_a_farm_worker_permission_denied(self):
+        """
+        Test delete flock breed information records by a farm worker (should be denied).
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+
+        response = self.client.delete(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            HTTP_AUTHORIZATION=f"Token {self.farm_worker_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_delete_flock_breed_information_a_regular_user_permission_denied(self):
+        """
+        Test delete flock breed information records by a regular user(should be denied).
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+
+        response = self.client.delete(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            HTTP_AUTHORIZATION=f"Token {self.regular_user_token}",
+            format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_delete_flock_breed_information_without_authentication(self):
+        """
+        Test delete flock breed information records without authentication. (should be denied).
+        """
+
+        serializer = FlockBreedInformationSerializer(data=self.flock_breed_information_data)
+        serializer.is_valid()
+        flock_breed_information = serializer.save()
+
+        response = self.client.delete(
+            reverse("poultry:flock-breed-information-detail", kwargs={"pk": flock_breed_information.id}),
+            format="json"
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED

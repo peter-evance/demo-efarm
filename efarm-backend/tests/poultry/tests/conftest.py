@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 from django.urls import reverse
 from rest_framework import status
@@ -243,3 +245,57 @@ def setup_flock_movement_data():
         "flock_movement_data": flock_movement_data,
         "housing_structure_3": housing_structure_3.id,
     }
+
+
+@pytest.fixture()
+@pytest.mark.django_db
+def setup_flock_inspection_data():
+    housing_structure_data = {
+        "house_type": HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
+        "category": HousingStructureCategoryChoices.BROODER_CHICK_HOUSE,
+    }
+
+    serializer1 = HousingStructureSerializer(data=housing_structure_data)
+    serializer1.is_valid()
+    housing_structure = serializer1.save()
+
+    flock_data = {
+        "source": {"name": FlockSourceChoices.KEN_CHICK},
+        "breed": {"name": FlockBreedTypeChoices.KENBRO},
+        "date_of_hatching": todays_date - timedelta(weeks=3),
+        "chicken_type": ChickenTypeChoices.LAYERS,
+        "initial_number_of_birds": 300,
+        "current_rearing_method": RearingMethodChoices.DEEP_LITTER,
+        "current_housing_structure": housing_structure.id
+    }
+    serializer2 = FlockSerializer(data=flock_data)
+    serializer2.is_valid()
+    flock = serializer2.save()
+
+    flock_inspection_data = {
+        "flock": flock.id,
+        "number_of_dead_birds": 5,
+    }
+
+    return {
+        "flock_inspection_data": flock_inspection_data,
+    }
+
+
+@pytest.fixture()
+@pytest.mark.django_db
+def setup_flock_breed_information_data():
+    flock_breed_data = {"name": FlockBreedTypeChoices.KENBRO}
+    serializer = FlockBreedSerializer(data=flock_breed_data)
+    serializer.is_valid()
+    flock_breed = serializer.save()
+
+    flock_breed_information_data = {
+        "breed": flock_breed.id,
+        "chicken_type": ChickenTypeChoices.LAYERS,
+        "average_mature_weight_in_kgs": 2.5,
+        "average_egg_production": 275,
+        "maturity_age_in_weeks": 17
+    }
+
+    return {"flock_breed_information_data": flock_breed_information_data}
