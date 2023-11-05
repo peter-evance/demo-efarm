@@ -12,8 +12,8 @@ class MilkInventorySerializer(serializers.ModelSerializer):
 class MilkInventoryUpdateHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = MilkInventoryUpdateHistory
-        fields = ('amount_in_kgs_change', 'update_type', 'amount_in_kgs', 'date')
-        read_only_fields = ('amount_in_kgs_change', 'update_type', 'amount_in_kgs', 'date')
+        fields = '__all__'
+        read_only_fields = ('amount_in_kgs', 'date')
 
 
 class CowInventorySerializer(serializers.ModelSerializer):

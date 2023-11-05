@@ -32,6 +32,6 @@ def update_flock_current_housing_structure(sender, instance, **kwargs):
 
     """
 
-    flock: Flock = instance.flock
+    flock = instance.flock
     flock.current_housing_structure = instance.to_structure
     flock.save()

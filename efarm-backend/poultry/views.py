@@ -119,7 +119,9 @@ class HousingStructureViewSet(viewsets.ModelViewSet):
             if request.query_params:
                 # If query parameters are provided, but there are no matching housing types
                 return Response(
-                    {"detail": "No Housing structure(s) found matching the provided filters."},
+                    {
+                        "detail": "No Housing structure(s) found matching the provided filters."
+                    },
                     status=status.HTTP_404_NOT_FOUND,
                 )
             else:
@@ -230,7 +232,9 @@ class FlockMovementViewSet(viewsets.ModelViewSet):
             if request.query_params:
                 # If query parameters are provided, but there are no matching flock movement records.
                 return Response(
-                    {"detail": "No flock movement records found matching the provided filters."},
+                    {
+                        "detail": "No flock movement records found matching the provided filters."
+                    },
                     status=status.HTTP_404_NOT_FOUND,
                 )
             else:
@@ -280,7 +284,9 @@ class FlockInspectionRecordViewSet(viewsets.ModelViewSet):
             if request.query_params:
                 # If query parameters are provided, but there are no matching flock inspection records.
                 return Response(
-                    {"detail": "No flock inspection records found matching the provided filters."},
+                    {
+                        "detail": "No flock inspection records found matching the provided filters."
+                    },
                     status=status.HTTP_404_NOT_FOUND,
                 )
             else:
@@ -299,6 +305,7 @@ class FlockBreedInformationViewSet(viewsets.ModelViewSet):
     queryset = FlockBreedInformation.objects.all()
     serializer_class = FlockBreedInformationSerializer
     permission_classes = [CanActOnFlockBreedInformation]
+
 
 class EggCollectionViewSet(viewsets.ModelViewSet):
     """
