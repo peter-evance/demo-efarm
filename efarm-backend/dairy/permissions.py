@@ -582,3 +582,54 @@ class CanActOnQuarantineRecord(BasePermission):
                 {"message": "Authentication credentials were not provided."}
             )
         raise PermissionDenied(self.message)
+
+
+class CanActOnBarn(BasePermission):
+    message = {
+        "message": "Only farm owners and farm managers have permission to perform this action."
+    }
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+                request.user.is_farm_owner or request.user.is_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanActOnCowPen(BasePermission):
+    message = {
+        "message": "Only farm owners and farm managers have permission to perform this action."
+    }
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+                request.user.is_farm_owner or request.user.is_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanActOnCowInPenMovement(BasePermission):
+    message = {
+        "message": "Only farm owners and farm managers have permission to perform this action."
+    }
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and (
+                request.user.is_farm_owner or request.user.is_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
