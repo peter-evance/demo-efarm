@@ -17,8 +17,8 @@ router.register(r'pregnancy-records', PregnancyViewSet, basename='pregnancy-reco
 router.register(r'weight-records', WeightRecordViewSet, basename='weight-records')
 router.register(r'culling-records', CullingRecordViewSet, basename='culling-records')
 router.register(r'quarantine-records', QuarantineRecordViewSet, basename='quarantine-records')
-router.register(r'barns', BarnViewSet, basename='barn')
-router.register(r'cow-pens', CowPenViewSet, basename='cow-pen')
+router.register(r'barns', BarnViewSet, basename='barns')
+router.register(r'cow-pens', CowPenViewSet, basename='cow-pens')
 router.register(r'cow-in-pen-movements', CowInPenMovementViewSet, basename='cow-in-pen-movement')
 router.register(r'cow-in-barn-movements', CowInBarnMovementViewSet, basename='cow-in-barn-movement')
 
