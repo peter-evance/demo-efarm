@@ -9,7 +9,6 @@ const routes: Routes = [
   { path: 'register', component: RegistrationComponent,canActivate: [registrationGuard], data: { routeName: 'register' } },
   { path: 'login', component: LoginComponent, canActivate: [loginGuard], data: { routeName: 'login' } },
   { path: 'logout', component: LogoutComponent, canActivate: [logOutGuard], data: { routeName: 'logout' } },
-  // Add other routes as needed
 ];
 
 @NgModule({

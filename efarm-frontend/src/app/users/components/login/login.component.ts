@@ -86,16 +86,6 @@ export class LoginComponent implements OnInit {
   }
 
   /**
-   * Handles the actions to be taken on successful login.
-   * @param Token - The authentication token received upon successful login.
-   */
-  handleLoginSuccess(token: string) {
-    localStorage.setItem('Token', token);
-    this.router.navigate(['/logout']);
-    this.showSuccessToast('Logged in successfully');
-  }
-
-  /**
    * Handles the actions to be taken on login failure.
    * @param message - The error message to be displayed.
    */
