@@ -152,8 +152,8 @@ class CowPenTypeChoices(models.TextChoices):
     - `Fixed`: Fixed pen.
     """
 
-    Movable = "Movable"
-    Fixed = "Fixed"
+    MOVABLE = "Movable"
+    FIXED = "Fixed"
 
 
 class CowPenCategoriesChoices(models.TextChoices):
@@ -170,14 +170,14 @@ class CowPenCategoriesChoices(models.TextChoices):
     - `General_Pen`: General-purpose pen.
     """
 
-    Calf_Pen = "Calf Pen"
-    Sick_Pen = "Sick Pen"
-    Breeding_Pen = "Breeding Pen"
-    Quarantine_Pen = "Quarantine Pen"
-    Bull_Pen = "Bull Pen"
-    Heifer_Pen = "Heifer Pen"
-    Dry_Pen = "Dry Pen"
-    General_Pen = "General Pen"
+    CALF_PEN = "Calf Pen"
+    SICK_PEN = "Sick Pen"
+    BREEDING_PEN = "Breeding Pen"
+    QUARANTINE_PEN = "Quarantine Pen"
+    BULL_PEN = "Bull Pen"
+    HEIFER_PEN = "Heifer Pen"
+    DRY_PEN = "Dry Pen"
+    GENERAL_PEN = "General Pen"
 
 
 class SemenSourceChoices(models.TextChoices):

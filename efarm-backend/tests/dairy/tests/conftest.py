@@ -377,3 +377,90 @@ def setup_quarantine_record_data():
         "reason": QuarantineReasonChoices.NEW_COW,
     }
     return quarantine_data
+
+
+@pytest.fixture()
+def setup_barn_data():
+    barn_data = {
+        "name": "BARN A",
+        "capacity": 50
+    }
+
+    return {"barn_data": barn_data}
+
+
+@pytest.fixture()
+def setup_cow_pen_data():
+    barn_data = {
+        "name": "BARN A",
+        "capacity": 20
+    }
+
+    serializer = BarnSerializer(data=barn_data)
+    serializer.is_valid()
+    barn = serializer.save()
+
+    cow_pen_data = {
+        "barn": barn.id,
+        "pen_type": CowPenTypeChoices.FIXED,
+        "category": CowPenCategoriesChoices.CALF_PEN,
+        "capacity": 3
+    }
+
+    return {"cow_pen_data": cow_pen_data}
+
+
+@pytest.fixture()
+def setup_cow_in_pen_movement_data():
+    barn_data = {
+        "name": "BARN A",
+        "capacity": 20
+    }
+
+    serializer1 = BarnSerializer(data=barn_data)
+    serializer1.is_valid()
+    barn = serializer1.save()
+
+    cow_pen_1_data = {
+        "barn": barn.id,
+        "pen_type": CowPenTypeChoices.FIXED,
+        "category": CowPenCategoriesChoices.CALF_PEN,
+        "capacity": 1
+    }
+    serializer2 = CowPenSerializer(data=cow_pen_1_data)
+    serializer2.is_valid()
+    cow_pen_1 = serializer2.save()
+
+    cow_pen_2_data = {
+        "barn": barn.id,
+        "pen_type": CowPenTypeChoices.FIXED,
+        "category": CowPenCategoriesChoices.HEIFER_PEN,
+        "capacity": 2
+    }
+    serializer3 = CowPenSerializer(data=cow_pen_2_data)
+    serializer3.is_valid()
+    cow_pen_2 = serializer3.save()
+
+    cow = {
+        "name": "General Cow",
+        "breed": {"name": CowBreedChoices.AYRSHIRE},
+        "date_of_birth": todays_date - timedelta(days=370),
+        "gender": SexChoices.FEMALE,
+        "availability_status": CowAvailabilityChoices.ALIVE,
+        "current_pregnancy_status": CowPregnancyChoices.OPEN,
+        "category": CowCategoryChoices.HEIFER,
+        "current_production_status": CowProductionStatusChoices.OPEN,
+    }
+
+    serializer4 = CowSerializer(data=cow)
+    serializer4.is_valid()
+    cow = serializer4.save()
+
+    cow_in_pen_movement_data = {
+        "cow": cow.id,
+        "previous_pen": cow_pen_2.id,
+        "new_pen": cow_pen_1.id
+    }
+
+    return {"cow_in_pen_movement_data": cow_in_pen_movement_data,
+            "cow_pen_2": cow_pen_2}

@@ -464,72 +464,31 @@ class QuarantineRecordViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class CowPenViewSet(viewsets.ModelViewSet):
+    serializer_class = CowPenSerializer
+    queryset = CowPen.objects.all()
+    permission_classes = [CanActOnCowPen]
+
+
 class CowInBarnMovementViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet for the CowInBarnMovement model.
-
-    Provides the following actions:
-    - `list`: Retrieves a list of all cow movements in the barn.
-    - `retrieve`: Retrieves a specific cow movement by its ID.
-
-    """
-
     serializer_class = CowInBarnMovementSerializer
     queryset = CowInBarnMovement.objects.all()
+    permission_classes = [CanActOnBarn]
 
 
 class CowInPenMovementViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for the CowInPenMovement model.
-
-    Provides the following actions:
-    - `list`: Retrieves a list of all cow movements in the cow pens.
-    - `retrieve`: Retrieves a specific cow movement by its ID.
-    - `create`: Creates a new cow movement.
-    - `update`: Updates an existing cow movement.
-    - `partial_update`: Performs a partial update on an existing cow movement.
-    - `destroy`: Deletes a specific cow movement.
-
-    """
-
     serializer_class = CowInPenMovementSerializer
     queryset = CowInPenMovement.objects.all()
+    permission_classes = [CanActOnCowInPenMovement]
 
-
-class CowPenViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for the CowPen model.
-
-    Provides the following actions:
-    - `list`: Retrieves a list of all cow pens.
-    - `retrieve`: Retrieves a specific cow pen by its ID.
-    - `create`: Creates a new cow pen.
-    - `update`: Updates an existing cow pen.
-    - `partial_update`: Performs a partial update on an existing cow pen.
-    - `destroy`: Deletes a specific cow pen.
-
-    """
-
-    serializer_class = CowPenSerializer
-    queryset = CowPen.objects.all()
+    def update(self, request, *args, **kwargs):
+        raise MethodNotAllowed("PUT")
 
 
 class BarnViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for the Barn model.
-
-    Provides the following actions:
-    - `list`: Retrieves a list of all barns.
-    - `retrieve`: Retrieves a specific barn by its ID.
-    - `create`: Creates a new barn.
-    - `update`: Updates an existing barn.
-    - `partial_update`: Performs a partial update on an existing barn.
-    - `destroy`: Deletes a specific barn.
-
-    """
-
     serializer_class = BarnSerializer
     queryset = Barn.objects.all()
+    permission_classes = [CanActOnBarn]
 
 
 class MilkTodayView(APIView):
