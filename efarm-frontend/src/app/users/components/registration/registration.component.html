@@ -1,0 +1,53 @@
+<div class="flex justify-center items-center h-screen">
+  <mat-card class="w-96" style="background-color: rgb(9, 188, 21);">
+    <mat-card-header class="justify-center">
+      <mat-card-title>Sign Up...</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" class="space-y-4">
+        <div class="flex flex-col">
+          <mat-form-field>
+            <mat-label class="custom-mat-form-field">Username</mat-label>
+            <input matInput type="text" placeholder="Username" formControlName="username">
+          </mat-form-field>
+        </div>
+        <div class="flex flex-col">
+          <mat-form-field>
+            <mat-label>First Name</mat-label>
+            <input matInput type="text" placeholder="First Name" formControlName="first_name">
+          </mat-form-field>
+        </div>
+        <div class="flex flex-col">
+          <mat-form-field>
+            <mat-label>Last Name</mat-label>
+            <input matInput type="text" placeholder="Last Name" formControlName="last_name">
+          </mat-form-field>
+        </div>
+        <div class="flex flex-col">
+          <mat-form-field>
+            <mat-label>Phone Number</mat-label>
+            <input matInput type="text" placeholder="+254..." formControlName="phone_number">
+          </mat-form-field>
+        </div>
+        <div class="flex flex-col">
+          <mat-form-field>
+            <mat-label>Gender</mat-label>
+            <select matNativeControl formControlName="sex">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </mat-form-field>
+        </div>
+        <div class="flex flex-col">
+          <mat-form-field>
+            <mat-label>Password</mat-label>
+            <input matInput type="password" placeholder="Password" formControlName="password">
+          </mat-form-field>
+        </div>
+        <div class="flex justify-center">
+          <button mat-raised-button id="registerButton" color="primary" type="submit" [disabled]="!registrationForm.valid">Register</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

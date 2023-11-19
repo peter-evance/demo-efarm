@@ -1,0 +1,12 @@
+/* Customize the Toastr success message */
+.toast-success {
+    background-color: #4caf50; /* Green background color */
+    color: white; /* White text color */
+  }
+  
+  /* Customize the Toastr error message */
+  .toast-error {
+    background-color: #f44336; /* Red background color */
+    color: white; /* White text color */
+  }
+  
