@@ -465,9 +465,7 @@ class CanAddFlockInspection(BasePermission):
         permission_classes = [CanViewFlockInspection]
     """
 
-    message = {
-        "message": "Only farm staff have permission to perform this action."
-    }
+    message = {"message": "Only farm staff have permission to perform this action."}
 
     def has_permission(self, request, view):
         """
@@ -477,11 +475,11 @@ class CanAddFlockInspection(BasePermission):
             bool: True if the user is a farm staff, otherwise raises PermissionDenied.
         """
         if request.user.is_authenticated and (
-                request.user.is_farm_owner
-                or request.user.is_farm_worker
-                or request.user.is_farm_manager
-                or request.user.is_assistant_farm_manager
-                or request.user.is_farm_worker
+            request.user.is_farm_owner
+            or request.user.is_farm_worker
+            or request.user.is_farm_manager
+            or request.user.is_assistant_farm_manager
+            or request.user.is_farm_worker
         ):
             return True
         if not request.user.is_authenticated:
@@ -503,9 +501,7 @@ class CanAddViewUpdateFlockInspection(BasePermission):
         permission_classes = [CanViewFlockInspection]
     """
 
-    message = {
-        "message": "Only farm staff have permission to perform this action."
-    }
+    message = {"message": "Only farm staff have permission to perform this action."}
 
     def has_permission(self, request, view):
         """
@@ -515,11 +511,11 @@ class CanAddViewUpdateFlockInspection(BasePermission):
             bool: True if the user is a farm staff, otherwise raises PermissionDenied.
         """
         if request.user.is_authenticated and (
-                request.user.is_farm_owner
-                or request.user.is_farm_worker
-                or request.user.is_farm_manager
-                or request.user.is_assistant_farm_manager
-                or request.user.is_farm_worker
+            request.user.is_farm_owner
+            or request.user.is_farm_worker
+            or request.user.is_farm_manager
+            or request.user.is_assistant_farm_manager
+            or request.user.is_farm_worker
         ):
             return True
         if not request.user.is_authenticated:
@@ -553,7 +549,7 @@ class CanDeleteFlockInspection(BasePermission):
             bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
         """
         if request.user.is_authenticated and (
-                request.user.is_farm_owner or request.user.is_farm_manager
+            request.user.is_farm_owner or request.user.is_farm_manager
         ):
             return True
         if not request.user.is_authenticated:
@@ -565,15 +561,15 @@ class CanDeleteFlockInspection(BasePermission):
 
 class CanActOnFlockBreedInformation(BasePermission):
     """
-        Custom permission class that allows farm owners and managers to act on flock breed information records.
+    Custom permission class that allows farm owners and managers to act on flock breed information records.
 
-        Raises:
-        - `PermissionDenied`: If the user is not a farm owner or a farm manager.
+    Raises:
+    - `PermissionDenied`: If the user is not a farm owner or a farm manager.
 
-        Usage:
-            Add the permission class to the view or viewset that requires permission to act on flock breed information:
-            permission_classes = [CanActOnFlockBreedInformation]
-        """
+    Usage:
+        Add the permission class to the view or viewset that requires permission to act on flock breed information:
+        permission_classes = [CanActOnFlockBreedInformation]
+    """
 
     message = {
         "message": "Only farm owners and managers have permission to perform this action."
@@ -587,7 +583,110 @@ class CanActOnFlockBreedInformation(BasePermission):
             bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
         """
         if request.user.is_authenticated and (
-                request.user.is_farm_owner or request.user.is_farm_manager
+            request.user.is_farm_owner or request.user.is_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanAddEggCollection(BasePermission):
+    """
+    Custom permission class that allows farm owners and managers to add egg collection record.
+
+    Raises:
+    - `PermissionDenied`: If the user is not a farm staff.
+
+    Usage:
+        Add the permission class to the view or viewset that requires permission to add egg collection record:
+        permission_classes = [CanAddEggCollection]
+    """
+
+    message = {"message": "Only farm Staff allowed to add egg collection records."}
+
+    def has_permission(self, request, view):
+        """
+        Check if the current user is a farm staff.
+
+        Returns:
+            bool: True if the user is a farm staff, otherwise raises PermissionDenied.
+        """
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner
+            or request.user.is_farm_manager
+            or request.user.is_assistant_farm_manager
+            or request.user.is_farm_worker
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanViewEggCollection(BasePermission):
+    """
+    Custom permission class that allows farm owners and managers to view egg collection records.
+
+    Raises:
+    - `PermissionDenied`: If the user is not a farm owner or a farm manager.
+
+    Usage:
+        Add the permission class to the view or viewset that requires permission to view egg collection records:
+        permission_classes = [CanViewEggCollection]
+    """
+
+    message = {
+        "message": "Only farm owners and managers have permission to perform this action."
+    }
+
+    def has_permission(self, request, view):
+        """
+        Check if the current user is a farm owner or a farm manager.
+
+        Returns:
+            bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
+        """
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner or request.user.is_farm_manager
+        ):
+            return True
+        if not request.user.is_authenticated:
+            raise AuthenticationFailed(
+                {"message": "Authentication credentials were not provided."}
+            )
+        raise PermissionDenied(self.message)
+
+
+class CanDeleteEggCollection(BasePermission):
+    """
+    Custom permission class that allows farm owners and managers to delete egg collection records.
+
+    Raises:
+    - `PermissionDenied`: If the user is not a farm owner or a farm manager.
+
+    Usage:
+        Add the permission class to the view or viewset that requires permission to delete egg collection records:
+        permission_classes = [CanDeleteEggCollection]
+    """
+
+    message = {
+        "message": "Only farm owners and managers have permission to perform this action."
+    }
+
+    def has_permission(self, request, view):
+        """
+        Check if the current user is a farm owner or a farm manager.
+
+        Returns:
+            bool: True if the user is a farm owner or a farm manager, otherwise raises PermissionDenied.
+        """
+        if request.user.is_authenticated and (
+            request.user.is_farm_owner or request.user.is_farm_manager
         ):
             return True
         if not request.user.is_authenticated:
