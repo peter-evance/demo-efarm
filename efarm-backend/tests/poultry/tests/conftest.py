@@ -299,3 +299,34 @@ def setup_flock_breed_information_data():
     }
 
     return {"flock_breed_information_data": flock_breed_information_data}
+
+
+@pytest.fixture()
+def setup_egg_collection_data():
+    housing_structure_data = {
+        "house_type": HousingStructureTypeChoices.DEEP_LITTER_HOUSE,
+        "category": HousingStructureCategoryChoices.GROWERS_HOUSE,
+    }
+
+    serializer1 = HousingStructureSerializer(data=housing_structure_data)
+    serializer1.is_valid()
+    housing_structure_1 = serializer1.save()
+    flock_data = {
+        "source": {"name": FlockSourceChoices.KEN_CHICK},
+        "breed": {"name": FlockBreedTypeChoices.KENBRO},
+        "date_of_hatching": todays_date - timedelta(weeks=14),
+        "chicken_type": ChickenTypeChoices.LAYERS,
+        "initial_number_of_birds": 400,
+        "current_rearing_method": RearingMethodChoices.DEEP_LITTER,
+        "current_housing_structure": housing_structure_1.id
+    }
+    serializer2 = FlockSerializer(data=flock_data)
+    serializer2.is_valid()
+    flock = serializer2.save()
+
+    egg_collection_data = {
+        "flock": flock.id,
+        "collected_eggs": 80,
+        "broken_eggs": 4
+    }
+    return {"egg_collection_data": egg_collection_data}
