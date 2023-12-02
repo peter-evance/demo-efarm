@@ -994,34 +994,21 @@ class Barn(models.Model):
 
 
 class CowPen(models.Model):
-    """
-    The model represents a cow pen in a dairy farm.
-
-    Fields:
-    - `barn`: A foreign key to the `Barn` model, representing the barn to which the pen belongs.
-    - `type`: A character field for the type of the pen, chosen from the available choices in `CowPenTypeChoices`.
-    - `category`: A character field for the category of the pen, chosen from the available choices in `CowPenCategoriesChoices`.
-    - `capacity`: An integer field for the maximum number of cows the pen can hold. It must be a positive integer value greater than or equal to 1.
-
-    Methods:
-    - `clean()`: A method used for model validation. It checks if a pen of type 'Fixed' is changing its barn, raising a validation error if so.
-
-    """
-
     barn = models.ForeignKey(Barn, on_delete=models.CASCADE, related_name="pens")
-    type = models.CharField(max_length=15, choices=CowPenTypeChoices.choices)
+    pen_type = models.CharField(max_length=15, choices=CowPenTypeChoices.choices)
     category = models.CharField(max_length=15, choices=CowPenCategoriesChoices.choices)
     capacity = models.PositiveIntegerField(validators=[MinValueValidator(1)], default=1)
 
     def clean(self):
-        super().clean()
-        if self.type == CowPenTypeChoices.Fixed and self.pk:
-            old_barn: Barn = CowPen.objects.get(pk=self.pk).barn
-            if self.barn != old_barn:
-                raise ValidationError("A pen of type 'Fixed' cannot change its barn.")
+        CowPenValidator.validate_cow_pen_type(self.barn, self.pen_type, self.pk)
+        CowPenValidator.validate_cow_pen_capacity(self.barn, self.capacity, self.pk)
 
     def __str__(self):
-        return f"Cow Pen {self.type}, {self.category}"
+        return f"Cow Pen {self.pen_type} - {self.category}"
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class CowInPenMovement(models.Model):

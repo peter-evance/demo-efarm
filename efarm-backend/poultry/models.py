@@ -300,30 +300,9 @@ class FlockBreedInformation(models.Model):
 
 
 class EggCollection(models.Model):
-    """
-    Model representing the collection of eggs from a flock.
-
-    Fields:
-    - `flock`: A foreign key relationship to the `Flock` model, representing the flock from which the eggs are collected.
-    - `date`: A DateField automatically set to the current date when the egg collection is added.
-    - `time`: A TimeField automatically set to the current time when the egg collection is added.
-    - `collected_eggs`: A PositiveIntegerField representing the number of eggs collected.
-    - `broken_eggs`: A PositiveIntegerField representing the number of broken eggs.
-
-    Methods:
-    - `picking_time`: Returns a string indicating whether the egg collection was done in the morning or afternoon.
-    - `validator()`: Validates the data before saving, ensuring the broken egg count is not greater than the collected egg count,
-      the collected egg count does not exceed the count of living birds in the flock for the day, limits data entry to thrice per day,
-      restricts the flock type to layers or multipurpose, the flock is marked as present, and the flock is 14 weeks or older.
-
-    """
-
-    class Meta:
-        verbose_name_plural = "Egg Collections"
-
     flock = models.ForeignKey(Flock, on_delete=models.CASCADE)
-    date = models.DateField(auto_now_add=True)
-    time = models.TimeField(auto_now_add=True)
+    date_of_collection = models.DateField(auto_now_add=True)
+    time_of_collection = models.TimeField(auto_now_add=True)
     collected_eggs = models.PositiveIntegerField(default=0)
     broken_eggs = models.PositiveIntegerField(default=0)
 
@@ -336,88 +315,20 @@ class EggCollection(models.Model):
         - str: The picking time, either 'Morning' or 'Afternoon'.
 
         """
-        hour = self.time.hour
+        hour = self.time_of_collection.hour
         if hour < 12:
             return "Morning"
         else:
             return "Afternoon"
 
-    def validator(
-        self,
-    ):  # This is just a custom validator, it is not inherited from django
-        """
-        Validates the data before saving the egg collection.
-
-        Raises:
-        - ValidationError: If the broken egg count is greater than the collected egg count,
-          the collected egg count exceeds the count of living birds in the flock for the day,
-          the data entry for the flock exceeds thrice per day, the flock type is not layers or multipurpose,
-          the flock is not marked as present, or the flock is younger than 14 weeks.
-
-        """
-        if not self.flock.is_present:
-            raise ValidationError(
-                f"Egg collection is only allowed for flocks marked as present. This flock was "
-                f"marked not present on {self.flock.inventory.last_update.astimezone(timezone.get_current_timezone()).strftime('%A %B %d, %Y')}."
-            )
-
-        count: int = EggCollection.objects.filter(
-            flock=self.flock, date=self.date
-        ).count()
-        if count > 3:
-            tomorrow = timezone.now().astimezone(
-                timezone.get_current_timezone()
-            ).date() + timezone.timedelta(days=1)
-            raise ValidationError(
-                f"Data entry for this flock is limited to thrice per day. "
-                f"Please try again on {tomorrow.strftime('%A %B %d, %Y')}."
-            )
-
-        if self.broken_eggs > self.collected_eggs:
-            raise ValidationError(
-                f"Broken eggs count ({self.broken_eggs}) cannot be greater than the collected eggs "
-                f"count ({self.collected_eggs})"
-            )
-
-        live_bird_count: int = self.flock.inventory.number_of_alive_birds
-        total_collected_eggs: int = (
-            EggCollection.objects.filter(flock=self.flock, date=self.date)
-            .exclude(pk=self.pk)
-            .aggregate(total=Sum("collected_eggs"))
-            .get("total")
-            or 0
+    def clean(self):
+        EggCollectionValidator.validate_flock_eligibility(self.flock)
+        EggCollectionValidator.validate_egg_collection_records_per_day(self.flock)
+        EggCollectionValidator.validate_egg_collection_count(
+            self.flock, self.date_of_collection, self.broken_eggs, self.collected_eggs, self.pk
         )
 
-        if total_collected_eggs + self.collected_eggs > live_bird_count:
-            if live_bird_count - total_collected_eggs <= 0:
-                raise ValidationError(
-                    f"Collected egg count for the day cannot exceed the count of living birds in the "
-                    f"flock, This flock has {live_bird_count} birds. The "
-                    f"total collected eggs today is {total_collected_eggs}."
-                )
-
-            raise ValidationError(
-                f"Collected egg count for the day cannot exceed the count of living birds in the "
-                f"flock, This flock has {live_bird_count} birds, and the collected "
-                f"eggs today must be {live_bird_count - total_collected_eggs} or lower. The "
-                f"total collected eggs today is {total_collected_eggs}."
-            )
-
-        if self.flock.chicken_type not in [
-            ChickenTypeChoices.LAYERS,
-            ChickenTypeChoices.MULTI_PURPOSE,
-        ]:
-            raise ValidationError(
-                f"Egg collection is restricted to layers or multipurpose flocks, "
-                f"You selected {self.flock.chicken_type.lower()}."
-            )
-
-        if self.flock.age_in_weeks < 14:
-            raise ValidationError(
-                f"Egg collection is only allowed for flocks of age 14 weeks or older, "
-                f"This flock is currently {self.flock.age_in_weeks} weeks old."
-            )
-
     def save(self, *args, **kwargs):
+        self.clean()
         super().save(*args, **kwargs)
-        self.validator()
+

@@ -207,21 +207,8 @@ class CowPenInventory(models.Model):
 
 
 class CowPenHistory(models.Model):
-    """
-    Model representing the history of a cow pen.
-
-    Fields:
-    - `pen`: A foreign key to the `CowPen` model, representing the associated cow pen.
-    - `barn`: A foreign key to the `Barn` model, representing the barn to which the cow pen belongs.
-    - `type`: A character field representing the type of the cow pen.
-    - `number_of_cows`: The number of cows in the cow pen at the time of the history record.
-    - `timestamp`: Date and time of the cow pen history record.
-
-    """
-
     pen = models.ForeignKey(CowPen, on_delete=models.CASCADE)
     barn = models.ForeignKey(Barn, on_delete=models.CASCADE)
-    type = models.CharField(max_length=15, choices=CowPenTypeChoices.choices)
+    pen_type = models.CharField(max_length=15, choices=CowPenTypeChoices.choices)
     number_of_cows = models.PositiveIntegerField()
     timestamp = models.DateTimeField(auto_now_add=True)
-
