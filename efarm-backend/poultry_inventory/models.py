@@ -85,3 +85,16 @@ class FlockInventoryHistory(models.Model):
     date = models.DateField()
     number_of_birds = models.PositiveIntegerField()
     mortality_rate = models.DecimalField(max_digits=5, decimal_places=2)
+
+
+class EggInventory(models.Model):
+    total_egg_count = models.PositiveIntegerField(default=0, editable=False)
+
+
+class EggInventoryHistory(models.Model):
+    egg_inventory = models.ForeignKey(EggInventory, on_delete=models.CASCADE)
+    date_time = models.DateTimeField(auto_now_add=True)
+    egg_count = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"Egg inventory history - {self.egg_count}"
