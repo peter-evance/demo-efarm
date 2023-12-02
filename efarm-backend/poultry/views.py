@@ -308,17 +308,46 @@ class FlockBreedInformationViewSet(viewsets.ModelViewSet):
 
 
 class EggCollectionViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for managing EggCollection instances.
-
-    Provides the following actions:
-    - `list`: Retrieve a list of all egg collections.
-    - `create`: Create a new egg collection.
-    - `retrieve`: Retrieves a specific egg collection by its ID.
-    - `update`: Updates an egg collection.
-    - `destroy`: Delete an egg collection.
-
-    """
-
     queryset = EggCollection.objects.all()
     serializer_class = EggCollectionSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = EggCollectionFilterSet
+    ordering_fields = ["-date_of_collection", "-time_of_collection", "flock"]
+
+    def get_permissions(self):
+        if self.action in ["create"]:
+            permission_classes = [CanAddEggCollection]
+        elif self.action in ["destroy"]:
+            permission_classes = [CanDeleteEggCollection]
+        else:
+            permission_classes = [CanViewEggCollection]
+        return [permission() for permission in permission_classes]
+
+    def update(self, request, *args, **kwargs):
+        # Disallowed update for egg collection records— Temporary.
+        return Response(
+            {"detail": "Updates are not allowed!."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        if not queryset.exists():
+            if request.query_params:
+                # If query parameters are provided, but there are no matching records
+                return Response(
+                    {"detail": "No Egg collection record(s) found matching the provided filters."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            else:
+                # If no query parameters are provided, and there are no egg collection records in the database
+                return Response(
+                    {"detail": "No Egg collection records found in the farm yet."},
+                    status=status.HTTP_200_OK,
+                )
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

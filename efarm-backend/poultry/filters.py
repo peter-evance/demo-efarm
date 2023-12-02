@@ -114,9 +114,15 @@ class FlockMovementFilterSet(filters.FilterSet):
 
 class FlockInspectionRecordFilterSet(filters.FilterSet):
     flock = filters.CharFilter(lookup_expr="icontains")
-    month_of_inspection = filters.NumberFilter(field_name="date_of_inspection__month", lookup_expr="exact")
-    week_of_inspection = filters.NumberFilter(field_name="date_of_inspection__week", lookup_expr="exact")
-    day_of_inspection = filters.NumberFilter(field_name="date_of_inspection__day", lookup_expr="exact")
+    month_of_inspection = filters.NumberFilter(
+        field_name="date_of_inspection__month", lookup_expr="exact"
+    )
+    week_of_inspection = filters.NumberFilter(
+        field_name="date_of_inspection__week", lookup_expr="exact"
+    )
+    day_of_inspection = filters.NumberFilter(
+        field_name="date_of_inspection__day", lookup_expr="exact"
+    )
 
     class Meta:
         model = FlockInspectionRecord
@@ -124,5 +130,31 @@ class FlockInspectionRecordFilterSet(filters.FilterSet):
             "flock",
             "month_of_inspection",
             "week_of_inspection",
-            "day_of_inspection"
+            "day_of_inspection",
+        ]
+
+
+class EggCollectionFilterSet(filters.FilterSet):
+    flock = filters.CharFilter(lookup_expr="icontains")
+    month_of_collection = filters.NumberFilter(
+        field_name="date_of_collection__month", lookup_expr="exact"
+    )
+    week_of_collection = filters.NumberFilter(
+        field_name="date_of_collection__week", lookup_expr="exact"
+    )
+    day_of_collection = filters.NumberFilter(
+        field_name="date_of_collection__day", lookup_expr="exact"
+    )
+    time_of_collection = filters.NumberFilter(
+        field_name="time_of_collection__day", lookup_expr="exact"
+    )
+
+    class Meta:
+        model = EggCollection
+        fields = [
+            "flock",
+            "month_of_collection",
+            "week_of_collection",
+            "day_of_collection",
+            "time_of_collection",
         ]
