@@ -57,3 +57,18 @@ def update_flock_inventory_and_flock(sender, instance, **kwargs):
         # Set the is_present field of the Flock instance to False
         flock.is_present = False
         flock.save()
+
+
+@receiver(post_save, sender=EggCollection)
+def update_egg_inventory(instance, **kwargs):
+    egg_inventory = EggInventory.objects.first()
+    if not egg_inventory:
+        egg_inventory = EggInventory.objects.create()
+    egg_inventory.total_egg_count += (instance.collected_eggs - instance.broken_eggs)
+    egg_inventory.save()
+
+
+@receiver(post_save, sender=EggInventory)
+def create_egg_inventory_history(instance, created, sender, **kwargs):
+    if not created:
+        EggInventoryHistory.objects.create(egg_inventory=instance, egg_count=instance.total_egg_count)

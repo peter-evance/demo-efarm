@@ -136,20 +136,6 @@ class FlockBreedInformationSerializer(serializers.ModelSerializer):
 
 
 class EggCollectionSerializer(serializers.ModelSerializer):
-    """
-    Serializer for the EggCollection model.
-
-    Serializes the following fields:
-    - `id`: The ID of the egg collection.
-    - `flock`: The associated flock for the egg collection.
-    - `date`: The date when the egg collection was added.
-    - `time`: The time when the egg collection was added.
-    - `collected_eggs`: The number of eggs collected.
-    - `broken_eggs`: The number of broken eggs.
-
-    Provides serialization and deserialization of EggCollection instances.
-    """
-
     flock = serializers.PrimaryKeyRelatedField(queryset=Flock.objects.all())
 
     class Meta:

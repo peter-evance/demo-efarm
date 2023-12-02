@@ -45,7 +45,7 @@ def create_cow_pen_inventory_and_history(sender, instance, **kwargs):
     CowPenHistory.objects.create(
         pen=instance,
         barn=instance.barn,
-        type=instance.type,
+        pen_type=instance.pen_type,
         number_of_cows=pen_inventory.number_of_cows,
     )
 
