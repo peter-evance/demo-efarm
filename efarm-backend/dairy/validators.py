@@ -835,3 +835,40 @@ class QuarantineValidator:
             raise ValidationError(
                 "Invalid entry, new quarantine records must not have end dates "
             )
+
+
+class CowPenValidator:
+    @staticmethod
+    def validate_cow_pen_type(barn, pen_type, pk):
+        from dairy.models import CowPen
+
+        if pen_type == CowPenTypeChoices.FIXED and pk:
+            old_barn = CowPen.objects.get(pk=pk).barn
+            if barn != old_barn:
+                raise ValidationError("A pen of type 'Fixed' cannot change its barn.")
+
+    @staticmethod
+    def validate_cow_pen_capacity(barn, pen_capacity, pk):
+        from dairy.models import CowPen
+
+        if pk:
+            barn_pens = list(CowPen.objects.filter(barn=barn).exclude(id=pk))
+            occupied_capacity = 0
+            for pen in barn_pens:
+                occupied_capacity += pen.capacity
+            if (barn.capacity - occupied_capacity) - pen_capacity < 0:
+                raise ValidationError(
+                    f"This barn has unoccupied capacity of {barn.capacity - occupied_capacity}, you specified {pen_capacity}"
+                    f", which is above the limit by {pen_capacity - (barn.capacity - occupied_capacity)}"
+                )
+
+        else:
+            barn_pens = list(CowPen.objects.filter(barn=barn))
+            occupied_capacity = 0
+            for pen in barn_pens:
+                occupied_capacity += pen.capacity
+            if (barn.capacity - occupied_capacity) - pen_capacity < 0:
+                raise ValidationError(
+                    f"This barn has unoccupied capacity of {barn.capacity - occupied_capacity}, you specified {pen_capacity}"
+                    f", which is above the limit by {pen_capacity - (barn.capacity - occupied_capacity)}"
+                )

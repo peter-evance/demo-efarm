@@ -2,6 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
+from django.db.models import Sum
 from django.utils import timezone
 
 from poultry.choices import *
@@ -332,3 +333,53 @@ class FlockBreedInformationValidator:
             raise ValidationError(
                 "Multipurpose chickens should have a maturity age between 20 and 24 weeks."
             )
+
+
+class EggCollectionValidator:
+    @staticmethod
+    def validate_flock_eligibility(flock):
+
+        if flock.chicken_type not in [ChickenTypeChoices.LAYERS, ChickenTypeChoices.MULTI_PURPOSE]:
+            raise ValidationError(f"Egg collection is restricted to layers or multipurpose flocks, "
+                                  f"You selected {flock.chicken_type.lower()}.")
+
+        if flock.age_in_weeks < 14:
+            raise ValidationError(f"Egg collection is only allowed for flocks of age 14 weeks or older, "
+                                  f"This flock is currently {flock.age_in_weeks} weeks old.")
+        if not flock.is_present:
+            raise ValidationError(f"Egg collection is only allowed for flocks marked as present. This flock was "
+                                  f"marked not present on {flock.inventory.last_update.astimezone(timezone.get_current_timezone()).strftime('%A %B %d, %Y')}.")
+
+    @staticmethod
+    def validate_egg_collection_records_per_day(flock):
+        from poultry.models import EggCollection
+        count = EggCollection.objects.filter(flock=flock, date_of_collection=todays_date).count()
+        if count >= 3:
+            tomorrow = timezone.now().astimezone(timezone.get_current_timezone()).date() + timezone.timedelta(days=1)
+            raise ValidationError(f"Data entry for this flock is limited to thrice per day. "
+                                  f"Please try again on {tomorrow.strftime('%A %B %d, %Y')}.")
+
+    @staticmethod
+    def validate_egg_collection_count(flock, date_of_collection, broken_eggs, collected_eggs, pk):
+        from poultry.models import EggCollection
+
+        if broken_eggs > collected_eggs:
+            raise ValidationError(
+                f"Broken eggs count ({broken_eggs}) cannot be greater than the collected eggs "
+                f"count ({collected_eggs})")
+
+        live_bird_count = flock.inventory.number_of_alive_birds
+        total_collected_eggs = (
+                EggCollection.objects.filter(flock=flock, date_of_collection=date_of_collection).exclude(pk=pk)
+                .aggregate(total=Sum('collected_eggs')).get('total') or 0)
+
+        if (total_collected_eggs + collected_eggs) > live_bird_count:
+            if live_bird_count - total_collected_eggs <= 0:
+                raise ValidationError(
+                    f"Collected egg count for the day cannot exceed the count of living birds in the "
+                    f"flock, This flock has {live_bird_count} birds. The "
+                    f"total collected eggs today is {total_collected_eggs}.")
+            raise ValidationError(f"Collected egg count for the day cannot exceed the count of living birds in the "
+                                  f"flock, This flock has {live_bird_count} birds, and the collected "
+                                  f"eggs today must be {live_bird_count - total_collected_eggs} or lower. The "
+                                  f"total collected eggs today is {total_collected_eggs}.")
