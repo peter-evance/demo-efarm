@@ -160,7 +160,7 @@ class Cow(models.Model):
         """
         self.clean()
         super().save(*args, **kwargs)
-        CowValidator.validate_introduction_date(self.date_introduced_in_farm)
+        # CowValidator.validate_introduction_date(self.date_introduced_in_farm)
         CowValidator.validate_age_category(
             self.age,
             self.category,
