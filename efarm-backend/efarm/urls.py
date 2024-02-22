@@ -22,9 +22,8 @@ schema_view = get_schema_view(
    openapi.Info(
       title="E-Farm API",
       default_version='v1',
-      description="Test description",
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="contact@snippets.local"),
+      description="Ad Hoc Implementation of E-Farm Application",
+      contact=openapi.Contact(email="peterevance1@gmail.com"),
       license=openapi.License(name="BSD License"),
    ),
    public=True,
@@ -44,6 +43,6 @@ urlpatterns = [
     path('dairy_inventory/', include('dairy_inventory.urls')),
     path('poultry/', include('poultry.urls', namespace='poultry')),
     path('poultry_inventory/', include('poultry_inventory.urls', namespace='poultry_inventory')),
-    path('auth/', include('users.urls', namespace='users')),
+    path('users/', include('users.urls', namespace='users')),
 
 ]

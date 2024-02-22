@@ -7,7 +7,7 @@ from users.views import *
 app_name = 'users'
 
 router = routers.DefaultRouter()
-router.register(r'users', CustomUserViewSet, basename='users')
+router.register(r'', CustomUserViewSet, basename='users')
 
 urlpatterns = [
     path('login/', TokenCreateView.as_view(), name='login'),
